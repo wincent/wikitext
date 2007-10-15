@@ -1,0 +1,6 @@
+*.o
+mkmf.log
+WikiText.tokens
+WikiTextLexer.*
+wiki_text.bundle
+
