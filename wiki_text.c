@@ -76,7 +76,7 @@ const char ANTLR3_INLINE *_wiki_text_parser_target_encoding(void)
 {
 #if defined(__LITTLE_ENDIAN__)
     return "UCS-2LE";
-#elif define(__BIG_ENDIAN__)
+#elif defined(__BIG_ENDIAN__)
     return "UCS-2BE";
 #else
     // try to figure out endianness dynamically
