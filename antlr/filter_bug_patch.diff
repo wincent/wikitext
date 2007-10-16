@@ -1,0 +1,12 @@
+--- antlr-3.0.1/src/org/antlr/codegen/CodeGenerator.java.old	2007-10-16 16:21:05.000000000 +0200
++++ antlr-3.0.1/src/org/antlr/codegen/CodeGenerator.java	2007-10-16 16:22:04.000000000 +0200
+@@ -298,7 +298,8 @@
+ 		}
+ 
+ 		boolean filterMode = grammar.getOption("filter")!=null &&
+-							  grammar.getOption("filter").equals("true");
++							  grammar.getOption("filter").equals("true") &&
++							  ( grammar.type==Grammar.LEXER );
+ 		boolean canBacktrack = grammar.getSyntacticPredicates()!=null ||
+ 							   filterMode;
+ 
