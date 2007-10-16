@@ -485,7 +485,7 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
             case BLOCKQUOTE:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)))
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
-                    rb_str_append(output, rb_str_new((const char *)(stream->data + (token->start * 2)), (token->stop - token->start + 1) * 2));
+                    rb_str_append(output, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
                 else
                 {
                     rb_ary_push(line, INT2FIX(BLOCKQUOTE));
@@ -687,7 +687,7 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)))
                 {
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
-                    rb_str_append(output, rb_str_new((const char *)(stream->data + (token->start * 2)), (token->stop - token->start + 1) * 2));
+                    rb_str_append(output, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
                     break;
                 }
 
@@ -789,7 +789,7 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
                         k++;
                         if (type == OL || type == UL)
                         {
-                            rb_str_append(output, rb_str_new((const char *)(stream->data + (token->start * 2)), (token->stop - token->start + 1) * 2));
+                            rb_str_append(output, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
                             token = NULL;
                         }
                         else
@@ -812,7 +812,7 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)))
                 {
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
-                    rb_str_append(output, rb_str_new((const char *)(stream->data + (token->start * 2)), (token->stop - token->start + 1) * 2));
+                    rb_str_append(output, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
                     break;
                 }
 
@@ -952,12 +952,12 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
                 _wiki_text_pop_excess_elements(scope, line, output, line_ending);
 
                 // check for runs of spaces
-                i       = (long)stream->data + (token->start * 2);  // initial starting position (pointer into input stream)
-                j       = 2;                                        // initial length (one char, two bytes)
+                i       = (long)token->start;   // initial starting position (pointer into input stream)
+                j       = 2;                    // initial length (one char, two bytes)
                 token   = NULL;
                 while ((token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource)) && (token->type == SPACE))
                 {
-                    j += 2;             // two bytes per char
+                    j += 2;                     // two bytes per char
                     token = NULL;
                 }
 
@@ -989,7 +989,7 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
             case ENTITY:
                 _wiki_text_pop_excess_elements(scope, line, output, line_ending);
                 _wiki_text_start_para_if_necessary(scope, line, output, &pending_crlf);
-                rb_str_append(output, rb_str_new((const char *)(stream->data + (token->start * 2)), (token->stop - token->start + 1) * 2));
+                rb_str_append(output, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
                 break;
 
             case QUOT:
@@ -1074,14 +1074,13 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case PRINTABLE:
                 _wiki_text_pop_excess_elements(scope, line, output, line_ending);
-
                 // given that PRINTABLE tokens will often come in runs, we peek ahead and see if there are any more so as to handle them all at once
-                i       = (long)stream->data + (token->start * 2);  // initial starting position (pointer into input stream)
-                j       = 2;                                        // initial length (one char, two bytes)
+                i       = (long)token->start;   // initial starting position (pointer into input stream)
+                j       = 2;                    // initial length (one char, two bytes)
                 token   = NULL;
                 while ((token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource)) && (token->getType(token) == PRINTABLE))
                 {
-                    j += 2;             // two bytes per char
+                    j += 2;                     // two bytes per char
                     token = NULL;
                 }
 
@@ -1099,9 +1098,9 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
                 _wiki_text_start_para_if_necessary(scope, line, output, &pending_crlf);
 
                 // convert to hexadecimal numeric entity
-                i               = *((pANTLR3_UINT16)(stream->data + (token->start * 2)));   // the character
-                j               = (i & 0xf000) >> 12;                                       // start at most significant nibble
-                hex_string[3]   = (j <= 9 ? j + 48 : j + 87);                               // convert 0-15 to UCS-2: '0'-'9', 'a'-'f'
+                i               = *((pANTLR3_UINT16)token->start);  // the character
+                j               = (i & 0xf000) >> 12;               // start at most significant nibble
+                hex_string[3]   = (j <= 9 ? j + 48 : j + 87);       // convert 0-15 to UCS-2: '0'-'9', 'a'-'f'
                 j               = (i & 0x0f00) >> 8;
                 hex_string[4]   = (j <= 9 ? j + 48 : j + 87);
                 j               = (i & 0x00f0) >> 4;
