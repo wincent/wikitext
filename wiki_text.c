@@ -421,7 +421,7 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
             VALUE current = INT2FIX(type);
 
             // for lines with *lots* of consecutive PRINTABLES this could be quite wasteful, so only store one
-            //if (type != PRINTABLE || NIL_P(top) || FIX2INT(top) != PRINTABLE)
+            //if (type != PRINTABLE || NIL_P(top) || FIX2INT(top) != PRINTABLE)
                 rb_ary_push(line_buffer, current);
         }
 
