@@ -1,4 +1,4 @@
---- antlr-3.0.1/src/org/antlr/codegen/CodeGenerator.java.old	2007-10-16 16:21:05.000000000 +0200
+--- antlr-3.0.1/src/org/antlr/codegen/CodeGenerator.java	2007-10-16 16:21:05.000000000 +0200
 +++ antlr-3.0.1/src/org/antlr/codegen/CodeGenerator.java	2007-10-16 16:22:04.000000000 +0200
 @@ -298,7 +298,8 @@
  		}
