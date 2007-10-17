@@ -86,6 +86,11 @@ const char ANTLR3_INLINE *_wiki_text_parser_target_encoding(void)
 #endif
 }
 
+// TODO: remove dependence on iconv (should be quicker to do this internally); UTF-8 <--> UCS-2 conversion is not that difficult
+// TODO: also look at moving to UTF-32 (because UCS-2 is an obsolete format); this may have to wait until we do a Ragel rewrite
+// (using the alphtype directive with UInt32 or similar)
+// because the ANTLR C target runtime is currently only equipped to handle ASCII or USC-2; to handle UTF-32 I believe I'd have to
+// write a custom input stream "subclass"
 VALUE _wiki_text_setup_iconv()
 {
     // no attempt at thread safety here (TODO: add it?)
@@ -931,21 +936,37 @@ VALUE wiki_text_parser_parse(int argc, VALUE *argv, VALUE self)
                 break;
 
             case URI:
+                // if in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
+                // if last token was ext_link start, this is the destination of the link
+                // else if in ext_link scope, this must be part of the label
+                // if in (non-external) link scope, this must be part of the article title (bad title!)
                 break;
 
             case LINK_START:
+                // if in plain scope, starts a link scope (must record start marker)
+                // could potentially emit the '<a href="' at that point
+                // if elsewhere must treat this as plain text
                 break;
 
             case LINK_END:
+                // if in link scope, this ends it (if link is valid, will insert hyperlink)
+                // at this point probably do the '">link text</a>'
+                // if elsewhere must treat this as plain text
                 break;
 
             case EXT_LINK_START:
+                // if in plain scope, starts an ext_link scope (must record start marker)
+                // if elsewhere must treat this as plain text
                 break;
 
             case EXT_LINK_END:
+                // if in ext_link scope, this ends it (if link is valid will insert hyperlink)
+                // if elsewhere must treat this as plain text
                 break;
 
             case SEPARATOR:
+                // if in link_scope and we've seen an article title, this delimits the target text (extract it using start marker)
+                // if elsewhere must treat this as plain text
                 break;
 
             case SPACE:
@@ -1160,9 +1181,10 @@ void Init_wiki_text()
     // classes
     cParser     = rb_define_class_under(mWikiText, "Parser", rb_cObject);
 
-    // methods
+    // instance methods
     rb_define_method(cParser, "initialize", wiki_text_parser_initialize, 0);
     rb_define_method(cParser, "parse", wiki_text_parser_parse, -1);
+//    rb_define_method(cParser, "internal_link")
 
     // accessors
     rb_define_attr(cParser, "line_ending", Qtrue, Qtrue);
@@ -1174,3 +1196,4 @@ void Init_wiki_text()
     // unlike MediaWiki, the first char of the URL is to be case-insensitive?
     // or require the user to set up a redirect?
 }
+
