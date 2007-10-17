@@ -10,12 +10,32 @@ CLOBBER.include Rake::FileList['WikitextLexer.c', 'WikitextLexer.h', 'Wikitext.t
 task :default => :all
 
 desc 'Build all and run all specs'
-task :all => :spec
+task :all => [:make, :spec]
+
+extension_makefile  = 'ext/Makefile'
+built_extension     = "ext/wikitext.#{Config::CONFIG['DLEXT']}" # wikitext.bundle (Darwin), wikitext.so (Linux)
+extension_files     = FileList[
+  'ext/Makefile',
+  'ext/wikitext.c',
+  'ext/wikitext.h',
+  'ext/WikitextLexer.c',
+  'ext/WikitextLexer.h',
+  'ext/Wikitext.g'
+]
 
 desc 'Build C extension'
-task :extension do |t|
-  ruby  'extconf.rb'
-  sh    'make'
+task :make => [extension_makefile, built_extension]
+
+file extension_makefile => ['ext/extconf.rb', 'ext/depend'] do
+  Dir.chdir('ext') do
+    ruby 'extconf.rb'
+  end
+end
+
+file built_extension => extension_files do
+  Dir.chdir('ext') do
+    sh 'make'
+  end
 end
 
 desc 'Run specs'
