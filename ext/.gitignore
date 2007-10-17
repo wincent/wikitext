@@ -1,0 +1,7 @@
+*.o
+Makefile
+*.log
+*.tokens
+*.bundle
+*.so
+

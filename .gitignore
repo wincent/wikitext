@@ -1,6 +1,2 @@
-*.o
-mkmf.log
-WikiText.tokens
-wiki_text.bundle
-wiki_text.so
+pkg
 

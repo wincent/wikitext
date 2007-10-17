@@ -25,5 +25,5 @@
 #endif
 
 // the ANTLR-generated lexer
-#include "WikiTextLexer.h"
+#include "WikitextLexer.h"
 

@@ -16,9 +16,9 @@ antlr_sources           := $(lexer_sources)
 .PHONY : antlr
 antlr  : $(antlr_sources)
 
-wiki_text.o : wiki_text.h WikiTextLexer.h
-WikiTextLexer.o : $(antlr_sources)
-WikiTextLexer.c WikiTextLexer.h : WikiText.g
-	$(ANTLR_CMD) WikiText.g
+Wikitext.o : Wikitext.h WikitextLexer.h
+WikitextLexer.o : $(antlr_sources)
+WikitextLexer.c WikitextLexer.h : Wikitext.g
+	$(ANTLR_CMD) Wikitext.g
 
 CFLAGS += -std=gnu99

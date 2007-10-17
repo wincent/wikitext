@@ -1,14 +1,13 @@
 #!/usr/bin/env ruby
 # Copyright 2007 Wincent Colaiuta
 
-require 'rubygems'
-require 'spec'
-require 'wiki_text'
+require File.join(File.dirname(__FILE__), 'spec_helper.rb')
+require 'wikitext'
 
-describe WikiText::Parser do
+describe Wikitext::Parser do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should default to UNIX line endings' do
@@ -23,10 +22,10 @@ describe WikiText::Parser do
 
 end
 
-describe WikiText::Parser, 'with UNIX line endings' do
+describe Wikitext::Parser, 'with UNIX line endings' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
     @parser.line_ending = "\n"
   end
 
@@ -41,10 +40,10 @@ describe WikiText::Parser, 'with UNIX line endings' do
 
 end
 
-describe WikiText::Parser, 'with Windows line endings' do
+describe Wikitext::Parser, 'with Windows line endings' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
     @parser.line_ending = "\r"
   end
 
@@ -59,10 +58,10 @@ describe WikiText::Parser, 'with Windows line endings' do
 
 end
 
-describe WikiText::Parser, 'with Mac line endings' do
+describe Wikitext::Parser, 'with Mac line endings' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
     @parser.line_ending = "\r\n"
   end
 
@@ -77,10 +76,10 @@ describe WikiText::Parser, 'with Mac line endings' do
 
 end
 
-describe WikiText::Parser, 'parsing paragraphs' do
+describe Wikitext::Parser, 'parsing paragraphs' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should wrap bare text in paragraph tags' do
@@ -105,10 +104,10 @@ describe WikiText::Parser, 'parsing paragraphs' do
 
 end
 
-describe WikiText::Parser, 'parsing blockquotes' do
+describe Wikitext::Parser, 'parsing blockquotes' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should treat ">" in first column as a blockquote marker' do
@@ -151,10 +150,10 @@ describe WikiText::Parser, 'parsing blockquotes' do
 
 end
 
-describe WikiText::Parser, 'parsing <pre> blocks' do
+describe Wikitext::Parser, 'parsing <pre> blocks' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize a single-line <pre> block' do
@@ -218,10 +217,10 @@ describe WikiText::Parser, 'parsing <pre> blocks' do
 
 end
 
-describe WikiText::Parser, 'parsing <nowiki> spans' do
+describe Wikitext::Parser, 'parsing <nowiki> spans' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should not echo paired <nowiki> and </nowiki> tags' do
@@ -333,10 +332,10 @@ describe WikiText::Parser, 'parsing <nowiki> spans' do
 
 end
 
-describe WikiText::Parser, 'parsing <h1> blocks' do
+describe Wikitext::Parser, 'parsing <h1> blocks' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired <h1> and </h1> tags' do
@@ -377,10 +376,10 @@ describe WikiText::Parser, 'parsing <h1> blocks' do
 
 end
 
-describe WikiText::Parser, 'parsing <h2> blocks' do
+describe Wikitext::Parser, 'parsing <h2> blocks' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired <h2> and </h2> tags' do
@@ -421,10 +420,10 @@ describe WikiText::Parser, 'parsing <h2> blocks' do
 
 end
 
-describe WikiText::Parser, 'parsing <h3> blocks' do
+describe Wikitext::Parser, 'parsing <h3> blocks' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired <h3> and </h3> tags' do
@@ -465,10 +464,10 @@ describe WikiText::Parser, 'parsing <h3> blocks' do
 
 end
 
-describe WikiText::Parser, 'parsing <h4> blocks' do
+describe Wikitext::Parser, 'parsing <h4> blocks' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired <h4> and </h4> tags' do
@@ -509,10 +508,10 @@ describe WikiText::Parser, 'parsing <h4> blocks' do
 
 end
 
-describe WikiText::Parser, 'parsing <h5> blocks' do
+describe Wikitext::Parser, 'parsing <h5> blocks' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired <h5> and </h5> tags' do
@@ -553,10 +552,10 @@ describe WikiText::Parser, 'parsing <h5> blocks' do
 
 end
 
-describe WikiText::Parser, 'parsing <h6> blocks' do
+describe Wikitext::Parser, 'parsing <h6> blocks' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired <h6> and </h6> tags' do
@@ -597,10 +596,10 @@ describe WikiText::Parser, 'parsing <h6> blocks' do
 
 end
 
-describe WikiText::Parser, 'parsing unordered lists' do
+describe Wikitext::Parser, 'parsing unordered lists' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize a single item list' do
@@ -697,10 +696,10 @@ EXPECTED
 
 end
 
-describe WikiText::Parser, 'parsing <tt> spans' do
+describe Wikitext::Parser, 'parsing <tt> spans' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired <tt> and </tt> tags' do
@@ -737,10 +736,10 @@ describe WikiText::Parser, 'parsing <tt> spans' do
 
 end
 
-describe WikiText::Parser, 'parsing <strong> spans' do
+describe Wikitext::Parser, 'parsing <strong> spans' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired <strong> tokens' do
@@ -769,10 +768,10 @@ describe WikiText::Parser, 'parsing <strong> spans' do
 
 end
 
-describe WikiText::Parser, 'parsing <em> spans' do
+describe Wikitext::Parser, 'parsing <em> spans' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired <em> tokens' do
@@ -801,10 +800,10 @@ describe WikiText::Parser, 'parsing <em> spans' do
 
 end
 
-describe WikiText::Parser, 'parsing combined <strong>/<em> spans' do
+describe Wikitext::Parser, 'parsing combined <strong>/<em> spans' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should recognize paired "<strong><em>" tokens' do
@@ -844,10 +843,10 @@ describe WikiText::Parser, 'parsing combined <strong>/<em> spans' do
 
 end
 
-describe WikiText::Parser, 'parsing entities' do
+describe Wikitext::Parser, 'parsing entities' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should pass numeric (decimal) entities through unchanged' do
@@ -869,10 +868,10 @@ describe WikiText::Parser, 'parsing entities' do
 
 end
 
-describe WikiText::Parser, 'parsing non-ASCII input' do
+describe Wikitext::Parser, 'parsing non-ASCII input' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should convert non-ASCII characters to numeric entities' do
@@ -881,10 +880,10 @@ describe WikiText::Parser, 'parsing non-ASCII input' do
 
 end
 
-describe WikiText::Parser, 'parsing characters which have special meaning in HTML' do
+describe Wikitext::Parser, 'parsing characters which have special meaning in HTML' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should convert "<" into the corresponding named entity' do
@@ -906,10 +905,10 @@ describe WikiText::Parser, 'parsing characters which have special meaning in HTM
 
 end
 
-describe WikiText::Parser, 'with large slab of input text' do
+describe Wikitext::Parser, 'with large slab of input text' do
 
   before do
-    @parser = WikiText::Parser.new
+    @parser = Wikitext::Parser.new
   end
 
   it 'should handle nested lists which follow other items' do

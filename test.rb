@@ -1,4 +1,5 @@
-require 'wiki_text'
+#!/usr/bin/env ruby
+require File.dirname(__FILE__) + '/ext/wikitext'
 
 input = <<INPUT
 paragraph
@@ -54,10 +55,9 @@ a normal paragraph again
 # new list
 INPUT
 
-@p = WikiText::Parser.new
+@p = Wikitext::Parser.new
 
 750.times do
-  #WikiText::Parser.new.parse(input)
   @p.parse(input)
 end
 

@@ -1,16 +1,16 @@
 require 'rake'
 require 'rake/clean'
+require 'rake/gempackagetask'
+require 'rubygems'
+require 'spec/rake/spectask'
 
 CLEAN.include   Rake::FileList['**/*.so', '**/*.bundle', '**/*.o', 'mkmf.log', 'Makefile']
-CLOBBER.include Rake::FileList['WikiTextLexer.c', 'WikiTextLexer.h', 'WikiText.tokens']
+CLOBBER.include Rake::FileList['WikitextLexer.c', 'WikitextLexer.h', 'Wikitext.tokens']
 
 task :default => :all
 
 desc 'Build all and run all specs'
 task :all => :spec
-
-desc 'Run all specs'
-task :spec => [:run_extension_specs, :run_plugin_specs]
 
 desc 'Build C extension'
 task :extension do |t|
@@ -18,23 +18,29 @@ task :extension do |t|
   sh    'make'
 end
 
-desc 'Run specs for wikitext extension'
-task :run_extension_specs => :extension do
-  sh 'spec', 'wiki_text_spec.rb'
+desc 'Run specs'
+Spec::Rake::SpecTask.new('spec') do |t|
+  t.spec_files  = FileList['spec/**/*_spec.rb']
 end
 
-desc 'Build Rails plug-in'
-task :plugin => :extension do
-  case PLATFORM
-  when /darwin/i  then  ext_file = 'wiki_text.bundle'
-  when /linux/i   then  ext_file = 'wiki_text.so'
-  else            raise "unsupported platform #{PLATFORM}"
-  end
-  cp ext_file, 'plugin/lib/'
+SPEC = Gem::Specification.new do |s|
+  s.name          = 'wikitext'
+  s.version       = '0.1'
+  s.author        = 'Wincent Colaiuta'
+  s.email         = 'win@wincent.com'
+  s.homepage      = 'http://wincent.com/'
+  s.platform      = Gem::Platform::RUBY
+  s.summary       = 'Wikitext-to-HTML translator'
+  s.description   = <<-ENDDESC
+    Wikitext is a fast wikitext-to-HTML translator written in C.
+  ENDDESC
+  s.require_paths = ['ext']
+  s.autorequire   = 'wikitext'
+  s.has_rdoc      = true
+  s.files         = FileList['spec/*', 'ext/*.{rb,c,h}'].to_a # TODO: add 'docs' subdirectory, 'README.txt' when they're done
+  s.extensions    = ['ext/extconf.rb']
 end
 
-desc 'Run specs for Rails plug-in'
-task :run_plugin_specs => :plugin do
-  # not yet implemented
+Rake::GemPackageTask.new(SPEC) do |t|
+  t.need_tar      = true
 end
-

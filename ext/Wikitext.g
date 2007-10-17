@@ -1,6 +1,6 @@
 // Copyright 2007 Wincent Colaiuta
 
-lexer grammar WikiText;
+lexer grammar Wikitext;
 
 options {
   filter = true;
