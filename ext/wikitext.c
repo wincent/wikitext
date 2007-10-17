@@ -69,71 +69,145 @@ static ANTLR3_UINT16 amp_entity_literal[]           = { '&', 'a', 'm', 'p',';' }
 static ANTLR3_UINT16 lt_entity_literal[]            = { '&', 'l', 't', ';' };
 static ANTLR3_UINT16 gt_entity_literal[]            = { '&', 'g', 't', ';' };
 
-// Returns the text encoding that should be used as a conversion target for iconv when preparing the input stream for ANTLR.
-// When running on little-endian systems returns UCS-2LE.
-// Otherwise returns UCS-2BE.
-const char ANTLR3_INLINE *_Wikitext_parser_target_encoding(void)
-{
-#if defined(__LITTLE_ENDIAN__)
-    return "UCS-2LE";
-#elif defined(__BIG_ENDIAN__)
-    return "UCS-2BE";
-#else
-    // try to figure out endianness dynamically
-    int i = 0;
-    ((char *)(&i))[0] = 1;
-    return (i == 1) ? "UCS-2LE" : "UCS-2LE";
-#endif
-}
-
-// TODO: remove dependence on iconv (should be quicker to do this internally); UTF-8 <--> UCS-2 conversion is not that difficult
-// TODO: also look at moving to UTF-32 (because UCS-2 is an obsolete format); this may have to wait until we do a Ragel rewrite
-// (using the alphtype directive with UInt32 or similar)
+// TODO: look at moving to UTF-32 (because UCS-2 is an obsolete format); this may have to wait until we do a Ragel rewrite
+// (using the alphtype directive with uint32_t or similar)
 // because the ANTLR C target runtime is currently only equipped to handle ASCII or USC-2; to handle UTF-32 I believe I'd have to
 // write a custom input stream "subclass"
-VALUE _Wikitext_setup_iconv()
+
+#define INVALID_ENCODING(msg)  do { free(dest_ptr); rb_raise(rb_eRangeError, "invalid encoding: " msg); } while(0)
+
+// alternate implementation that doesn't depend on iconv
+// this method is public to enable direct unit testing
+// this implementation is architecture-dependent
+// (when run on little-endian machines expects UCS-2LE, when run on big endian machines expects UCS-2BE)
+VALUE Wikitext_ucs2_to_utf8(VALUE self, VALUE in)
 {
-    // no attempt at thread safety here (TODO: add it?)
-    if (rb_Iconv == 0)
+    VALUE ucs2          = StringValue(in); // duck typing: raises TypeError if passed object is not String-like
+    uint16_t *src       = (uint16_t *)RSTRING_PTR(ucs2);
+    long len            = RSTRING_LEN(ucs2);
+    uint16_t *end       = src + (len / sizeof(uint16_t));
+
+    // to avoid most reallocations start with a destination buffer of the same size as the source
+    // this easily handles the most common case (ASCII, which only needs a buffer half the size of the source)
+    // the next-worse case (latin diacritics, Greek, Cyrillic etc; ie. up to Unicode 0x07FF)
+    // and only requires reallocation in the worst case (3-byte sequences needed for the rest of the Basic Multilingual Plane)
+    // 4-byte sequences are never produced because UCS-2 cannot encode them
+    char *dest          = malloc(len);
+    if (dest == NULL)
+        rb_raise(rb_eNoMemError, "failed to allocate temporary storage (memory allocation error)");
+    char *dest_ptr  = dest; // hang on to this so we can pass it to free() later
+
+    while (src < end)
     {
-        rb_require("iconv");
-        rb_Iconv = rb_path2class("Iconv");
-        if (NIL_P(rb_Iconv))
-            rb_raise(rb_eLoadError, "failed to load Iconv class");
-        else
-            return Qtrue;
+        if ((dest + 3) > (dest_ptr + len))                                          // outgrowing buffer, must reallocate
+        {
+            char *old_dest      = dest;
+            char *old_dest_ptr  = dest_ptr;
+            len                 = len + (len / 2);                                  // allocate enough for worst case
+            dest                = realloc(dest_ptr, len);                           // will never have to re-allocate more than once
+            if (dest == NULL)
+            {
+                // would have used reallocf, but this has to run on Linux too, not just Darwin
+                free(dest_ptr);
+                rb_raise(rb_eNoMemError, "failed to re-allocate temporary storage (memory allocation error)");
+            }
+            dest_ptr    = dest;
+            dest        = dest_ptr + (old_dest - old_dest_ptr);
+        }
+
+        if (src[0] <= 0x007f)                                                       // ASCII: decodes to a 1-byte sequence
+        {
+            dest[0] = src[0];
+            src++;
+            dest++;
+        }
+        else if (src[0] <= 0x07ff)                                                  // decodes to a 2-byte sequence
+        {
+            dest[0] = 0xc0 | ((src[0] & 0x07c0) >> 6);                              // 110..... and the 5 most significant bits
+            dest[1] = 0x80 | (src[0] & 0x3f);                                       // 10...... and the 6 least significant bits
+            dest += 2;
+            src++;
+        }
+        else if ((src[0] <= 0xd7ff) || (src[0] >= 0xe000))                          // decodes to a 3-byte sequence
+        {
+            dest[0] = 0xe0 | ((src[0] & 0xf000) >> 12);                             // 1110.... and the 4 most significant bits
+            dest[1] = 0x80 | ((src[0] & 0xfc0) >> 6);                               // 10...... and the 6 middle bits
+            dest[2] = 0x80 | (src[0] & 0x3f);                                       // 10...... and the 6 least significant bits
+            dest += 3;
+            src++;
+        }
+        else                                                                        // invalid
+            INVALID_ENCODING("code point not valid for UCS-2");
     }
-    return Qfalse;
+    VALUE out = rb_str_new(dest_ptr, (dest - dest_ptr));
+    free(dest_ptr);
+    return out;
 }
 
-VALUE _Wikitext_ucs2_to_utf8(VALUE in)
+// alternate implementation that doesn't depend on iconv
+// this method is public to enable direct unit testing
+// this implementation is architecture-dependent
+// (when run on little-endian machines produces UCS-2LE, when run on big endian machines produces UCS-2BE)
+// should be easy to extend this when/if I make the jump to UTF-32
+VALUE Wikitext_utf8_to_ucs2(VALUE self, VALUE in)
 {
-    VALUE ucs2 = StringValue(in); // duck typing: raises TypeError if passed object is not String-like
+    VALUE utf8          = StringValue(in);                      // duck typing: raises TypeError if passed object is not String-like
+    char *src           = RSTRING_PTR(utf8);
+    long len            = RSTRING_LEN(utf8);
+    char *end           = src + len;
 
-    // converted_array = Iconv.iconv("UTF-8", "UCS-2LE", ucs2)
-    // converted_array = Iconv.iconv("UTF-8", "UCS-2BE", ucs2)
-    VALUE converted_array = rb_funcall(rb_Iconv, rb_intern("iconv"), 3, rb_str_new2("UTF-8"), rb_str_new2(_Wikitext_parser_target_encoding()), ucs2);
+    // to avoid reallocations start with a destination buffer big enough for the worst-case scenario
+    // (the worst case is actually the most common one: input will be ASCII and so the resulting string will be twice as large)
+    uint16_t *dest      = malloc(len * 2);
+    if (dest == NULL)
+        rb_raise(rb_eNoMemError, "failed to allocate temporary storage (memory allocation error)");
+    uint16_t *dest_ptr  = dest;                                 // hang on to this so we can pass it to free() later
 
-    // utf8 = converted_array.shift
-    VALUE utf8 = rb_funcall(converted_array, rb_intern("shift"), 0);
-    if (NIL_P(utf8))
-      rb_raise(rb_eRuntimeError, "failed to convert input string to UTF-8 encoding");
-    return utf8;
-}
+    while (src < end)
+    {
+        if ((unsigned char)src[0] <= 0x7f)                                     // ASCII
+        {
+            dest[0] = src[0];
+            src++;
+            dest++;
+        }
+        else if ((src[0] & 0xe0) == 0xc0)                       // byte starts with 110..... : this should be a two-byte sequence
+        {
+            if (src + 1 >= end)
+                INVALID_ENCODING("truncated byte sequence");    // no second byte
+            else if ((src[1] & 0xc0) != 0x80 )
+                INVALID_ENCODING("malformed byte sequence");    // should have second byte starting with 10......
+            else if (((unsigned char)src[0] == 0xc0) || ((unsigned char)src[0] == 0xc1))
+                INVALID_ENCODING("overlong encoding");          // overlong encoding: lead byte of 110..... but code point <= 127
 
-VALUE _Wikitext_utf8_to_ucs2(VALUE in)
-{
-    VALUE utf8 = StringValue(in); // duck typing: raises TypeError if passed object is not String-like
+            dest[0] = ((uint16_t)(src[0] & 0x1f)) << 6 | (src[1] & 0x3f);
+            src += 2;
+            dest++;
+        }
+        else if ((src[0] & 0xf0) == 0xe0)                       // byte starts with 1110.... : this should be a three-byte sequence
+        {
+            if (src + 2 >= end)
+                INVALID_ENCODING("truncated byte sequence");    // missing second or third byte
+            else if (((src[1] & 0xc0) != 0x80 ) || ((src[2] & 0xc0) != 0x80 ))
+                INVALID_ENCODING("malformed byte sequence");    // should have second and third bytes starting with 10......
 
-    // converted_array = Iconv.iconv("UCS-2LE", "UTF-8", utf8)
-    // converted_array = Iconv.iconv("UCS-2BE", "UTF-8", utf8)
-    VALUE converted_array = rb_funcall(rb_Iconv, rb_intern("iconv"), 3, rb_str_new2(_Wikitext_parser_target_encoding()), rb_str_new2("UTF-8"), utf8);
-
-    // ucs2 = converted_array.shift
-    VALUE ucs2 = rb_funcall(converted_array, rb_intern("shift"), 0);
-    if (NIL_P(ucs2))
-      rb_raise(rb_eRuntimeError, "failed to convert input string to UCS-2 encoding");
-    return ucs2;
+            dest[0] = ((uint16_t)(src[0] & 0x0f)) << 12 | ((uint16_t)(src[1] & 0x3f)) << 6 | (src[2] & 0x3f);
+            src += 3;
+            dest++;
+        }
+        else if ((src[0] & 0xf8) == 0xf0)                       // bytes starts with 11110... : this should be a four-byte sequence
+            // additional codepoints here that will need to check for in the move to UTF-32:
+            // 0xf5..0xf7: disallowed by RFC 3629 (codepoints above 0x10ffff)
+            INVALID_ENCODING("input exceeds encodable range for UCS-2");
+        else                                                    // invalid input
+            // could additionally check here for:
+            // 0xf8..0xfd: disallowed by RFC 3629 (lead for 5-byte and 6-byte sequences)
+            // 0xfe..0xff: invalid (lead byte for 7-byte or 8-byte sequences)
+            INVALID_ENCODING("unexpected byte");
+    }
+    VALUE out = rb_str_new((char *)dest_ptr, (dest - dest_ptr) * sizeof(uint16_t));
+    free(dest_ptr);
+    return out;
 }
 
 // necessary for overriding the generated nextToken function
@@ -348,8 +422,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         options = rb_hash_new();                                // default to an empty hash if no argument passed
 
     // convert string from UTF-8 to UCS-2LE or UCS-2BE
-    _Wikitext_setup_iconv();
-    VALUE ucs2input = _Wikitext_utf8_to_ucs2(string);
+    VALUE ucs2input = Wikitext_utf8_to_ucs2(self, string);
 
     // set up lexer
     pANTLR3_UINT16          pointer = (pANTLR3_UINT16)RSTRING_PTR(ucs2input);
@@ -402,7 +475,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     VALUE pending_crlf  = Qfalse;
 
     // access this once per parse
-    VALUE line_ending = _Wikitext_utf8_to_ucs2(rb_iv_get(self, "@line_ending"));
+    VALUE line_ending = Wikitext_utf8_to_ucs2(self, rb_iv_get(self, "@line_ending"));
 
     pANTLR3_COMMON_TOKEN token = NULL;
     do
@@ -1170,7 +1243,15 @@ finalize:   // can raise exceptions only after all clean-up is done
             break;
     }
 
-    return _Wikitext_ucs2_to_utf8(output);
+    return Wikitext_ucs2_to_utf8(self, output);
+}
+
+// encodes the UCS-2 input string according to RFCs 2396 and 2718
+// the returned string is also UCS-2 encoded
+// this method is public so as to facilitate unit testing
+VALUE Wikitext_parser_encode(VALUE input)
+{
+    VALUE output = rb_str_new2(""); // although not explicitly UCS-2 encoded, a zero-length C string will work fine
 }
 
 void Init_wikitext()
@@ -1178,8 +1259,15 @@ void Init_wikitext()
     // modules
     mWikitext   = rb_define_module("Wikitext");
 
+    // singleton methods
+    rb_define_singleton_method(mWikitext, "utf8_to_ucs2", Wikitext_utf8_to_ucs2, 1);
+    rb_define_singleton_method(mWikitext, "ucs2_to_utf8", Wikitext_ucs2_to_utf8, 1);
+
     // classes
     cParser     = rb_define_class_under(mWikitext, "Parser", rb_cObject);
+
+    // class methods
+//    rb_define_singleton_method(cParser, "encode", Wikitext_parser_encode, 1);
 
     // instance methods
     rb_define_method(cParser, "initialize", Wikitext_parser_initialize, 0);
