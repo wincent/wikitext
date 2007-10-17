@@ -157,7 +157,7 @@ static pANTLR3_COMMON_TOKEN _Wikitext_next_token(pANTLR3_TOKEN_SOURCE toksource)
 long _Wikitext_count(VALUE token, VALUE collection)
 {
     long count = 0;
-    for (long i = 0, max = RARRAY(collection)->len; i < max; i++)
+    for (long i = 0, max = RARRAY_LEN(collection); i < max; i++)
     {
         if (FIX2INT(rb_ary_entry(collection, i)) == FIX2INT(token))
             count++;
@@ -280,7 +280,7 @@ void _Wikitext_pop_from_stack_up_to(VALUE stack, VALUE target, VALUE item, VALUE
 void ANTLR3_INLINE _Wikitext_start_para_if_necessary(VALUE scope, VALUE line, VALUE output, VALUE *pending_crlf)
 {
     // if no block open yet, or top of stack is BLOCKQUOTE (w¡th nothing in it yet)
-    if ((RARRAY(scope)->len == 0) || (FIX2INT(rb_ary_entry(scope, -1)) == BLOCKQUOTE))
+    if ((RARRAY_LEN(scope) == 0) || (FIX2INT(rb_ary_entry(scope, -1)) == BLOCKQUOTE))
     {
         rb_str_append(output, rb_str_new((const char *)p_start_literal, sizeof(p_start_literal)));
         rb_ary_push(scope, INT2FIX(P));
@@ -302,7 +302,7 @@ void ANTLR3_INLINE _Wikitext_start_para_if_necessary(VALUE scope, VALUE line, VA
 //      > > bar
 void ANTLR3_INLINE _Wikitext_pop_excess_elements(VALUE scope, VALUE line, VALUE output, VALUE line_ending)
 {
-    for (long i = RARRAY(scope)->len, j = RARRAY(line)->len; i > j; i--)
+    for (long i = RARRAY_LEN(scope), j = RARRAY_LEN(line); i > j; i--)
     {
         // special case for last item on scope
         if (i - j == 1)
@@ -352,8 +352,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     VALUE ucs2input = _Wikitext_utf8_to_ucs2(string);
 
     // set up lexer
-    pANTLR3_UINT16          pointer = (pANTLR3_UINT16)StringValuePtr(ucs2input);
-    ANTLR3_UINT64           count   = (ANTLR3_UINT64)RSTRING(ucs2input)->len / 2;
+    pANTLR3_UINT16          pointer = (pANTLR3_UINT16)RSTRING_PTR(ucs2input);
+    ANTLR3_UINT64           count   = (ANTLR3_UINT64)RSTRING_LEN(ucs2input) / 2;
 
     pANTLR3_INPUT_STREAM    stream  = antlr3NewUCS2StringInPlaceStream(pointer, count, NULL);
     if ((ANTLR3_UINT64)stream == (ANTLR3_UINT64)ANTLR3_ERR_NOMEM)
@@ -571,7 +571,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 // if you've seen STRONG or EM, must close them in the reverse order that you saw them! otherwise, must open them
                 remove_strong  = -1;
                 remove_em      = -1;
-                i              = RARRAY(scope)->len;
+                i              = RARRAY_LEN(scope);
                 for (i = i - 1; i >= 0; i--)
                 {
                     long val = FIX2INT(rb_ary_entry(scope, i));
@@ -697,8 +697,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
 
                 // count number of tokens in line and scope stacks
-                i = RARRAY(line)->len;
-                j = RARRAY(scope)->len;
+                i = RARRAY_LEN(line);
+                j = RARRAY_LEN(scope);
 
                 // list tokens can be nested so look ahead for any more which might affect the decision to push or pop
                 for (;;)
@@ -1064,7 +1064,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // count number of BLOCKQUOTE tokens in line buffer (can be zero) and pop back to that level
                     // as a side effect, this handles any open span-level elements and unclosed blocks (with special handling for P blocks and LI elements)
                     i = _Wikitext_count(INT2FIX(BLOCKQUOTE), line);
-                    for (j = RARRAY(scope)->len; j > i; j--)
+                    for (j = RARRAY_LEN(scope); j > i; j--)
                     {
                         if (FIX2INT(rb_ary_entry(line, -1)) == LI)
                         {
@@ -1133,7 +1133,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case ANTLR3_TOKEN_EOF:
                 // close any open scopes on hitting EOF
-                for (i = 0, j = RARRAY(scope)->len; i < j; i++)
+                for (i = 0, j = RARRAY_LEN(scope); i < j; i++)
                     _Wikitext_pop_from_stack(scope, output, line_ending);
                 goto clean_up_token_stream; // break not enough here (want to break out of outer while loop, not inner switch statement)
 
