@@ -4,6 +4,7 @@
 require File.join(File.dirname(__FILE__), 'spec_helper.rb')
 require 'wikitext'
 require 'iconv'
+require 'uri'
 
 describe Wikitext::Parser do
 
@@ -1133,5 +1134,32 @@ describe Wikitext, 'converting from UCS-2 to UTF-8' do
   end
 end
 
+describe Wikitext, 'encoding an internal link target' do
+  it 'should complain if passed nil' do
+    lambda { Wikitext.encode_internal_link_target(nil) }.should raise_error
+  end
 
+  it 'should do nothing on zero-length input' do
+    Wikitext.encode_internal_link_target('').should == ''
+  end
+
+  it 'should convert spaces into "%20"' do
+    Wikitext.encode_internal_link_target('hello world').should == 'hello%20world'
+  end
+
+  it 'should convert reserved symbols into percent escapes' do
+    Wikitext.encode_internal_link_target('http://www.apple.com/q?foo').should == 'http%3a%2f%2fwww.apple.com%2fq%3ffoo'
+  end
+
+  it 'should convert non-ASCII into UTF-8 and then apply percent escapes' do
+    Wikitext.encode_internal_link_target('cañon').should == 'ca%c3%b1on'
+  end
+
+  it 'should get the same answer as URI.escape' do
+    reserved = Regexp.new("[^#{URI::PATTERN::UNRESERVED}]")
+    ['foo bar', 'http://www.google.com/search?q=hello&foo=bar', '€'].each do |string|
+      Wikitext.encode_internal_link_target(string).should == URI.escape(string, reserved).downcase
+    end
+  end
+end
 
