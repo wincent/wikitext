@@ -422,7 +422,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         options = rb_hash_new();                                // default to an empty hash if no argument passed
 
     // convert string from UTF-8 to UCS-2LE or UCS-2BE
-    VALUE ucs2input = Wikitext_utf8_to_ucs2(self, string);
+    VALUE ucs2input = Wikitext_utf8_to_ucs2(mWikitext, string);
 
     // set up lexer
     pANTLR3_UINT16          pointer = (pANTLR3_UINT16)RSTRING_PTR(ucs2input);
@@ -475,7 +475,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     VALUE pending_crlf  = Qfalse;
 
     // access this once per parse
-    VALUE line_ending = Wikitext_utf8_to_ucs2(self, rb_iv_get(self, "@line_ending"));
+    VALUE line_ending = Wikitext_utf8_to_ucs2(mWikitext, rb_iv_get(self, "@line_ending"));
 
     pANTLR3_COMMON_TOKEN token = NULL;
     do
@@ -1243,7 +1243,7 @@ finalize:   // can raise exceptions only after all clean-up is done
             break;
     }
 
-    return Wikitext_ucs2_to_utf8(self, output);
+    return Wikitext_ucs2_to_utf8(mWikitext, output);
 }
 
 // encodes the UCS-2 input string according to RFCs 2396 and 2718
