@@ -1095,7 +1095,6 @@ describe Wikitext, 'converting from UTF-8 to UCS-2' do
     # everything else
     lambda { Wikitext.utf8_to_ucs2([0b11111000].pack('C*')) }.should raise_error(RangeError, /unexpected byte/)
   end
-
 end
 
 # this stuff is implicitly tested above, but test it here explicitly anyway
@@ -1128,7 +1127,6 @@ describe Wikitext::Parser, 'converting from UCS-2 to UTF-8' do
     # invalid code points lie between 0xd800 and 0xdfff inclusive
     lambda { Wikitext.ucs2_to_utf8([0x00, 0xd9].pack('C*')) }.should raise_error(RangeError, /code point not valid/) # 0xdf40
   end
-
 end
 
 
