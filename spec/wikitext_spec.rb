@@ -1040,6 +1040,21 @@ EXPECTED
 
 end
 
+module UTF8
+  module Invalid
+    TWO_BYTES_MISSING_SECOND_BYTE     = [0b11011111].pack('C*')
+    TWO_BYTES_MALFORMED_SECOND_BYTE   = [0b11011111, 0b00001111].pack('C*') # should be 10......
+    OVERLONG                          = [0b11000000, 0b10000000].pack('C*') # lead byte is 110..... but code point is <= 127
+    OVERLONG_ALT                      = [0b11000001, 0b10000000].pack('C*') # lead byte is 110..... but code point is <= 127
+    THREE_BYTES_MISSING_SECOND_BYTE   = [0b11100000].pack('C*')
+    THREE_BYTES_MISSING_THIRD_BYTE    = [0b11100000, 0b10000000].pack('C*')
+    THREE_BYTES_MALFORMED_SECOND_BYTE = [0b11100000, 0b00001111, 0b10000000].pack('C*') # should be 10......
+    THREE_BYTES_MALFORMED_THIRD_BYTE  = [0b11100000, 0b10000000, 0b00001111].pack('C*') # should be 10......
+    EXCEEDS_ENCODABLE_RANGE_FOR_UCS2  = [0b11110000].pack('C*')
+    UNEXPECTED_BYTE                   = [0b11111000].pack('C*')
+  end # module Invalid
+end # module UTF8
+
 # this stuff is implicitly tested above, but test it here explicitly anyway
 describe Wikitext, 'converting from UTF-8 to UCS-2' do
   before do
@@ -1067,35 +1082,25 @@ describe Wikitext, 'converting from UTF-8 to UCS-2' do
 
   # these tests intimately tied to the error messages because I want to carefully check all error pathways
   it 'should reject invalidly encoded input' do
-    # missing second byte
-    lambda { Wikitext.utf8_to_ucs2([0b11011111].pack('C*')) }.should raise_error(RangeError, /truncated/)
-
-    # malformed second byte (should be 10......)
-    lambda { Wikitext.utf8_to_ucs2([0b11011111, 0b00001111].pack('C*')) }.should raise_error(RangeError, /malformed/)
-
-    # lead byte is 110..... but code point is <= 127
-    lambda { Wikitext.utf8_to_ucs2([0b11000000, 0b10000000].pack('C*')) }.should raise_error(RangeError, /overlong/)
-    lambda { Wikitext.utf8_to_ucs2([0b11000001, 0b10000000].pack('C*')) }.should raise_error(RangeError, /overlong/)
-
-    # missing second byte
-    lambda { Wikitext.utf8_to_ucs2([0b11100000].pack('C*')) }.should raise_error(RangeError, /truncated/)
-
-    # missing third byte
-    lambda { Wikitext.utf8_to_ucs2([0b11100000, 0b10000000].pack('C*')) }.should raise_error(RangeError, /truncated/)
-
-    # malformed second byte (should be 10......)
-    lambda { Wikitext.utf8_to_ucs2([0b11100000, 0b00001111, 0b10000000].pack('C*')) }.should raise_error(RangeError, /malformed/)
-
-    # malformed third byte (should be 10......)
-    lambda { Wikitext.utf8_to_ucs2([0b11100000, 0b10000000, 0b00001111].pack('C*')) }.should raise_error(RangeError, /malformed/)
-
-    # exceeds encodeable range for UCS-2
-    lambda { Wikitext.utf8_to_ucs2([0b11110000].pack('C*')) }.should raise_error(RangeError, /exceeds encodable range/)
-
-    # everything else
-    lambda { Wikitext.utf8_to_ucs2([0b11111000].pack('C*')) }.should raise_error(RangeError, /unexpected byte/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::TWO_BYTES_MISSING_SECOND_BYTE) }.should   raise_error(RangeError, /truncated/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::TWO_BYTES_MALFORMED_SECOND_BYTE) }.should raise_error(RangeError, /malformed/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::OVERLONG) }.should                        raise_error(RangeError, /overlong/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::OVERLONG_ALT) }.should                    raise_error(RangeError, /overlong/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::THREE_BYTES_MISSING_SECOND_BYTE) }.should raise_error(RangeError, /truncated/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::THREE_BYTES_MISSING_THIRD_BYTE) }.should  raise_error(RangeError, /truncated/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::THREE_BYTES_MALFORMED_SECOND_BYTE) }.should raise_error(RangeError, /malformed/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::THREE_BYTES_MALFORMED_THIRD_BYTE) }.should raise_error(RangeError, /malformed/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::EXCEEDS_ENCODABLE_RANGE_FOR_UCS2) }.should raise_error(RangeError, /exceeds/)
+    lambda { Wikitext.utf8_to_ucs2(UTF8::Invalid::UNEXPECTED_BYTE) }.should raise_error(RangeError, /unexpected byte/)
   end
 end
+
+module UCS2
+  module Invalid
+    # invalid code points lie between 0xd800 and 0xdfff inclusive
+    INVALID_CODE_POINT                = [0x00, 0xd9].pack('C*') # 0xdf40: written this way for little-endian systems
+  end # module Invalid
+end # module UCS2
 
 # this stuff is implicitly tested above, but test it here explicitly anyway
 describe Wikitext, 'converting from UCS-2 to UTF-8' do
@@ -1124,8 +1129,7 @@ describe Wikitext, 'converting from UCS-2 to UTF-8' do
 
   # this test intimately tied to the error messages because I want to carefully check all error pathways
   it 'should reject invalidly encoded input' do
-    # invalid code points lie between 0xd800 and 0xdfff inclusive
-    lambda { Wikitext.ucs2_to_utf8([0x00, 0xd9].pack('C*')) }.should raise_error(RangeError, /code point not valid/) # 0xdf40
+    lambda { Wikitext.ucs2_to_utf8(UCS2::Invalid::INVALID_CODE_POINT) }.should raise_error(RangeError, /code point not valid/)
   end
 end
 
