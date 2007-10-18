@@ -76,7 +76,38 @@ static ANTLR3_UINT16 gt_entity_literal[]            = { '&', 'g', 't', ';' };
 
 #define INVALID_ENCODING(msg)  do { free(dest_ptr); rb_raise(rb_eRangeError, "invalid encoding: " msg); } while(0)
 
-// alternate implementation that doesn't depend on iconv
+// given a single UCS-2 character, src, convert to UTF-8 and write to dest
+// it is the responsibility of the caller to ensure that dest has enough space (in this case, up to 3 bytes)
+// the number of bytes written is returned by reference in width_out
+// raises a RangeError if the supplied character is invalid UCS-2
+// (in which case it also frees the block of memory indicated by dest_ptr)
+// all parameters are compulsory; failure to provide them may cause a crash
+static inline void _Wikitext_ucs2_to_utf8(uint16_t src, char *dest, long *width_out, char *dest_ptr)
+{
+    long width = 0;
+    if (src <= 0x007f)                                      // ASCII: decodes to a 1-byte sequence
+    {
+        dest[0] = src;
+        width = 1;
+    }
+    else if (src <= 0x07ff)                                 // decodes to a 2-byte sequence
+    {
+        dest[0] = 0xc0 | ((src & 0x07c0) >> 6);             // 110..... and the 5 most significant bits
+        dest[1] = 0x80 | (src & 0x3f);                      // 10...... and the 6 least significant bits
+        width = 2;
+    }
+    else if ((src <= 0xd7ff) || (src >= 0xe000))            // decodes to a 3-byte sequence
+    {
+        dest[0] = 0xe0 | ((src & 0xf000) >> 12);            // 1110.... and the 4 most significant bits
+        dest[1] = 0x80 | ((src & 0xfc0) >> 6);              // 10...... and the 6 middle bits
+        dest[2] = 0x80 | (src & 0x3f);                      // 10...... and the 6 least significant bits
+        width = 3;
+    }
+    else                                                    // invalid
+        INVALID_ENCODING("code point not valid for UCS-2");
+    *width_out = width;
+}
+
 // this method is public to enable direct unit testing
 // this implementation is architecture-dependent
 // (when run on little-endian machines expects UCS-2LE, when run on big endian machines expects UCS-2BE)
@@ -115,36 +146,66 @@ VALUE Wikitext_ucs2_to_utf8(VALUE self, VALUE in)
             dest        = dest_ptr + (old_dest - old_dest_ptr);
         }
 
-        if (src[0] <= 0x007f)                                                       // ASCII: decodes to a 1-byte sequence
-        {
-            dest[0] = src[0];
-            src++;
-            dest++;
-        }
-        else if (src[0] <= 0x07ff)                                                  // decodes to a 2-byte sequence
-        {
-            dest[0] = 0xc0 | ((src[0] & 0x07c0) >> 6);                              // 110..... and the 5 most significant bits
-            dest[1] = 0x80 | (src[0] & 0x3f);                                       // 10...... and the 6 least significant bits
-            dest += 2;
-            src++;
-        }
-        else if ((src[0] <= 0xd7ff) || (src[0] >= 0xe000))                          // decodes to a 3-byte sequence
-        {
-            dest[0] = 0xe0 | ((src[0] & 0xf000) >> 12);                             // 1110.... and the 4 most significant bits
-            dest[1] = 0x80 | ((src[0] & 0xfc0) >> 6);                               // 10...... and the 6 middle bits
-            dest[2] = 0x80 | (src[0] & 0x3f);                                       // 10...... and the 6 least significant bits
-            dest += 3;
-            src++;
-        }
-        else                                                                        // invalid
-            INVALID_ENCODING("code point not valid for UCS-2");
+        long width;
+        _Wikitext_ucs2_to_utf8(src[0], dest, &width, dest_ptr);                     // convert a single UCS-2 character
+        dest += width;
+        src++;
     }
     VALUE out = rb_str_new(dest_ptr, (dest - dest_ptr));
     free(dest_ptr);
     return out;
 }
 
-// alternate implementation that doesn't depend on iconv
+// convert a single UTF-8 codepoint to UCS-2
+// expects an input buffer, src, containing a UTF-8 encoded character (which may be multi-byte)
+// the end of the input buffer, end, is also passed in to allow the detection of invalidly truncated codepoints
+// the resulting UCS-2 character is returned by reference in dest
+// the number of bytes in the UTF-8 character (between 1 and 3) is returned by reference in width_out
+// raises a RangeError if the supplied character is invalid UTF-8, or cannot be represented in UCS-2
+// (in which case it also frees the block of memory indicated by dest_ptr)
+// all parameters are compulsory; failure to provide them may cause a crash
+static inline void _Wikitext_utf8_to_ucs2(char *src, char *end, uint16_t *dest, long *width_out, uint16_t *dest_ptr)
+{
+    long width = 0;
+    if ((unsigned char)src[0] <= 0x7f)                      // ASCII
+    {
+        *dest = src[0];
+        width = 1;
+    }
+    else if ((src[0] & 0xe0) == 0xc0)                       // byte starts with 110..... : this should be a two-byte sequence
+    {
+        if (src + 1 >= end)
+            INVALID_ENCODING("truncated byte sequence");    // no second byte
+        else if (((unsigned char)src[0] == 0xc0) || ((unsigned char)src[0] == 0xc1))
+            INVALID_ENCODING("overlong encoding");          // overlong encoding: lead byte of 110..... but code point <= 127
+        else if ((src[1] & 0xc0) != 0x80 )
+            INVALID_ENCODING("malformed byte sequence");    // should have second byte starting with 10......
+
+        *dest = ((uint16_t)(src[0] & 0x1f)) << 6 | (src[1] & 0x3f);
+        width = 2;
+    }
+    else if ((src[0] & 0xf0) == 0xe0)                       // byte starts with 1110.... : this should be a three-byte sequence
+    {
+        if (src + 2 >= end)
+            INVALID_ENCODING("truncated byte sequence");    // missing second or third byte
+        else if (((src[1] & 0xc0) != 0x80 ) || ((src[2] & 0xc0) != 0x80 ))
+            INVALID_ENCODING("malformed byte sequence");    // should have second and third bytes starting with 10......
+
+        *dest = ((uint16_t)(src[0] & 0x0f)) << 12 | ((uint16_t)(src[1] & 0x3f)) << 6 | (src[2] & 0x3f);
+        width = 3;
+    }
+    else if ((src[0] & 0xf8) == 0xf0)                       // bytes starts with 11110... : this should be a four-byte sequence
+        // additional codepoints here that will need to check for in the move to UTF-32:
+        // 0xf5..0xf7: disallowed by RFC 3629 (codepoints above 0x10ffff)
+        INVALID_ENCODING("input exceeds encodable range for UCS-2");
+    else                                                    // invalid input
+        // could additionally check here for:
+        // 0xf8..0xfd: disallowed by RFC 3629 (lead for 5-byte and 6-byte sequences)
+        // 0xfe..0xff: invalid (lead byte for 7-byte or 8-byte sequences)
+        INVALID_ENCODING("unexpected byte");
+    *width_out = width;
+}
+
 // this method is public to enable direct unit testing
 // this implementation is architecture-dependent
 // (when run on little-endian machines produces UCS-2LE, when run on big endian machines produces UCS-2BE)
@@ -165,45 +226,10 @@ VALUE Wikitext_utf8_to_ucs2(VALUE self, VALUE in)
 
     while (src < end)
     {
-        if ((unsigned char)src[0] <= 0x7f)                                     // ASCII
-        {
-            dest[0] = src[0];
-            src++;
-            dest++;
-        }
-        else if ((src[0] & 0xe0) == 0xc0)                       // byte starts with 110..... : this should be a two-byte sequence
-        {
-            if (src + 1 >= end)
-                INVALID_ENCODING("truncated byte sequence");    // no second byte
-            else if (((unsigned char)src[0] == 0xc0) || ((unsigned char)src[0] == 0xc1))
-                INVALID_ENCODING("overlong encoding");          // overlong encoding: lead byte of 110..... but code point <= 127
-            else if ((src[1] & 0xc0) != 0x80 )
-                INVALID_ENCODING("malformed byte sequence");    // should have second byte starting with 10......
-
-            dest[0] = ((uint16_t)(src[0] & 0x1f)) << 6 | (src[1] & 0x3f);
-            src += 2;
-            dest++;
-        }
-        else if ((src[0] & 0xf0) == 0xe0)                       // byte starts with 1110.... : this should be a three-byte sequence
-        {
-            if (src + 2 >= end)
-                INVALID_ENCODING("truncated byte sequence");    // missing second or third byte
-            else if (((src[1] & 0xc0) != 0x80 ) || ((src[2] & 0xc0) != 0x80 ))
-                INVALID_ENCODING("malformed byte sequence");    // should have second and third bytes starting with 10......
-
-            dest[0] = ((uint16_t)(src[0] & 0x0f)) << 12 | ((uint16_t)(src[1] & 0x3f)) << 6 | (src[2] & 0x3f);
-            src += 3;
-            dest++;
-        }
-        else if ((src[0] & 0xf8) == 0xf0)                       // bytes starts with 11110... : this should be a four-byte sequence
-            // additional codepoints here that will need to check for in the move to UTF-32:
-            // 0xf5..0xf7: disallowed by RFC 3629 (codepoints above 0x10ffff)
-            INVALID_ENCODING("input exceeds encodable range for UCS-2");
-        else                                                    // invalid input
-            // could additionally check here for:
-            // 0xf8..0xfd: disallowed by RFC 3629 (lead for 5-byte and 6-byte sequences)
-            // 0xfe..0xff: invalid (lead byte for 7-byte or 8-byte sequences)
-            INVALID_ENCODING("unexpected byte");
+        long width;
+        _Wikitext_utf8_to_ucs2(src, end, dest, &width, dest_ptr);
+        dest++;
+        src += width;
     }
     VALUE out = rb_str_new((char *)dest_ptr, (dest - dest_ptr) * sizeof(uint16_t));
     free(dest_ptr);
