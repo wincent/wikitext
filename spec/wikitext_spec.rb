@@ -3,6 +3,7 @@
 
 require File.join(File.dirname(__FILE__), 'spec_helper.rb')
 require 'wikitext'
+require 'iconv'
 
 describe Wikitext::Parser do
 
@@ -1038,3 +1039,97 @@ EXPECTED
   end
 
 end
+
+# this stuff is implicitly tested above, but test it here explicitly anyway
+describe Wikitext, 'converting from UTF-8 to UCS-2' do
+  before do
+    @a = 'a string containing only ASCII codepoints'
+    @b = 'a string with non-ASCII codepoints: áàâäÁÀÂÄ€ñ'
+  end
+
+  it 'should complain if passed nil' do
+    lambda { Wikitext.utf8_to_ucs2(nil) }.should raise_error
+  end
+
+  it 'should do nothing on zero-length input' do
+    Wikitext.utf8_to_ucs2('').should == ''
+  end
+
+  it 'should get the same answer as iconv' do
+    Wikitext.utf8_to_ucs2(@a).should == Iconv.iconv('UCS-2LE', 'UTF-8', @a).shift
+    Wikitext.utf8_to_ucs2(@b).should == Iconv.iconv('UCS-2LE', 'UTF-8', @b).shift
+  end
+
+  it 'should be able to round-trip' do
+    Wikitext.ucs2_to_utf8(Wikitext.utf8_to_ucs2(@a)).should == @a
+    Wikitext.ucs2_to_utf8(Wikitext.utf8_to_ucs2(@b)).should == @b
+  end
+
+  # these tests intimately tied to the error messages because I want to carefully check all error pathways
+  it 'should reject invalidly encoded input' do
+    # missing second byte
+    lambda { Wikitext.utf8_to_ucs2([0b11011111].pack('C*')) }.should raise_error(RangeError, /truncated/)
+
+    # malformed second byte (should be 10......)
+    lambda { Wikitext.utf8_to_ucs2([0b11011111, 0b00001111].pack('C*')) }.should raise_error(RangeError, /malformed/)
+
+    # lead byte is 110..... but code point is <= 127
+    lambda { Wikitext.utf8_to_ucs2([0b11000000, 0b10000000].pack('C*')) }.should raise_error(RangeError, /overlong/)
+    lambda { Wikitext.utf8_to_ucs2([0b11000001, 0b10000000].pack('C*')) }.should raise_error(RangeError, /overlong/)
+
+    # missing second byte
+    lambda { Wikitext.utf8_to_ucs2([0b11100000].pack('C*')) }.should raise_error(RangeError, /truncated/)
+
+    # missing third byte
+    lambda { Wikitext.utf8_to_ucs2([0b11100000, 0b10000000].pack('C*')) }.should raise_error(RangeError, /truncated/)
+
+    # malformed second byte (should be 10......)
+    lambda { Wikitext.utf8_to_ucs2([0b11100000, 0b00001111, 0b10000000].pack('C*')) }.should raise_error(RangeError, /malformed/)
+
+    # malformed third byte (should be 10......)
+    lambda { Wikitext.utf8_to_ucs2([0b11100000, 0b10000000, 0b00001111].pack('C*')) }.should raise_error(RangeError, /malformed/)
+
+    # exceeds encodeable range for UCS-2
+    lambda { Wikitext.utf8_to_ucs2([0b11110000].pack('C*')) }.should raise_error(RangeError, /exceeds encodable range/)
+
+    # everything else
+    lambda { Wikitext.utf8_to_ucs2([0b11111000].pack('C*')) }.should raise_error(RangeError, /unexpected byte/)
+  end
+
+end
+
+# this stuff is implicitly tested above, but test it here explicitly anyway
+describe Wikitext::Parser, 'converting from UCS-2 to UTF-8' do
+  before do
+    @a = Iconv.iconv('UCS-2LE', 'UTF-8', 'a string containing only ASCII codepoints').shift
+    @b = Iconv.iconv('UCS-2LE', 'UTF-8', 'a string with non-ASCII codepoints: áàâäÁÀÂÄ€ñ').shift
+  end
+
+  it 'should complain if passed nil' do
+    lambda { Wikitext.ucs2_to_utf8(nil) }.should raise_error
+  end
+
+  it 'should do nothing on zero-length input' do
+    Wikitext.ucs2_to_utf8('').should == ''
+  end
+
+  it 'should get the same answer as iconv' do
+    Wikitext.ucs2_to_utf8(@a).should == Iconv.iconv('UTF-8', 'UCS-2LE', @a).shift
+    Wikitext.ucs2_to_utf8(@b).should == Iconv.iconv('UTF-8', 'UCS-2LE', @b).shift
+  end
+
+  it 'should be able to round-trip' do
+    Wikitext.utf8_to_ucs2(Wikitext.ucs2_to_utf8(@a)).should == @a
+    Wikitext.utf8_to_ucs2(Wikitext.ucs2_to_utf8(@b)).should == @b
+  end
+
+  # this test intimately tied to the error messages because I want to carefully check all error pathways
+  it 'should reject invalidly encoded input' do
+    # invalid code points lie between 0xd800 and 0xdfff inclusive
+    lambda { Wikitext.ucs2_to_utf8([0x00, 0xd9].pack('C*')) }.should raise_error(RangeError, /code point not valid/) # 0xdf40
+  end
+
+end
+
+
+

@@ -175,10 +175,10 @@ VALUE Wikitext_utf8_to_ucs2(VALUE self, VALUE in)
         {
             if (src + 1 >= end)
                 INVALID_ENCODING("truncated byte sequence");    // no second byte
-            else if ((src[1] & 0xc0) != 0x80 )
-                INVALID_ENCODING("malformed byte sequence");    // should have second byte starting with 10......
             else if (((unsigned char)src[0] == 0xc0) || ((unsigned char)src[0] == 0xc1))
                 INVALID_ENCODING("overlong encoding");          // overlong encoding: lead byte of 110..... but code point <= 127
+            else if ((src[1] & 0xc0) != 0x80 )
+                INVALID_ENCODING("malformed byte sequence");    // should have second byte starting with 10......
 
             dest[0] = ((uint16_t)(src[0] & 0x1f)) << 6 | (src[1] & 0x3f);
             src += 2;
