@@ -1254,6 +1254,14 @@ VALUE Wikitext_parser_encode(VALUE input)
     VALUE output = rb_str_new2(""); // although not explicitly UCS-2 encoded, a zero-length C string will work fine
 }
 
+// will raise a RangeError if prefix cannot be converted into UCS-2 encoding
+VALUE Wikitext_parser_set_internal_link_prefix(VALUE self, VALUE prefix)
+{
+    rb_iv_set(self, "@internal_link_prefix", prefix);
+    VALUE encoded = Wikitext_utf8_to_ucs2(mWikitext, prefix);
+    rb_iv_set(self, "@internal_link_prefix_ucs2", encoded);
+}
+
 void Init_wikitext()
 {
     // modules
@@ -1272,11 +1280,12 @@ void Init_wikitext()
     // instance methods
     rb_define_method(cParser, "initialize", Wikitext_parser_initialize, 0);
     rb_define_method(cParser, "parse", Wikitext_parser_parse, -1);
+    rb_define_method(cParser, "internal_link_prefix=", Wikitext_parser_set_internal_link_prefix, 1);
 //    rb_define_method(cParser, "internal_link")
 
     // accessors
-    rb_define_attr(cParser, "line_ending", Qtrue, Qtrue);
-    rb_define_attr(cParser, "internal_link_prefix", Qtrue, Qtrue);
+    rb_define_attr(cParser, "line_ending", Qtrue, Qtrue);           // read and write accessors
+    rb_define_attr(cParser, "internal_link_prefix", Qfalse, Qtrue); // write accessor already defined above
 
     // TODO: add instance variables that tell the parser how to generate internal links (prefix)
     // eg. given [[foo bar]] and prefix "http://example.com/wiki/"
