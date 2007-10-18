@@ -1098,7 +1098,7 @@ describe Wikitext, 'converting from UTF-8 to UCS-2' do
 end
 
 # this stuff is implicitly tested above, but test it here explicitly anyway
-describe Wikitext::Parser, 'converting from UCS-2 to UTF-8' do
+describe Wikitext, 'converting from UCS-2 to UTF-8' do
   before do
     @a = Iconv.iconv('UCS-2LE', 'UTF-8', 'a string containing only ASCII codepoints').shift
     @b = Iconv.iconv('UCS-2LE', 'UTF-8', 'a string with non-ASCII codepoints: áàâäÁÀÂÄ€ñ').shift
