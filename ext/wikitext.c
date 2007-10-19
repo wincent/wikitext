@@ -73,6 +73,11 @@ static ANTLR3_UINT16 gt_entity_literal[]            = { '&', 'g', 't', ';' };
 // (using the alphtype directive with uint32_t or similar)
 // because the ANTLR C target runtime is currently only equipped to handle ASCII or USC-2; to handle UTF-32 I believe I'd have to
 // write a custom input stream "subclass"
+// this post describes how to do it:
+//   http://www.antlr.org:8080/pipermail/antlr-interest/2007-July/022345.html
+// in short:
+//   "I have not provided UTF32 input streams, but this is just a matter of copying the code for UCS2 and changing the casts from
+//    {p}ANTLR3_UINT16 to {p}ANTLR3_UINT32"
 
 #define INVALID_ENCODING(msg)  do { if (dest_ptr) free(dest_ptr); rb_raise(rb_eRangeError, "invalid encoding: " msg); } while(0)
 
