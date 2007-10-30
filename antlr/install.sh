@@ -11,6 +11,7 @@ cd "../../../../.."
 # install ANTLR itself only on the local Darwin machine
 if [ `uname` = "Darwin" ]; then
   echo "Installing ANTLR..."
+  sudo rm -rf "/usr/local/${ANTLR_VERSION}"
   sudo mv "${ANTLR_VERSION}" /usr/local/
   sudo rm -f /usr/local/antlr
   $(cd /usr/local && sudo ln -s "${ANTLR_VERSION}" antlr)
