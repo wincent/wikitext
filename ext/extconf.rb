@@ -7,6 +7,7 @@ def missing item
   exit 1
 end
 
+have_header('ruby.h') or missing 'ruby.h'
 have_header('antlr3.h') or missing 'antlr3.h'
 have_library('antlr3c', 'antlr3ParserNew') or missing 'antlr3ParserNew function (antlr3c library)'
 create_makefile('wikitext')

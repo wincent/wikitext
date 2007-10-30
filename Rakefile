@@ -28,6 +28,7 @@ task :make => [extension_makefile, built_extension]
 
 file extension_makefile => ['ext/extconf.rb', 'ext/depend'] do
   Dir.chdir('ext') do
+    ENV['ARCHFLAGS'] = '-arch i386' if RUBY_PLATFORM =~ /darwin/
     ruby 'extconf.rb'
   end
 end
