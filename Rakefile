@@ -4,7 +4,7 @@ require 'rake/gempackagetask'
 require 'rubygems'
 require 'spec/rake/spectask'
 
-CLEAN.include   Rake::FileList['**/*.so', '**/*.bundle', '**/*.o', 'mkmf.log', 'Makefile']
+CLEAN.include   Rake::FileList['**/*.so', '**/*.bundle', '**/*.o', '**/mkmf.log', '**/Makefile']
 CLOBBER.include Rake::FileList['WikitextLexer.c', 'WikitextLexer.h', 'Wikitext.tokens']
 
 task :default => :all
