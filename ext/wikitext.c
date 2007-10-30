@@ -382,7 +382,7 @@ void _Wikitext_pop_from_stack_up_to(VALUE stack, VALUE target, VALUE item, VALUE
     } while (continue_looping);
 }
 
-void ANTLR3_INLINE _Wikitext_start_para_if_necessary(VALUE scope, VALUE line, VALUE output, VALUE *pending_crlf)
+static void ANTLR3_INLINE _Wikitext_start_para_if_necessary(VALUE scope, VALUE line, VALUE output, VALUE *pending_crlf)
 {
     // if no block open yet, or top of stack is BLOCKQUOTE (w¡th nothing in it yet)
     if ((RARRAY_LEN(scope) == 0) || (FIX2INT(rb_ary_entry(scope, -1)) == BLOCKQUOTE))
