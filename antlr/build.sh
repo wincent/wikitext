@@ -1,4 +1,5 @@
 #!/bin/sh -e
+# Copyright 2007 Wincent Colaiuta
 
 VERSION="3.0.1"
 ANTLR_VERSION="antlr-${VERSION}"
