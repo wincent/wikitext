@@ -17,7 +17,7 @@ the following reasons:
 
 [Note: It's possible that in the future I might replace this dependency on ANTLR with
 a custom lexer written using Ragel (depending on Ragel is somewhat simpler as
-it doesn't require cumbersome Java-based toolchain).]
+it doesn't require the cumbersome Java-based toolchain).]
 
 For more information about ANTLR, see:
 
