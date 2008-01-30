@@ -1058,6 +1058,81 @@ module UTF8
   end # module Invalid
 end # module UTF8
 
+describe Wikitext, 'with invalidly encoded input' do
+  before do
+    @parser = Wikitext::Parser.new
+  end
+
+  it 'should raise an exception for missing second byte' do
+    lambda { @parser.parse(UTF8::Invalid::TWO_BYTES_MISSING_SECOND_BYTE) }.should raise_error(RangeError, /truncated/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::TWO_BYTES_MISSING_SECOND_BYTE)
+    }.should raise_error(RangeError, /truncated/)
+  end
+
+  it 'should raise an exception for malformed second byte' do
+    lambda { @parser.parse(UTF8::Invalid::TWO_BYTES_MALFORMED_SECOND_BYTE) }.should raise_error(RangeError, /malformed/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::TWO_BYTES_MALFORMED_SECOND_BYTE)
+    }.should raise_error(RangeError, /malformed/)
+  end
+
+  it 'should raise an exception for overlong sequence' do
+    lambda { @parser.parse(UTF8::Invalid::OVERLONG) }.should raise_error(RangeError, /overlong/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::OVERLONG)
+    }.should raise_error(RangeError, /overlong/)
+
+    # alternate
+    lambda { @parser.parse(UTF8::Invalid::OVERLONG_ALT) }.should raise_error(RangeError, /overlong/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::OVERLONG_ALT)
+    }.should raise_error(RangeError, /overlong/)
+  end
+
+  it 'should raise an exception for missing second byte in three-byte sequence' do
+    lambda { @parser.parse(UTF8::Invalid::THREE_BYTES_MISSING_SECOND_BYTE) }.should raise_error(RangeError, /truncated/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::THREE_BYTES_MISSING_SECOND_BYTE)
+    }.should raise_error(RangeError, /truncated/)
+  end
+
+  it 'should raise an exception for missing third byte in three-byte sequence' do
+    lambda { @parser.parse(UTF8::Invalid::THREE_BYTES_MISSING_THIRD_BYTE) }.should raise_error(RangeError, /truncated/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::THREE_BYTES_MISSING_THIRD_BYTE)
+    }.should raise_error(RangeError, /truncated/)
+  end
+
+  it 'should raise an exception for malformed second byte in three-byte sequence' do
+    lambda { @parser.parse(UTF8::Invalid::THREE_BYTES_MALFORMED_SECOND_BYTE) }.should raise_error(RangeError, /malformed/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::THREE_BYTES_MALFORMED_SECOND_BYTE)
+    }.should raise_error(RangeError, /malformed/)
+  end
+
+  it 'should raise an exception for malformed third byte in three-byte sequence' do
+    lambda { @parser.parse(UTF8::Invalid::THREE_BYTES_MALFORMED_THIRD_BYTE) }.should raise_error(RangeError, /malformed/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::THREE_BYTES_MALFORMED_THIRD_BYTE)
+    }.should raise_error(RangeError, /malformed/)
+  end
+
+  it 'should raise an exception for characters outside of the encodable range of UCS-2' do
+    lambda { @parser.parse(UTF8::Invalid::EXCEEDS_ENCODABLE_RANGE_FOR_UCS2) }.should raise_error(RangeError, /exceeds/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::EXCEEDS_ENCODABLE_RANGE_FOR_UCS2)
+    }.should raise_error(RangeError, /exceeds/)
+  end
+
+  it 'should raise an exception for unexpected bytes' do
+    lambda { @parser.parse(UTF8::Invalid::UNEXPECTED_BYTE) }.should raise_error(RangeError, /unexpected byte/)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::UNEXPECTED_BYTE)
+    }.should raise_error(RangeError, /unexpected byte/)
+  end
+end
+
 # this stuff is implicitly tested above, but test it here explicitly anyway
 describe Wikitext, 'converting from UTF-8 to UCS-2' do
   before do
