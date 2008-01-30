@@ -909,6 +909,40 @@ describe Wikitext::Parser, 'parsing characters which have special meaning in HTM
 
 end
 
+describe Wikitext::Parser, 'autolinking' do
+  before do
+    @parser = Wikitext::Parser.new
+  end
+
+  it 'should default to autolinking on' do
+    @parser.autolink.should == true
+  end
+
+  describe 'on' do
+    it 'should convert URIs into hyperlinks' do
+      pending
+      @parser.parse('http://example.com/').should == %Q{<a class="external" href="http://example.com/">example.com</a>\n}
+      @parser.external_link_class = nil
+      @parser.parse('http://example.com/').should == %Q{<a href="http://example.com/">example.com</a>\n}
+    end
+  end
+
+  describe 'off' do
+    before do
+      @parser.autolink = false
+    end
+
+    it 'should accept "autolink = false"' do
+      @parser.autolink.should == false
+    end
+
+    it 'should not convert URIs into hyperlinks' do
+      pending
+      @parser.parse('http://example.com/').should == "<p>http://example.com/</p>\n"
+    end
+  end
+end
+
 describe Wikitext::Parser, 'with large slab of input text' do
 
   before do
