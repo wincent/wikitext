@@ -105,6 +105,15 @@ URI_CHARS         : ('a'..'z' | 'A'..'Z' | '0'..'9' | '@' | '$' | '&' | '\'' | '
 fragment
 SPECIAL_URI_CHARS : (':' | '!' | ')' | ',' | ';' | '.' | '?')+ ;
 
+// TODO: scan for email addresses (not necessarily RFC 2821 compliant)
+// this will allow us to accept things like [mailto:user@example.com user@example.com]
+// will need to define a CSS class for such links as well
+//EMAIL             : ('m' | 'M') | ('a' | 'A') | ('i' | 'I') | ('l' | 'L') | ('t' | 'T') | ('o' | 'O') ':' USER '@' DOMAIN;
+//fragment
+//USER              : ('a'..'z' | 'A'..'Z' | '0'..'9' | '.' | '_' | '-')
+//fragment
+//DOMAIN            :
+
 LINK_START      : '[[' ;
 LINK_END        : ']]' ;
 EXT_LINK_START  : '[' ;
