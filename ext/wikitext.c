@@ -253,6 +253,17 @@ VALUE Wikitext_utf8_to_ucs2(VALUE self, VALUE in)
     return out;
 }
 
+static inline VALUE _Wikitext_downcase(uint16_t *start, long length)
+{
+    // this is a nasty trick; we downcase "in place", overwriting the original contents of the buffer
+    for (long i = 0; i < length / sizeof(uint16_t); i++)
+    {
+        if (start[i] >= 'A' && start[i] <= 'Z')
+            start[i] += 32;
+    }
+    return rb_str_new((char *)start, length);
+}
+
 // necessary for overriding the generated nextToken function
 pANTLR3_COMMON_TOKEN (*original_next_token)(struct ANTLR3_TOKEN_SOURCE_struct * tokenSource);
 
@@ -1123,10 +1134,19 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
                 break;
 
-            case ENTITY:
+            case NAMED_ENTITY:
+            case DECIMAL_ENTITY:
+                // pass these through unaltered as they are case sensitive
                 _Wikitext_pop_excess_elements(scope, line, output, line_ending);
                 _Wikitext_start_para_if_necessary(scope, line, output, &pending_crlf);
                 rb_str_append(output, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
+                break;
+
+            case HEX_ENTITY:
+                // normalize hex entities (downcase them)
+                _Wikitext_pop_excess_elements(scope, line, output, line_ending);
+                _Wikitext_start_para_if_necessary(scope, line, output, &pending_crlf);
+                rb_str_append(output, _Wikitext_downcase((uint16_t *)token->start, (token->stop + 1 - token->start)));
                 break;
 
             case QUOT:

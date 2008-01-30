@@ -211,7 +211,7 @@ describe Wikitext::Parser, 'parsing <pre> blocks' do
 
   it 'should pass numeric (hexadecimal) entities through unchanged' do
     @parser.parse(' &#x20ac;').should == "<pre>&#x20ac;</pre>\n"
-    @parser.parse(' &#X20ac;').should == "<pre>&#X20ac;</pre>\n" # same with uppercase X
+    @parser.parse(' &#X20aC;').should == "<pre>&#x20ac;</pre>\n"
   end
 
   it 'should convert non-ASCII characters to numeric entities' do
@@ -327,7 +327,7 @@ describe Wikitext::Parser, 'parsing <nowiki> spans' do
 
   it 'should pass numeric (hexadecimal) entities through unchanged' do
     @parser.parse('<nowiki>&#x20ac;</nowiki>').should == "<p>&#x20ac;</p>\n"
-    @parser.parse('<nowiki>&#X20ac;</nowiki>').should == "<p>&#X20ac;</p>\n" # same with uppercase X
+    @parser.parse('<nowiki>&#X20Ac;</nowiki>').should == "<p>&#x20ac;</p>\n"
   end
 
   it 'should convert non-ASCII characters to numeric entities' do
@@ -857,21 +857,16 @@ describe Wikitext::Parser, 'parsing entities' do
     @parser.parse('&#8364;').should == "<p>&#8364;</p>\n"
   end
 
-  it 'should pass numeric (hexdecimal) entities through unchaneged' do
+  it 'should normalize case variations in hexadecimal entities' do
     @parser.parse('&#x20ac;').should == "<p>&#x20ac;</p>\n"
-    @parser.parse('&#X20ac;').should == "<p>&#X20ac;</p>\n" # same with uppercase X
+    @parser.parse('&#x20AC;').should == "<p>&#x20ac;</p>\n"
+    @parser.parse('&#X20ac;').should == "<p>&#x20ac;</p>\n"
+    @parser.parse('&#X20AC;').should == "<p>&#x20ac;</p>\n"
   end
 
-  it 'should ignore (pass through) case variations in hexadecimal entities' do
-    @parser.parse('&#x20ac;').should == "<p>&#x20ac;</p>\n"
-    @parser.parse('&#x20AC;').should == "<p>&#x20AC;</p>\n"
-
-    # same with uppercase X
-    @parser.parse('&#X20ac;').should == "<p>&#X20ac;</p>\n"
-    @parser.parse('&#X20AC;').should == "<p>&#X20AC;</p>\n"
-  end
-
-  it 'should pass named entities through unchaneged' do
+  it 'should pass named entities through unchanged' do
+    @parser.parse('&Aacute;').should == "<p>&Aacute;</p>\n" # these are two different entities
+    @parser.parse('&aacute;').should == "<p>&aacute;</p>\n" # ie. they are case sensitive
     @parser.parse('&euro;').should == "<p>&euro;</p>\n"
   end
 

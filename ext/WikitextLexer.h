@@ -67,7 +67,6 @@
  *  - void      pWikitextLexer->EXT_LINK_END(pWikitextLexer)
  *  - void      pWikitextLexer->SEPARATOR(pWikitextLexer)
  *  - void      pWikitextLexer->SPACE(pWikitextLexer)
- *  - void      pWikitextLexer->ENTITY(pWikitextLexer)
  *  - void      pWikitextLexer->NAMED_ENTITY(pWikitextLexer)
  *  - void      pWikitextLexer->HEX_ENTITY(pWikitextLexer)
  *  - void      pWikitextLexer->DECIMAL_ENTITY(pWikitextLexer)
@@ -79,6 +78,8 @@
  *  - void      pWikitextLexer->PRINTABLE(pWikitextLexer)
  *  - void      pWikitextLexer->DEFAULT(pWikitextLexer)
  *  - void      pWikitextLexer->Tokens(pWikitextLexer)
+ * 
+ * 
  * 
  * 
  * 
@@ -209,7 +210,6 @@ typedef struct WikitextLexer_Ctx_struct
     void (*mEXT_LINK_END)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mSEPARATOR)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mSPACE)	(struct WikitextLexer_Ctx_struct * ctx);
-    void (*mENTITY)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mNAMED_ENTITY)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mHEX_ENTITY)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mDECIMAL_ENTITY)	(struct WikitextLexer_Ctx_struct * ctx);
@@ -221,6 +221,8 @@ typedef struct WikitextLexer_Ctx_struct
     void (*mPRINTABLE)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mDEFAULT)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mTokens)	(struct WikitextLexer_Ctx_struct * ctx);
+
+
 
 
 
@@ -287,21 +289,20 @@ ANTLR3_API pWikitextLexer WikitextLexerNew         (pANTLR3_INPUT_STREAM     ins
 #define P      4
 #define TT_START      13
 #define H1_END      34
-#define ENTITY      50
 #define H6      17
 #define URI      40
 #define H2_END      33
 #define H2_START      27
 #define BLOCKQUOTE      9
 #define H5_END      30
-#define LESS      53
+#define LESS      52
 #define NO_WIKI_START      7
 #define H3      20
 #define UL      16
 #define LINK_START      41
 #define H6_END      29
-#define AMP      52
-#define GREATER      54
+#define AMP      51
+#define GREATER      53
 #define H1      22
 #define LINK_END      42
 #define HTTP      35
@@ -310,10 +311,10 @@ ANTLR3_API pWikitextLexer WikitextLexerNew         (pANTLR3_INPUT_STREAM     ins
 #define SPACE      46
 #define H5_START      24
 #define URI_CHARS      38
-#define PRINTABLE      56
+#define PRINTABLE      55
 #define NAMED_ENTITY      47
 #define LI      5
-#define CRLF      55
+#define CRLF      54
 #define H4      19
 #define H3_END      32
 #define H5      18
@@ -329,13 +330,13 @@ ANTLR3_API pWikitextLexer WikitextLexerNew         (pANTLR3_INPUT_STREAM     ins
 #define H1_START      28
 #define EOF      -1
 #define OL      15
-#define Tokens      58
+#define Tokens      57
 #define STRONG_EM      10
-#define DEFAULT      57
+#define DEFAULT      56
 #define EXT_LINK_START      43
 #define SPECIAL_URI_CHARS      39
 #define SVN      37
-#define QUOT      51
+#define QUOT      50
 #define EM      12
 #define STRONG      11
 #ifdef	EOF

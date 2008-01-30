@@ -112,10 +112,7 @@ EXT_LINK_END    : ']' ;
 SEPARATOR       : '|' ;
 SPACE           : ' ' ;
 
-ENTITY          : NAMED_ENTITY | HEX_ENTITY | DECIMAL_ENTITY ;
-
 // named entities (eg &copy;, &frac14;)
-fragment
 NAMED_ENTITY    :  '&' ('a'..'z' | 'A'..'Z')+ ('0'..'9')* ';' ;
 
 // numeric (Unicode) entities (eg &#9099;)
@@ -124,10 +121,8 @@ NAMED_ENTITY    :  '&' ('a'..'z' | 'A'..'Z')+ ('0'..'9')* ';' ;
 // Numeric character references specify the code position of a character in the document character set. Numeric character references may take two forms:
 // The syntax "&#D;", where D is a decimal number, refers to the ISO 10646 decimal character number D.
 // The syntax "&#xH;" or "&#XH;", where H is a hexadecimal number, refers to the ISO 10646 hexadecimal character number H. Hexadecimal numbers in numeric character references are case-insensitive.
-fragment
 HEX_ENTITY      : '&#' ('x' | 'X') ('a'..'f' | 'A'..'F' | '0'..'9')+ ';' ;
 
-fragment
 DECIMAL_ENTITY  : '&#' '0'..'9'+ ';' ;
 
 // Here in the entity rules we are only concerned with syntactic validity; (may) worry about semantic validity in the parser.
