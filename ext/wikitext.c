@@ -1422,6 +1422,6 @@ void Init_wikitext()
 
     // accessors
     rb_define_attr(cParser, "line_ending", Qtrue, Qtrue);           // read and write accessors
-    rb_define_attr(cParser, "internal_link_prefix", Qfalse, Qtrue); // write accessor already defined above
+    rb_define_attr(cParser, "internal_link_prefix", Qtrue, Qfalse); // write accessor already defined above
 }
 
