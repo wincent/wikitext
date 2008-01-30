@@ -1091,8 +1091,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 break;
 
             case URI:
-                // if in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
-                if (rb_ary_includes(scope, INT2FIX(LINK_START)) || rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)))
+                    // user can temporarily suppress autolinking by using <nowiki></nowiki>
+                    // note that unlike MediaWiki, we do allow autolinking inside PRE blocks
+                    rb_str_append(output, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
+                else if (rb_ary_includes(scope, INT2FIX(LINK_START)) || rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                 {
                     // not yet implemented
                     // if last token was ext_link start, this is the destination of the link
@@ -1101,6 +1104,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else
                 {
+                    // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
                     _Wikitext_pop_excess_elements(scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(scope, line, output, &pending_crlf);
                     i = rb_str_new((const char *)token->start, (token->stop + 1 - token->start)); // the URI

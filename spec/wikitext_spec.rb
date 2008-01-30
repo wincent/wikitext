@@ -925,6 +925,10 @@ describe Wikitext::Parser, 'autolinking' do
       @parser.external_link_class = nil
       @parser.parse(uri).should == %Q{<p><a href="http://example.com/">http://example.com/</a></p>\n}
     end
+
+    it 'should pass through URIs unchanged inside nowiki spans' do
+      @parser.parse("<nowiki>http://example.com/</nowiki>").should == "<p>http://example.com/</p>\n"
+    end
   end
 
   describe 'off' do
