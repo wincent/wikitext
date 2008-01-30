@@ -1058,7 +1058,7 @@ module UTF8
   end # module Invalid
 end # module UTF8
 
-# this stuff is implicitly tested above, but test it here explicitly anyway
+# this stuff is implicitly tested above, but test it here explicitly anyway
 describe Wikitext, 'converting from UTF-8 to UCS-2' do
   before do
     @a = 'a string containing only ASCII codepoints'
@@ -1105,7 +1105,7 @@ module UCS2
   end # module Invalid
 end # module UCS2
 
-# this stuff is implicitly tested above, but test it here explicitly anyway
+# this stuff is implicitly tested above, but test it here explicitly anyway
 describe Wikitext, 'converting from UCS-2 to UTF-8' do
   before do
     @a = Iconv.iconv('UCS-2LE', 'UTF-8', 'a string containing only ASCII codepoints').shift
