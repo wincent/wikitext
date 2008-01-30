@@ -52,7 +52,7 @@ end
 
 file built_extension => extension_files do
   Dir.chdir('ext') do
-    sh 'make'
+    sh 'make && touch .built'
   end
 end
 
