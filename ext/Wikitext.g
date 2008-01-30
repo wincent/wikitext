@@ -125,7 +125,7 @@ NAMED_ENTITY    :  '&' ('a'..'z' | 'A'..'Z')+ ('0'..'9')* ';' ;
 // The syntax "&#D;", where D is a decimal number, refers to the ISO 10646 decimal character number D.
 // The syntax "&#xH;" or "&#XH;", where H is a hexadecimal number, refers to the ISO 10646 hexadecimal character number H. Hexadecimal numbers in numeric character references are case-insensitive.
 fragment
-HEX_ENTITY      : '&#x' ('a'..'f' | 'A'..'F' | '0'..'9')+ ';' ;
+HEX_ENTITY      : '&#' ('x' | 'X') ('a'..'f' | 'A'..'F' | '0'..'9')+ ';' ;
 
 fragment
 DECIMAL_ENTITY  : '&#' '0'..'9'+ ';' ;
