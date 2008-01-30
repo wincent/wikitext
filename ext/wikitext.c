@@ -455,8 +455,8 @@ void ANTLR3_INLINE _Wikitext_pop_excess_elements(VALUE scope, VALUE line, VALUE 
 
 VALUE Wikitext_parser_initialize(VALUE self)
 {
-    rb_iv_set(self, "@line_ending", rb_str_new2("\n"));
     rb_iv_set(self, "@autolink", Qtrue);
+    rb_funcall(self, rb_intern("line_ending="), 1, rb_str_new2("\n"));
     rb_funcall(self, rb_intern("external_link_class="), 1, rb_str_new2("external"));
     rb_funcall(self, rb_intern("mailto_class="), 1, rb_str_new2("mailto"));
     return self;
@@ -532,12 +532,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     VALUE pending_crlf  = Qfalse;
 
     // access these once per parse
-    VALUE line_ending       = Wikitext_utf8_to_ucs2(mWikitext, rb_iv_get(self, "@line_ending"));
-    VALUE autolink          = rb_iv_get(self, "@autolink");
-    VALUE link_class_utf8   = rb_iv_get(self, "@external_link_class_ucs2");
-    VALUE link_class        = StringValue(link_class_utf8);
-    VALUE mailto_class_utf8 = rb_iv_get(self, "@mailto_class_ucs2");
-    VALUE mailto_class      = StringValue(mailto_class_utf8);
+    VALUE line_ending   = rb_iv_get(self, "@line_ending_ucs2");
+    line_ending         = StringValue(line_ending);
+    VALUE autolink      = rb_iv_get(self, "@autolink");
+    VALUE link_class    = rb_iv_get(self, "@external_link_class_ucs2");
+    link_class          = StringValue(link_class);
+    VALUE mailto_class  = rb_iv_get(self, "@mailto_class_ucs2");
+    mailto_class        = StringValue(mailto_class);
 
     pANTLR3_COMMON_TOKEN token = NULL;
     do
@@ -1413,6 +1414,14 @@ VALUE Wikitext_encode_internal_link_target(VALUE self, VALUE input)
 }
 
 // will raise a RangeError if prefix cannot be converted into UCS-2 encoding
+VALUE Wikitext_parser_set_line_ending(VALUE self, VALUE ending)
+{
+    rb_iv_set(self, "@line_ending", ending);
+    VALUE encoded = Wikitext_utf8_to_ucs2(mWikitext, ending);
+    rb_iv_set(self, "@line_ending_ucs2", encoded);
+}
+
+// will raise a RangeError if prefix cannot be converted into UCS-2 encoding
 VALUE Wikitext_parser_set_internal_link_prefix(VALUE self, VALUE prefix)
 {
     rb_iv_set(self, "@internal_link_prefix", prefix);
@@ -1455,6 +1464,7 @@ void Init_wikitext()
     // instance methods
     rb_define_method(cParser, "initialize", Wikitext_parser_initialize, 0);
     rb_define_method(cParser, "parse", Wikitext_parser_parse, -1);
+    rb_define_method(cParser, "line_ending=", Wikitext_parser_set_line_ending, 1);
     rb_define_method(cParser, "internal_link_prefix=", Wikitext_parser_set_internal_link_prefix, 1);
     rb_define_method(cParser, "external_link_class=", Wikitext_parser_set_external_link_class, 1);
     rb_define_method(cParser, "mailto_class=", Wikitext_parser_set_mailto_class, 1);
@@ -1463,7 +1473,8 @@ void Init_wikitext()
     // accessors
 
     // override default line_ending
-    rb_define_attr(cParser, "line_ending", Qtrue, Qtrue);               // read and write accessors
+    // defaults to "\n"
+    rb_define_attr(cParser, "line_ending", Qtrue, Qfalse);              // write accessor already defined above
 
     // the prefix to be prepended to internal links; defaults to "/wiki/"
     // for example, given an internal_link_prefix of "/wiki/"
