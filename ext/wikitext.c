@@ -80,6 +80,10 @@ static ANTLR3_UINT16 quot_entity_literal[]          = { '&', 'q', 'u', 'o', 't',
 static ANTLR3_UINT16 amp_entity_literal[]           = { '&', 'a', 'm', 'p',';' };
 static ANTLR3_UINT16 lt_entity_literal[]            = { '&', 'l', 't', ';' };
 static ANTLR3_UINT16 gt_entity_literal[]            = { '&', 'g', 't', ';' };
+static ANTLR3_UINT16 a_href_start_literal[]         = { '<', 'a', ' ', 'h', 'r', 'e', 'f', '=', '"' };
+static ANTLR3_UINT16 a_href_class_literal[]         = { '"', ' ', 'c', 'l', 'a', 's', 's', '=', '"' };
+static ANTLR3_UINT16 a_href_end_literal[]           = { '"', '>' };
+static ANTLR3_UINT16 a_end_literal[]                = { '<', '/', 'a', '>' };
 
 // TODO: look at moving to UTF-32 (because UCS-2 is an obsolete format); this may have to wait until we do a Ragel rewrite
 // (using the alphtype directive with uint32_t or similar)
@@ -262,6 +266,21 @@ static inline VALUE _Wikitext_downcase(uint16_t *start, long length)
             start[i] += 32;
     }
     return rb_str_new((char *)start, length);
+}
+
+static inline VALUE _Wikitext_hyperlink(VALUE link_target, VALUE link_text, VALUE link_class)
+{
+    VALUE string = rb_str_new((const char *)a_href_start_literal, sizeof(a_href_start_literal)); // <a href="
+    rb_str_append(string, link_target); // ...
+    if (link_class != Qnil)
+    {
+        rb_str_append(string, rb_str_new((const char *)a_href_class_literal, sizeof(a_href_class_literal)));    // " class="
+        rb_str_append(string, link_class);  // ...
+    }
+    rb_str_append(string, rb_str_new((const char *)a_href_end_literal, sizeof(a_href_end_literal))); // ">
+    rb_str_append(string, link_text);
+    rb_str_append(string, rb_str_new((const char *)a_end_literal, sizeof(a_end_literal))); // </a>
+    return string;
 }
 
 // necessary for overriding the generated nextToken function
@@ -536,7 +555,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     line_ending         = StringValue(line_ending);
     VALUE autolink      = rb_iv_get(self, "@autolink");
     VALUE link_class    = rb_iv_get(self, "@external_link_class_ucs2");
-    link_class          = StringValue(link_class);
+    link_class          = NIL_P(link_class) ? Qnil : StringValue(link_class);
     VALUE mailto_class  = rb_iv_get(self, "@mailto_class_ucs2");
     mailto_class        = StringValue(mailto_class);
 
@@ -1073,11 +1092,22 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case URI:
                 // if in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
-                //if (autolink == Qtrue)
-                //if (external_link_class != Qnil)
-                // if last token was ext_link start, this is the destination of the link
-                // else if in ext_link scope, this must be part of the label
-                // if in (non-external) link scope, this must be part of the article title (bad title!)
+                if (rb_ary_includes(scope, INT2FIX(LINK_START)) || rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                {
+                    // not yet implemented
+                    // if last token was ext_link start, this is the destination of the link
+                    // else if in ext_link scope, this must be part of the label
+                    // if in (non-external) link scope, this must be part of the article title (bad title!)
+                }
+                else
+                {
+                    _Wikitext_pop_excess_elements(scope, line, output, line_ending);
+                    _Wikitext_start_para_if_necessary(scope, line, output, &pending_crlf);
+                    i = rb_str_new((const char *)token->start, (token->stop + 1 - token->start)); // the URI
+                    if (autolink == Qtrue)
+                        i = _Wikitext_hyperlink(i, i, link_class); // link target, link text, link class
+                    rb_str_append(output, i);
+                }
                 break;
 
             // internal links (links to other wiki articles) look like this:
@@ -1433,7 +1463,7 @@ VALUE Wikitext_parser_set_internal_link_prefix(VALUE self, VALUE prefix)
 VALUE Wikitext_parser_set_external_link_class(VALUE self, VALUE link_class)
 {
     rb_iv_set(self, "@external_link_class", link_class);
-    VALUE encoded = Wikitext_utf8_to_ucs2(mWikitext, link_class);
+    VALUE encoded = NIL_P(link_class) ? Qnil : Wikitext_utf8_to_ucs2(mWikitext, link_class);
     rb_iv_set(self, "@external_link_class_ucs2", encoded);
 }
 

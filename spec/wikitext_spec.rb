@@ -920,10 +920,10 @@ describe Wikitext::Parser, 'autolinking' do
 
   describe 'on' do
     it 'should convert URIs into hyperlinks' do
-      pending
-      @parser.parse('http://example.com/').should == %Q{<a class="external" href="http://example.com/">example.com</a>\n}
+      uri = 'http://example.com/'
+      @parser.parse(uri).should == %Q{<p><a href="http://example.com/" class="external">http://example.com/</a></p>\n}
       @parser.external_link_class = nil
-      @parser.parse('http://example.com/').should == %Q{<a href="http://example.com/">example.com</a>\n}
+      @parser.parse(uri).should == %Q{<p><a href="http://example.com/">http://example.com/</a></p>\n}
     end
   end
 
@@ -937,7 +937,6 @@ describe Wikitext::Parser, 'autolinking' do
     end
 
     it 'should not convert URIs into hyperlinks' do
-      pending
       @parser.parse('http://example.com/').should == "<p>http://example.com/</p>\n"
     end
   end
