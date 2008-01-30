@@ -456,6 +456,9 @@ void ANTLR3_INLINE _Wikitext_pop_excess_elements(VALUE scope, VALUE line, VALUE 
 VALUE Wikitext_parser_initialize(VALUE self)
 {
     rb_iv_set(self, "@line_ending", rb_str_new2("\n"));
+    rb_iv_set(self, "@autolink", Qtrue);
+    rb_funcall(self, rb_intern("external_link_class="), 1, rb_str_new2("external"));
+    rb_funcall(self, rb_intern("mailto_class="), 1, rb_str_new2("mailto"));
     return self;
 }
 
@@ -528,8 +531,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     VALUE line_buffer   = rb_ary_new(); // stack for tracking raw tokens (not scope) on current line
     VALUE pending_crlf  = Qfalse;
 
-    // access this once per parse
-    VALUE line_ending = Wikitext_utf8_to_ucs2(mWikitext, rb_iv_get(self, "@line_ending"));
+    // access these once per parse
+    VALUE line_ending       = Wikitext_utf8_to_ucs2(mWikitext, rb_iv_get(self, "@line_ending"));
+    VALUE autolink          = rb_iv_get(self, "@autolink");
+    VALUE link_class_utf8   = rb_iv_get(self, "@external_link_class_ucs2");
+    VALUE link_class        = StringValue(link_class_utf8);
+    VALUE mailto_class_utf8 = rb_iv_get(self, "@mailto_class_ucs2");
+    VALUE mailto_class      = StringValue(mailto_class_utf8);
 
     pANTLR3_COMMON_TOKEN token = NULL;
     do
@@ -1064,11 +1072,20 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case URI:
                 // if in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
+                //if (autolink == Qtrue)
+                //if (external_link_class != Qnil)
                 // if last token was ext_link start, this is the destination of the link
                 // else if in ext_link scope, this must be part of the label
                 // if in (non-external) link scope, this must be part of the article title (bad title!)
                 break;
 
+            // internal links (links to other wiki articles) look like this:
+            //      [[another article]] (would point at, for example, "/wiki/another_article")
+            //      [[the other article|the link text we'll use for it]]
+            //      [[the other article | the link text we'll use for it]]
+            // note that the forward slash is a reserved character which changes the meaning of an internal link;
+            // this is a link that is external to the wiki but internal to the site as a whole:
+            //      [[bug/12]] (a relative link to "/bug/12")
             case LINK_START:
                 // if in plain scope, starts a link scope (must record start marker)
                 // could potentially emit the '<a href="' at that point
@@ -1081,6 +1098,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 // if elsewhere must treat this as plain text
                 break;
 
+            // external links look like this:
+            //      [http://google.com/ the link text]
+            // strings in square brackets which don't match this syntax get passed through literally; eg:
+            //      he was very angery [sic] about the turn of events
             case EXT_LINK_START:
                 // if in plain scope, starts an ext_link scope (must record start marker)
                 // if elsewhere must treat this as plain text
@@ -1318,6 +1339,7 @@ finalize:   // can raise exceptions only after all clean-up is done
 //         ...the [[foo]] is...
 // to be equivalent to:
 //         thing. [[Foo]] was...
+// TODO: this is probably the right place to check if treat_slash_as_special is true and act accordingly
 VALUE _Wikitext_encode_internal_link_target(uint16_t *input, long len)
 {
     static char percent = '%';
@@ -1398,6 +1420,22 @@ VALUE Wikitext_parser_set_internal_link_prefix(VALUE self, VALUE prefix)
     rb_iv_set(self, "@internal_link_prefix_ucs2", encoded);
 }
 
+// will raise a RangeError if prefix cannot be converted into UCS-2 encoding
+VALUE Wikitext_parser_set_external_link_class(VALUE self, VALUE link_class)
+{
+    rb_iv_set(self, "@external_link_class", link_class);
+    VALUE encoded = Wikitext_utf8_to_ucs2(mWikitext, link_class);
+    rb_iv_set(self, "@external_link_class_ucs2", encoded);
+}
+
+// will raise a RangeError if prefix cannot be converted into UCS-2 encoding
+VALUE Wikitext_parser_set_mailto_class(VALUE self, VALUE mailto_class)
+{
+    rb_iv_set(self, "@mailto_class", mailto_class);
+    VALUE encoded = Wikitext_utf8_to_ucs2(mWikitext, mailto_class);
+    rb_iv_set(self, "@mailto_class_ucs2", encoded);
+}
+
 void Init_wikitext()
 {
     // modules
@@ -1418,10 +1456,62 @@ void Init_wikitext()
     rb_define_method(cParser, "initialize", Wikitext_parser_initialize, 0);
     rb_define_method(cParser, "parse", Wikitext_parser_parse, -1);
     rb_define_method(cParser, "internal_link_prefix=", Wikitext_parser_set_internal_link_prefix, 1);
+    rb_define_method(cParser, "external_link_class=", Wikitext_parser_set_external_link_class, 1);
+    rb_define_method(cParser, "mailto_class=", Wikitext_parser_set_mailto_class, 1);
 //    rb_define_method(cParser, "internal_link")
 
     // accessors
-    rb_define_attr(cParser, "line_ending", Qtrue, Qtrue);           // read and write accessors
-    rb_define_attr(cParser, "internal_link_prefix", Qtrue, Qfalse); // write accessor already defined above
-}
 
+    // override default line_ending
+    rb_define_attr(cParser, "line_ending", Qtrue, Qtrue);               // read and write accessors
+
+    // the prefix to be prepended to internal links; defaults to "/wiki/"
+    // for example, given an internal_link_prefix of "/wiki/"
+    //      [[Apple]]
+    // would be transformed into:
+    //      <a href="/wiki/Apple">Apple</a>
+    rb_define_attr(cParser, "internal_link_prefix", Qtrue, Qfalse);     // write accessor already defined above
+
+    // CSS class to be applied to external links; defaults to "external"
+    // for example, given an external_link_class of "external":
+    //      [http://www.google.com/ the best search engine]
+    // would be transformed into:
+    //      <a class="external" href="http://www.google.com/">the best search engine</a>
+    rb_define_attr(cParser, "external_link_class", Qtrue, Qfalse);      // write accessor already defined above
+
+    // CSS class to be applied to external links; defaults to "mailto"
+    // for example:
+    //      [mailto:user@example.com user@example.com]
+    // or if autolinking of email addresses is turned on (not yet implemented) just
+    //      user@example.com
+    // would be transformed into:
+    //      <a class="mailto" href="mailto:user@example.com">user@example.com</a>
+    rb_define_attr(cParser, "mailto_class", Qtrue, Qfalse);             // write accessor already defined above
+
+    // whether to autolink URIs found in the plain scope
+    // when true:
+    //      http://apple.com/
+    // will be transformed to:
+    //      <a href="http://apple.com/">http://apple.com/</a>
+    // and if an external_link_class is set (to "external", for example) then the transformation will be:
+    //      <a class="external" href="http://apple.com/">http://apple.com/</a>
+    rb_define_attr(cParser, "autolink", Qtrue, Qtrue);
+
+    // whether "slash" in link text is treated specially
+    // when true, any link containing a slash is considered to be a relative link within the current site, but outside the wiki
+    // in other words, while:
+    //      [[interesting article]]
+    // is a wiki link (assuming the internal_link_prefix of "/wiki/"):
+    //      <a href="/wiki/interesting+article">interesting article</a>
+    // in contrast:
+    //      [[issue/400]]
+    // is interpreted as a link external to the wiki but internal to the site, and is converted into:
+    //      <a href="/issue/400">issue/400</a>
+    // this design is intended to work well with preprocessors, that can scan the input for things like:
+    //      issue #400
+    // and transform them before feeding them into the wikitext parser as:
+    //      [[issue/400|issue #400]]
+    // which in turn would be transformed into:
+    //      <a href="/issue/400">issue #400</a>
+    rb_define_attr(cParser, "treat_slash_as_special", Qtrue, Qtrue);
+}
