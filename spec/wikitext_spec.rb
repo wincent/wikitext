@@ -835,6 +835,9 @@ describe Wikitext::Parser, 'parsing combined <strong>/<em> spans' do
   it 'should handle (illegal) interleaved spans' do
     # ''''' means "<strong><em>" so when we see ''' we try to close the <strong> first, which makes for illegal nesting
     @parser.parse("'''''foo''' bar'' baz").should == "<p><strong><em>foo</em></strong> bar<em> baz</em></p>\n"
+
+    # note that if you really want ''''' to be parsed as "<em><strong>" you have to use whitespace to disambiguate
+    @parser.parse("'' '''foo''' bar'' baz").should == "<p><em> <strong>foo</strong> bar</em> baz</p>\n"
   end
 
   it 'should have no effect inside <pre> blocks' do
