@@ -973,6 +973,21 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse("[http://google.com/ Google ''rocks'']").should == expected
   end
 
+  it 'should format a link with strong formatting in the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external"><strong>Google</strong> rocks</a></p>\n}
+    @parser.parse("[http://google.com/ '''Google''' rocks]").should == expected
+  end
+
+  it 'should format a link with <tt></tt> tags in the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google <tt>SOC</tt></a></p>\n}
+    @parser.parse("[http://google.com/ Google <tt>SOC</tt>]").should == expected
+  end
+
+  it 'should format a link with strong and emphasis in the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google <strong><em>rocks</em></strong></a></p>\n}
+    @parser.parse("[http://google.com/ Google '''''rocks''''']").should == expected
+  end
+
   it "should pass through links which don't have a target" do
     expected = "<p>[well]</p>\n"
     @parser.parse("[well]").should == expected
