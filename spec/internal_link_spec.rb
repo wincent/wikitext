@@ -48,4 +48,21 @@ describe Wikitext::Parser, 'internal links' do
     # note how percent encoding is used in the href, and named entities in the link text
     @parser.parse('[[hello "world"]]').should == %Q{<p><a href="/wiki/hello%20%22world%22">hello &quot;world&quot;</a></p>\n}
   end
+
+  it 'should handle mixed scenarios (quotes, ampersands, non-ASCII characers)' do
+    expected = %Q{<p><a href="/wiki/foo%2c%20%22bar%22%20%26%20baz%20%e2%82%ac">foo, &quot;bar&quot; &amp; baz &#x20ac;</a></p>\n}
+    @parser.parse('[[foo, "bar" & baz €]]').should == expected
+  end
+
+  describe 'overriding the link prefix' do
+    it 'should be able to override the link prefix' do
+      @parser.internal_link_prefix = '/custom/'
+      @parser.parse('[[foo]]').should == %Q{<p><a href="/custom/foo">foo</a></p>\n}
+    end
+
+    it 'should interpet a nil link prefix as meaning no prefix' do
+      @parser.internal_link_prefix = nil
+      @parser.parse('[[foo]]').should == %Q{<p><a href="foo">foo</a></p>\n}
+    end
+  end
 end
