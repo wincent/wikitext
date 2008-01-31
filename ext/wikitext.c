@@ -1449,15 +1449,21 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     // already in internal link scope! this is a syntax error
                     _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
-                    rb_str_append(i, rb_str_new((const char *)link_start_literal, sizeof(link_start_literal)));
+                    link_target = Qnil;
+                    link_text   = Qnil;
+                    capture     = Qnil;
+                    rb_str_append(output, rb_str_new((const char *)link_start_literal, sizeof(link_start_literal)));
+                }
+                else if (rb_ary_includes(scope, INT2FIX(SEPARATOR)))
+                {
+                    // scanning internal link text
                 }
                 else // not in internal link scope yet
                 {
                     rb_ary_push(scope, INT2FIX(LINK_START));
 
                     // look ahead and try to gobble up link target
-                    token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource);
-                    if (token)
+                    while ((token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource)))
                     {
                         if (token->type == SPACE ||
                             token->type == PRINTABLE ||
@@ -1466,25 +1472,30 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             token->type == AMP)
                         {
                             // accumulate these tokens into link_target
-
+                            if (NIL_P(link_target))
+                            {
+                                link_target = rb_str_new2("");
+                                capture     = link_target;
+                            }
+                            rb_str_append(link_target, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
                         }
                         else if (token->type == LINK_END)
-                        {
-                            // if there was no separator + link text must use link target as link text
-                            // will have to pass it through the sanitizer as well
-                        }
+                            break; // jump back to top of loop (will handle this in LINK_END case below)
                         else if (token->type == SEPARATOR)
                         {
                             rb_ary_push(scope, INT2FIX(SEPARATOR));
+                            token = NULL;
+                            break;
                         }
                         else // unexpected token (syntax error)
                         {
                             _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
-                            continue; // jump back to top of loop to handle unexpected token
+                            break; // jump back to top of loop to handle unexpected token
                         }
                     }
+                    if (token != NULL)
+                        continue;
                 }
-
                 break;
 
             case LINK_END:
@@ -1698,7 +1709,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 break;
 
             case CRLF:
-                if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                if (rb_ary_includes(scope, INT2FIX(LINK_START)))
+                {
+                    // this is a syntax error; an unclosed external link
+                    _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
+                    link_target = Qnil;
+                    link_text   = Qnil;
+                    capture     = Qnil;
+                }
+                else if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                 {
                     // this is a syntax error; an unclosed external link
                     _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
@@ -1760,7 +1779,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 // delete the entire contents of the line scope stack and buffer
                 while (!NIL_P(rb_ary_delete_at(line, -1)));
                 while (!NIL_P(rb_ary_delete_at(line_buffer, -1)));
-
                 break;
 
             case PRINTABLE:
