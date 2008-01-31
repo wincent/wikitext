@@ -93,7 +93,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
     @parser.parse("* foo\n# bar").should == "<ul>\n<li>foo</li>\n</ul>\n<ol>\n<li>bar</li>\n</ol>\n"
   end
 
-  it 'should recognized lists which contain nested ordered lists' do
+  it 'should recognize lists which contain nested ordered lists' do
     @parser.parse("* foo\n*# bar").should == "<ul>\n<li>foo\n<ol>\n<li>bar</li>\n</ol>\n</li>\n</ul>\n"
     input = <<INPUT
 * foo
