@@ -87,7 +87,7 @@ H1_END          : H1 { MARK(); } ' '* ( '\n' | '\r' | EOF ) { REWINDLAST(); } ;
 // the syntactic predicate is necessary here because without it on seeing SPECIAL_URI_CHARS,
 // ANTLR will always predict SPECIAL_URI_CHARS followed by URI_CHARS;
 // if it turns out that there are no following URI_CHARS then the entire rule will fail
-URI               : (HTTP | FTP | SVN) URI_CHARS ((SPECIAL_URI_CHARS URI_CHARS)=> (SPECIAL_URI_CHARS URI_CHARS ))*;
+URI               : (HTTP | FTP | SVN) URI_CHARS ((SPECIAL_URI_CHARS URI_CHARS)=> (SPECIAL_URI_CHARS URI_CHARS))*;
 
 fragment
 HTTP              : ('h' | 'H') ('t' | 'T') ('t' | 'T') ('p' | 'P') ('s' |'S')? '://' ;
