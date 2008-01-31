@@ -1006,6 +1006,14 @@ describe Wikitext::Parser, 'external links' do
       expected = "<p>[well]</p>\n"
       @parser.parse("[well]").should == expected
     end
+
+    it 'should pass through unterminated links' do
+      expected = "<p>[well</p>\n"
+      @parser.parse("[well").should == expected
+
+      expected = %Q{<p>[<a href="http://example.com/" class="external">http://example.com/</a></p>\n}
+      @parser.parse("[http://example.com/").should == expected
+    end
   end
 
 end
