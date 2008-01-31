@@ -35,4 +35,17 @@ describe Wikitext::Parser, 'internal links' do
     @parser.parse('====== foo ]] bar ======').should == "<h6>foo ]] bar</h6>\n"                     # in H6 scope
     @parser.parse('> ]]').should == "<blockquote><p>]]</p>\n</blockquote>\n"                        # in BLOCKQUOTE scope
   end
+
+  it 'should turn single words into links' do
+    @parser.parse('[[foo]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+  end
+
+  it 'should turn multiple words into links' do
+    @parser.parse('[[foo bar]]').should == %Q{<p><a href="/wiki/foo%20bar">foo bar</a></p>\n}
+  end
+
+  it 'should encode and sanitize quotes' do
+    # note how percent encoding is used in the href, and named entities in the link text
+    @parser.parse('[[hello "world"]]').should == %Q{<p><a href="/wiki/hello%20%22world%22">hello &quot;world&quot;</a></p>\n}
+  end
 end

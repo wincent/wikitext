@@ -1602,7 +1602,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
                         _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                         _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
-                        i = _Wikitext_hyperlink(prefix, link_target, link_text, link_class); // link target, link text, link class
+                        i = _Wikitext_hyperlink(prefix, link_target, link_text, Qnil); // link target, link text, link class
                         rb_str_append(output, i);
                     }
                 }
