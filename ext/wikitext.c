@@ -1351,14 +1351,16 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource);
                     if (token && token->type == URI)
                     {
-                        rb_ary_push(scope, INT2FIX(EXT_LINK_START));
-                        continue; // so far so good, jump back to the top of the loop
+                        rb_ary_push(scope, INT2FIX(EXT_LINK_START));    // so far so good, jump back to the top of the loop
                     }
-
-                    // only get here if there was a syntax error (missing URI)
-                    _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
-                    _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                    rb_str_append(output, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
+                    else
+                    {
+                        // only get here if there was a syntax error (missing URI)
+                        _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
+                        _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
+                        rb_str_append(output, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
+                    }
+                    continue; // jump back to top of loop to handle token (either URI or whatever it is)
                 }
                 break;
 

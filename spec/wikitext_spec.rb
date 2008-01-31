@@ -973,6 +973,11 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse("[http://google.com/ Google ''rocks'']").should == expected
   end
 
+  it "should pass through links which don't have a target" do
+    expected = "<p>[well]</p>\n"
+    @parser.parse("[well]").should == expected
+  end
+
 end
 
 describe Wikitext::Parser, 'with large slab of input text' do
