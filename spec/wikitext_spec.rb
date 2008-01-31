@@ -985,9 +985,19 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse("[http://google.com/ Google ''rocks'']").should == expected
   end
 
+  it "should automatically close unmatched '' tags in the link text" do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google <em>SOC</em></a></p>\n}
+    @parser.parse("[http://google.com/ Google ''SOC]").should == expected
+  end
+
   it 'should format a link with strong formatting in the link text' do
     expected = %Q{<p><a href="http://google.com/" class="external"><strong>Google</strong> rocks</a></p>\n}
     @parser.parse("[http://google.com/ '''Google''' rocks]").should == expected
+  end
+
+  it "should automatically close unmatched ''' tags in the link text" do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google <strong>SOC</strong></a></p>\n}
+    @parser.parse("[http://google.com/ Google '''SOC]").should == expected
   end
 
   it 'should format a link with <tt></tt> tags in the link text' do
@@ -995,9 +1005,19 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse("[http://google.com/ Google <tt>SOC</tt>]").should == expected
   end
 
+  it 'should automatically close unmatched <tt> tags in the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google <tt>SOC</tt></a></p>\n}
+    @parser.parse("[http://google.com/ Google <tt>SOC]").should == expected
+  end
+
   it 'should format a link with strong and emphasis in the link text' do
     expected = %Q{<p><a href="http://google.com/" class="external">Google <strong><em>rocks</em></strong></a></p>\n}
     @parser.parse("[http://google.com/ Google '''''rocks''''']").should == expected
+  end
+
+  it "should automatically close unmatched ''''' tags in the link text" do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google <strong><em>SOC</em></strong></a></p>\n}
+    @parser.parse("[http://google.com/ Google '''''SOC]").should == expected
   end
 
   it 'should respect "<nowiki></nowiki>" tags inside the link text' do
@@ -1011,6 +1031,35 @@ describe Wikitext::Parser, 'external links' do
   it 'should pass "[" in link text through literally' do
     expected = %Q{<p><a href="http://google.com/" class="external">Google [ rocks</a></p>\n}
     @parser.parse("[http://google.com/ Google [ rocks]").should == expected  # was a bug
+  end
+
+  it 'should pass through ASCII entities in the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google &quot;SOC&quot;</a></p>\n}  # QUOT
+    @parser.parse(%Q{[http://google.com/ Google "SOC"]}).should == expected
+    expected = %Q{<p><a href="http://google.com/" class="external">Google &lt;SOC&gt;</a></p>\n}      # LESS, GREATER
+    @parser.parse(%Q{[http://google.com/ Google <SOC>]}).should == expected
+    expected = %Q{<p><a href="http://google.com/" class="external">Google &amp; SOC</a></p>\n}        # AMP
+    @parser.parse(%Q{[http://google.com/ Google & SOC]}).should == expected
+  end
+
+  it 'should pass through named entities in the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google &euro;</a></p>\n}
+    @parser.parse(%Q{[http://google.com/ Google &euro;]}).should == expected
+  end
+
+  it 'should pass through decimal entities in the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google &#8364;</a></p>\n}
+    @parser.parse(%Q{[http://google.com/ Google &#8364;]}).should == expected
+  end
+
+  it 'should pass through hexadecimal entities in the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google &#x20ac;</a></p>\n}
+    @parser.parse(%Q{[http://google.com/ Google &#x20ac;]}).should == expected
+  end
+
+  it 'should convert non-ASCII characters in the link text into entities' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google &#x20ac;</a></p>\n}
+    @parser.parse(%Q{[http://google.com/ Google €]}).should == expected
   end
 
   describe 'invalid links' do
