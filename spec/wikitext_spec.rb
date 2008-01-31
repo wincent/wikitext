@@ -1130,6 +1130,10 @@ describe Wikitext::Parser, 'external links' do
 
       expected = %Q{<h1>[<a href="http://example.com/" class="external">http://example.com/</a> visit</h1>\n}
       @parser.parse("= [http://example.com/ visit\n").should == expected # was a bug
+
+      # here's a slightly more complicated example using a blockquote
+      expected = %Q{<blockquote><p>[<a href="http://google.com/" class="external">http://google.com/</a></p>\n</blockquote>\n}
+      @parser.parse("> [http://google.com/\n").should == expected # was a bug
     end
   end
 
