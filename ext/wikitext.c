@@ -579,6 +579,81 @@ VALUE static ANTLR3_INLINE _Wikitext_sanitize_link_target(VALUE string)
     return out;
 }
 
+// encodes the UCS-2 input string according to RFCs 2396 and 2718
+// input is the pointer to the string, and len is its length in characters (not in bytes)
+// the returned string is also UCS-2 encoded
+// note that the first character of the target link is not case-sensitive
+// (this is a recommended application-level constraint; it is not imposed at this level)
+// this is to allow links like:
+//         ...the [[foo]] is...
+// to be equivalent to:
+//         thing. [[Foo]] was...
+// TODO: this is probably the right place to check if treat_slash_as_special is true and act accordingly
+VALUE _Wikitext_encode_link_target(VALUE in)
+{
+    uint16_t    *input  = (uint16_t *)RSTRING_PTR(in);
+    long        len     = RSTRING_LEN(in) / sizeof(uint16_t); // length in chars, not bytes
+    static char percent = '%';
+    static char hex[]   = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+    // to avoid most reallocations start with a destination buffer twice the size of the source
+    // this handles the most common case (where most chars are in the a-z range and don't require more storage, but there are often
+    // quite a few spaces, which are encoded as "%20" and occupy 6 bytes when converted back to UCS-2)
+    // the (unlikely) worst case is much worse: here each UCS-2 character expands to 3 UTF-8 bytes, and each must be written using
+    // three characters; after converting back to UCS-2 the buffer can be as much as 18 times larger (3 * 3 * 2)!
+    long dest_len = len * 2;
+    uint16_t *dest = malloc(dest_len * sizeof(uint16_t));
+    if (dest == NULL)
+        rb_raise(rb_eNoMemError, "failed to allocate temporary storage (memory allocation error)");
+    uint16_t *dest_ptr  = dest; // hang on to this so we can pass it to free() later
+
+    for (long i = 0; i < len; i++)
+    {
+        if ((dest + 9) > (dest_ptr + dest_len))     // worst case: a single UCS-2 character may grow to 9 characters once encoded
+        {
+            // outgrowing buffer, must reallocate
+            uint16_t *old_dest      = dest;
+            uint16_t *old_dest_ptr  = dest_ptr;
+            dest_len                += len * sizeof(uint16_t);
+            dest                    = realloc(dest_ptr, dest_len * sizeof(uint16_t));
+            if (dest == NULL)
+            {
+                // would have used reallocf, but this has to run on Linux too, not just Darwin
+                free(dest_ptr);
+                rb_raise(rb_eNoMemError, "failed to re-allocate temporary storage (memory allocation error)");
+            }
+            dest_ptr    = dest;
+            dest        = dest_ptr + (old_dest - old_dest_ptr);
+        }
+
+        // convert char to UTF-8
+        long width;
+        char buffer[3];
+        _Wikitext_ucs2_to_utf8(input[i], buffer, &width, NULL);
+
+        // pass through unreserved characters
+        if ((width == 1) && (((buffer[0] >= 'a') && (buffer[0] <= 'z')) ||
+                             ((buffer[0] >= 'A') && (buffer[0] <= 'Z')) ||
+                             ((buffer[0] >= '0') && (buffer[0] <= '9')) ||
+                             (buffer[0] == '-') || (buffer[0] == '_') ||
+                             (buffer[0] == '.') || (buffer[0] == '~')))
+            _Wikitext_utf8_to_ucs2(buffer, buffer + sizeof(buffer), dest++, NULL, dest_ptr);
+        else    // everything else gets URL-encoded
+        {
+            for (long j = 0; j < width; j++)
+            {
+                // append percent
+                _Wikitext_utf8_to_ucs2(&percent, &percent + sizeof(percent), dest++, NULL, dest_ptr);
+                char left  = hex[((unsigned char)buffer[j]) / 16];
+                char right = hex[((unsigned char)buffer[j]) % 16];
+                _Wikitext_utf8_to_ucs2(&left, &left + sizeof(char), dest++, NULL, dest_ptr);
+                _Wikitext_utf8_to_ucs2(&right, &right + sizeof(char), dest++, NULL, dest_ptr);
+            }
+        }
+    }
+    return rb_str_new((char *)dest_ptr, (dest - dest_ptr) * sizeof(uint16_t));
+}
+
 // not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
 void static ANTLR3_INLINE _Wikitext_rollback_failed_link(VALUE output, VALUE scope, VALUE line, VALUE link_target, VALUE link_text,
     VALUE link_class, VALUE line_ending)
@@ -1514,13 +1589,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         // syntax error: link with no link target
                         //_Wikitext_encode_link_target(pointer, lenght_in_characters_not_bytes)
                     }
-                    else if (NIL_P(link_text))
-                    {
-                        // use link target as link text
-                    }
                     else
                     {
-                        // we have both link target and link text
+                        if (NIL_P(link_text))
+                            // use link target as link text
+                            link_text = _Wikitext_sanitize_link_target(link_target);
+                        link_target = _Wikitext_encode_link_target(link_target);
                         _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
                         _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                         _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
@@ -1858,79 +1932,6 @@ finalize:   // can raise exceptions only after all clean-up is done
     return Wikitext_ucs2_to_utf8(mWikitext, output);
 }
 
-// encodes the UCS-2 input string according to RFCs 2396 and 2718
-// input is the pointer to the string, and len is its length in characters (not in bytes)
-// the returned string is also UCS-2 encoded
-// note that the first character of the target link is not case-sensitive
-// (this is a recommended application-level constraint; it is not imposed at this level)
-// this is to allow links like:
-//         ...the [[foo]] is...
-// to be equivalent to:
-//         thing. [[Foo]] was...
-// TODO: this is probably the right place to check if treat_slash_as_special is true and act accordingly
-VALUE _Wikitext_encode_link_target(uint16_t *input, long len)
-{
-    static char percent = '%';
-    static char hex[]   = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-
-    // to avoid most reallocations start with a destination buffer twice the size of the source
-    // this handles the most common case (where most chars are in the a-z range and don't require more storage, but there are often
-    // quite a few spaces, which are encoded as "%20" and occupy 6 bytes when converted back to UCS-2)
-    // the (unlikely) worst case is much worse: here each UCS-2 character expands to 3 UTF-8 bytes, and each must be written using
-    // three characters; after converting back to UCS-2 the buffer can be as much as 18 times larger (3 * 3 * 2)!
-    long dest_len = len * 2;
-    uint16_t *dest = malloc(dest_len * sizeof(uint16_t));
-    if (dest == NULL)
-        rb_raise(rb_eNoMemError, "failed to allocate temporary storage (memory allocation error)");
-    uint16_t *dest_ptr  = dest; // hang on to this so we can pass it to free() later
-
-    for (long i = 0; i < len; i++)
-    {
-        if ((dest + 9) > (dest_ptr + dest_len))     // worst case: a single UCS-2 character may grow to 9 characters once encoded
-        {
-            // outgrowing buffer, must reallocate
-            uint16_t *old_dest      = dest;
-            uint16_t *old_dest_ptr  = dest_ptr;
-            dest_len                += len * sizeof(uint16_t);
-            dest                    = realloc(dest_ptr, dest_len * sizeof(uint16_t));
-            if (dest == NULL)
-            {
-                // would have used reallocf, but this has to run on Linux too, not just Darwin
-                free(dest_ptr);
-                rb_raise(rb_eNoMemError, "failed to re-allocate temporary storage (memory allocation error)");
-            }
-            dest_ptr    = dest;
-            dest        = dest_ptr + (old_dest - old_dest_ptr);
-        }
-
-        // convert char to UTF-8
-        long width;
-        char buffer[3];
-        _Wikitext_ucs2_to_utf8(input[i], buffer, &width, NULL);
-
-        // pass through unreserved characters
-        if ((width == 1) && (((buffer[0] >= 'a') && (buffer[0] <= 'z')) ||
-                             ((buffer[0] >= 'A') && (buffer[0] <= 'Z')) ||
-                             ((buffer[0] >= '0') && (buffer[0] <= '9')) ||
-                             (buffer[0] == '-') || (buffer[0] == '_') ||
-                             (buffer[0] == '.') || (buffer[0] == '~')))
-            _Wikitext_utf8_to_ucs2(buffer, buffer + sizeof(buffer), dest++, NULL, dest_ptr);
-        else    // everything else gets URL-encoded
-        {
-            for (long j = 0; j < width; j++)
-            {
-                // append percent
-                _Wikitext_utf8_to_ucs2(&percent, &percent + sizeof(percent), dest++, NULL, dest_ptr);
-                char left  = hex[((unsigned char)buffer[j]) / 16];
-                char right = hex[((unsigned char)buffer[j]) % 16];
-                _Wikitext_utf8_to_ucs2(&left, &left + sizeof(char), dest++, NULL, dest_ptr);
-                _Wikitext_utf8_to_ucs2(&right, &right + sizeof(char), dest++, NULL, dest_ptr);
-            }
-        }
-    }
-    return rb_str_new((char *)dest_ptr, (dest - dest_ptr) * sizeof(uint16_t));
-}
-
 // public wrapper for the _Wikitext_sanitize_link_target function (exposed for testing purposes)
 // expects input to be UTF-8 encoded, and returns the result in the same format
 VALUE Wikitext_sanitize_link_target(VALUE self, VALUE input)
@@ -1945,7 +1946,7 @@ VALUE Wikitext_sanitize_link_target(VALUE self, VALUE input)
 VALUE Wikitext_encode_link_target(VALUE self, VALUE input)
 {
     VALUE ucs2  = Wikitext_utf8_to_ucs2(mWikitext, input);
-    VALUE out   = _Wikitext_encode_link_target((uint16_t *)RSTRING_PTR(ucs2), RSTRING_LEN(ucs2) / sizeof(uint16_t));
+    VALUE out   = _Wikitext_encode_link_target(ucs2);
     return Wikitext_ucs2_to_utf8(mWikitext, out);
 }
 
