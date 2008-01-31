@@ -1966,7 +1966,7 @@ VALUE Wikitext_parser_set_line_ending(VALUE self, VALUE ending)
 VALUE Wikitext_parser_set_internal_link_prefix(VALUE self, VALUE prefix)
 {
     rb_iv_set(self, "@internal_link_prefix", prefix);
-    VALUE encoded = Wikitext_utf8_to_ucs2(mWikitext, prefix);
+    VALUE encoded = NIL_P(prefix) ? Qnil : Wikitext_utf8_to_ucs2(mWikitext, prefix);
     rb_iv_set(self, "@internal_link_prefix_ucs2", encoded);
 }
 
