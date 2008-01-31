@@ -599,10 +599,8 @@ void static ANTLR3_INLINE _Wikitext_rollback_failed_link(VALUE output, VALUE sco
     rb_str_append(output, rb_str_new((const char *)link_start_literal, sizeof(link_start_literal)));
     if (!NIL_P(link_target))
     {
-        // TODO: must sanitize link_target:
-        //      can have DEFAULT (non-ASCII) tokens in it (must be converted to numeric entities)
-        //      can also have QUOT and AMP tokens in it (should convert into named entities)
-        rb_str_append(output, link_target);
+        VALUE sanitized = _Wikitext_sanitize_link_target(link_target);
+        rb_str_append(output, sanitized);
         if (rb_ary_includes(scope, INT2FIX(SEPARATOR)))
         {
             rb_str_append(output, rb_str_new((const char *)separator_literal, sizeof(separator_literal)));
