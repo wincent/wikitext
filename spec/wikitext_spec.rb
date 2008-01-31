@@ -1014,8 +1014,29 @@ describe Wikitext::Parser, 'external links' do
       expected = %Q{<p>[<a href="http://example.com/" class="external">http://example.com/</a></p>\n}
       @parser.parse("[http://example.com/").should == expected
 
+      expected = %Q{<p>[<a href="http://example.com/" class="external">http://example.com/</a> </p>\n}
+      @parser.parse("[http://example.com/ ").should == expected
+
       expected = %Q{<p>[<a href="http://example.com/" class="external">http://example.com/</a> visit</p>\n}
       @parser.parse("[http://example.com/ visit").should == expected # was a bug
+
+      expected = %Q{<h6>[<a href="http://example.com/" class="external">http://example.com/</a> visit</h6>\n}
+      @parser.parse("====== [http://example.com/ visit").should == expected # was a bug
+
+      expected = %Q{<h5>[<a href="http://example.com/" class="external">http://example.com/</a> visit</h5>\n}
+      @parser.parse("===== [http://example.com/ visit").should == expected # was a bug
+
+      expected = %Q{<h4>[<a href="http://example.com/" class="external">http://example.com/</a> visit</h4>\n}
+      @parser.parse("==== [http://example.com/ visit").should == expected # was a bug
+
+      expected = %Q{<h3>[<a href="http://example.com/" class="external">http://example.com/</a> visit</h3>\n}
+      @parser.parse("=== [http://example.com/ visit").should == expected # was a bug
+
+      expected = %Q{<h2>[<a href="http://example.com/" class="external">http://example.com/</a> visit</h2>\n}
+      @parser.parse("== [http://example.com/ visit").should == expected # was a bug
+
+      expected = %Q{<h1>[<a href="http://example.com/" class="external">http://example.com/</a> visit</h1>\n}
+      @parser.parse("= [http://example.com/ visit").should == expected # was a bug
     end
   end
 

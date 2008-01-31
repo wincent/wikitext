@@ -1590,7 +1590,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                 {
                     // this is a syntax error; an unclosed external link
-                    if (!rb_ary_includes(scope, INT2FIX(P)))
+                    if (!rb_ary_includes(scope, INT2FIX(P)) &&
+                        !rb_ary_includes(scope, INT2FIX(H6_START)) &&
+                        !rb_ary_includes(scope, INT2FIX(H5_START)) &&
+                        !rb_ary_includes(scope, INT2FIX(H4_START)) &&
+                        !rb_ary_includes(scope, INT2FIX(H3_START)) &&
+                        !rb_ary_includes(scope, INT2FIX(H2_START)) &&
+                        !rb_ary_includes(scope, INT2FIX(H1_START)))
                     {
                         // create a paragraph if necessary
                         rb_str_append(output, rb_str_new((const char *)p_start_literal, sizeof(p_start_literal)));
