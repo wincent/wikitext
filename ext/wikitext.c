@@ -274,7 +274,7 @@ static inline VALUE _Wikitext_downcase(uint16_t *start, long length)
     return rb_str_new((char *)start, length);
 }
 
-static inline VALUE _Wikitext_hyperlink(VALUE link_target, VALUE link_text, VALUE link_class)
+static inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE link_text, VALUE link_class)
 {
     VALUE string = rb_str_new((const char *)a_href_start_literal, sizeof(a_href_start_literal)); // <a href="
     rb_str_append(string, link_target); // ...
@@ -706,7 +706,7 @@ void static ANTLR3_INLINE _Wikitext_rollback_failed_external_link(VALUE output, 
     if (!NIL_P(link_target))
     {
         if (autolink == Qtrue)
-            link_target = _Wikitext_hyperlink(link_target, link_target, link_class); // link target, link text, link class
+            link_target = _Wikitext_hyperlink(Qnil, link_target, link_target, link_class); // link target, link text, link class
         rb_str_append(output, link_target);
         if (rb_ary_includes(scope, INT2FIX(SPACE)))
         {
@@ -807,6 +807,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     link_class          = NIL_P(link_class) ? Qnil : StringValue(link_class);
     VALUE mailto_class  = rb_iv_get(self, "@mailto_class_ucs2");
     mailto_class        = StringValue(mailto_class);
+    VALUE prefix        = rb_iv_get(self, "@internal_link_prefix_ucs2");
 
     pANTLR3_COMMON_TOKEN token = NULL;
     do
@@ -1462,7 +1463,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
                             rb_str_append(output, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
                             if (autolink == Qtrue)
-                                i = _Wikitext_hyperlink(i, i, link_class); // link target, link text, link class
+                                i = _Wikitext_hyperlink(Qnil, i, i, link_class); // link target, link text, link class
                             rb_str_append(output, i);
                         }
                     }
@@ -1482,7 +1483,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
                     if (autolink == Qtrue)
-                        i = _Wikitext_hyperlink(i, i, link_class); // link target, link text, link class
+                        i = _Wikitext_hyperlink(Qnil, i, i, link_class); // link target, link text, link class
                     rb_str_append(output, i);
                 }
                 break;
@@ -1598,7 +1599,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
                         _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                         _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
-                        i = _Wikitext_hyperlink(link_target, link_text, link_class); // link target, link text, link class
+                        i = _Wikitext_hyperlink(prefix, link_target, link_text, link_class); // link target, link text, link class
                         rb_str_append(output, i);
                     }
                 }
@@ -1677,7 +1678,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
                         _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                         _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
-                        i = _Wikitext_hyperlink(link_target, link_text, link_class); // link target, link text, link class
+                        i = _Wikitext_hyperlink(Qnil, link_target, link_text, link_class); // link target, link text, link class
                         rb_str_append(output, i);
                     }
                     link_target = Qnil;
