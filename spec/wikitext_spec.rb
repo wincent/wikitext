@@ -986,19 +986,24 @@ describe Wikitext::Parser, 'autolinking' do
   end
 end
 
-describe Wikitext::Parser, 'external links' do
+describe Wikitext::Parser, 'internal links' do
   before do
     @parser = Wikitext::Parser.new
   end
 
   it 'should pass through unexpected link end tokens literally' do
-    @parser.parse('foo ]] bar').should == "<p>foo ]] bar</p>\n"                 # in plain scope
-    @parser.parse('= foo ]] bar =').should == "<h1>foo ]] bar</h1>\n"           # in H1 scope
-    @parser.parse('== foo ]] bar ==').should == "<h2>foo ]] bar</h2>\n"         # in H2 scope
-    @parser.parse('=== foo ]] bar ===').should == "<h3>foo ]] bar</h3>\n"       # in H3 scope
-    @parser.parse('==== foo ]] bar ====').should == "<h4>foo ]] bar</h4>\n"     # in H4 scope
-    @parser.parse('===== foo ]] bar =====').should == "<h5>foo ]] bar</h5>\n"   # in H5 scope
-    @parser.parse('====== foo ]] bar ======').should == "<h6>foo ]] bar</h6>\n" # in H6 scope
+    @parser.parse('foo ]] bar').should == "<p>foo ]] bar</p>\n"                                     # in plain scope
+    @parser.parse("foo '']]'' bar").should == "<p>foo <em>]]</em> bar</p>\n"                        # in EM scope
+    @parser.parse("foo ''']]''' bar").should == "<p>foo <strong>]]</strong> bar</p>\n"              # in STRONG scope
+    @parser.parse("foo ''''']]''''' bar").should == "<p>foo <strong><em>]]</em></strong> bar</p>\n" # in STRONG_EM scope
+    @parser.parse('foo <tt>]]</tt> bar').should == "<p>foo <tt>]]</tt> bar</p>\n"                   # in TT scope
+    @parser.parse('= foo ]] bar =').should == "<h1>foo ]] bar</h1>\n"                               # in H1 scope
+    @parser.parse('== foo ]] bar ==').should == "<h2>foo ]] bar</h2>\n"                             # in H2 scope
+    @parser.parse('=== foo ]] bar ===').should == "<h3>foo ]] bar</h3>\n"                           # in H3 scope
+    @parser.parse('==== foo ]] bar ====').should == "<h4>foo ]] bar</h4>\n"                         # in H4 scope
+    @parser.parse('===== foo ]] bar =====').should == "<h5>foo ]] bar</h5>\n"                       # in H5 scope
+    @parser.parse('====== foo ]] bar ======').should == "<h6>foo ]] bar</h6>\n"                     # in H6 scope
+    @parser.parse('> ]]').should == "<blockquote><p>]]</p>\n</blockquote>\n"                        # in BLOCKQUOTE scope
   end
 end
 
@@ -1103,6 +1108,21 @@ describe Wikitext::Parser, 'external links' do
   it 'should convert non-ASCII characters in the link text into entities' do
     expected = %Q{<p><a href="http://google.com/" class="external">Google &#x20ac;</a></p>\n}
     @parser.parse(%Q{[http://google.com/ Google €]}).should == expected
+  end
+
+  it 'should pass through unexpected external link end tokens literally' do
+    @parser.parse('foo ] bar').should == "<p>foo ] bar</p>\n"                                     # in plain scope
+    @parser.parse("foo '']'' bar").should == "<p>foo <em>]</em> bar</p>\n"                        # in EM scope
+    @parser.parse("foo ''']''' bar").should == "<p>foo <strong>]</strong> bar</p>\n"              # in STRONG scope
+    @parser.parse("foo ''''']''''' bar").should == "<p>foo <strong><em>]</em></strong> bar</p>\n" # in STRONG_EM scope
+    @parser.parse('foo <tt>]</tt> bar').should == "<p>foo <tt>]</tt> bar</p>\n"                   # in TT scope
+    @parser.parse('= foo ] bar =').should == "<h1>foo ] bar</h1>\n"                               # in H1 scope
+    @parser.parse('== foo ] bar ==').should == "<h2>foo ] bar</h2>\n"                             # in H2 scope
+    @parser.parse('=== foo ] bar ===').should == "<h3>foo ] bar</h3>\n"                           # in H3 scope
+    @parser.parse('==== foo ] bar ====').should == "<h4>foo ] bar</h4>\n"                         # in H4 scope
+    @parser.parse('===== foo ] bar =====').should == "<h5>foo ] bar</h5>\n"                       # in H5 scope
+    @parser.parse('====== foo ] bar ======').should == "<h6>foo ] bar</h6>\n"                     # in H6 scope
+    @parser.parse('> ]').should == "<blockquote><p>]</p>\n</blockquote>\n"                        # in BLOCKQUOTE scope
   end
 
   describe 'invalid links' do

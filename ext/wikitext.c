@@ -1454,8 +1454,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else
                 {
-                    _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
-                    _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
+                    _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
+                    _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
                     rb_str_append(output, rb_str_new((const char *)ext_link_end_literal, sizeof(ext_link_end_literal)));
                 }
                 break;
