@@ -277,6 +277,8 @@ static inline VALUE _Wikitext_downcase(uint16_t *start, long length)
 static inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE link_text, VALUE link_class)
 {
     VALUE string = rb_str_new((const char *)a_href_start_literal, sizeof(a_href_start_literal)); // <a href="
+    if (!NIL_P(link_prefix))
+        rb_str_append(string, link_prefix);
     rb_str_append(string, link_target); // ...
     if (link_class != Qnil)
     {
@@ -724,6 +726,7 @@ VALUE Wikitext_parser_initialize(VALUE self)
     rb_funcall(self, rb_intern("line_ending="), 1, rb_str_new2("\n"));
     rb_funcall(self, rb_intern("external_link_class="), 1, rb_str_new2("external"));
     rb_funcall(self, rb_intern("mailto_class="), 1, rb_str_new2("mailto"));
+    rb_funcall(self, rb_intern("internal_link_prefix="), 1, rb_str_new2("/wiki/"));
     return self;
 }
 
