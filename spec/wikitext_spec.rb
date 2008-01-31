@@ -967,6 +967,12 @@ describe Wikitext::Parser, 'external links' do
     expected = %Q{<p><a href="http://google.com/" class="external">Google</a></p>\n}
     @parser.parse('[http://google.com/ Google]').should == expected
   end
+
+  it 'should format a link with emphasis in the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google <em>rocks</em></a></p>\n}
+    @parser.parse("[http://google.com/ Google ''rocks'']").should == expected
+  end
+
 end
 
 describe Wikitext::Parser, 'with large slab of input text' do
