@@ -329,6 +329,22 @@ describe Wikitext::Parser, 'parsing <nowiki> spans' do
     @parser.parse("<nowiki>foo ======\n</nowiki>").should == "<p>foo ======\n</p>\n"
   end
 
+  it 'should pass link start tokens through unchanged' do
+    @parser.parse('<nowiki>[[</nowiki>').should == "<p>[[</p>\n"
+  end
+
+  it 'should pass link end tokens through unchanged' do
+    @parser.parse('<nowiki>]]</nowiki>').should == "<p>]]</p>\n"
+  end
+
+  it 'should pass external link start tokens through unchanged' do
+    @parser.parse('<nowiki>[</nowiki>').should == "<p>[</p>\n"
+  end
+
+  it 'should pass external link end tokens through unchanged' do
+    @parser.parse('<nowiki>]</nowiki>').should == "<p>]</p>\n"
+  end
+
   it 'should pass named entities through unchanged' do
     @parser.parse('<nowiki>&euro;</nowiki>').should == "<p>&euro;</p>\n"
   end
