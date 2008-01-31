@@ -52,6 +52,7 @@ STRONG_EM       : '\'' '\'' '\'' '\'' '\'' ;
 STRONG          : '\'' '\'' '\'' ;
 EM              : '\'' '\'' ;
 
+// make backticks a synonym for this: eg `foobar` and <tt>foobar</tt> would be equivalent
 TT_START        : '<' ('t' | 'T') ('t' | 'T') '>' ;
 TT_END          : '</' ('t' | 'T') ('t' | 'T') '>' ;
 
