@@ -988,9 +988,16 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse("[http://google.com/ Google '''''rocks''''']").should == expected
   end
 
-  it "should pass through links which don't have a target" do
-    expected = "<p>[well]</p>\n"
-    @parser.parse("[well]").should == expected
+  it 'should respect "<nowiki></nowiki>" tags inside the link text' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google ] rocks</a></p>\n}
+    @parser.parse("[http://google.com/ Google <nowiki>]</nowiki> rocks]").should == expected
+  end
+
+  describe 'invalid links' do
+    it "should pass through links which don't have a target" do
+      expected = "<p>[well]</p>\n"
+      @parser.parse("[well]").should == expected
+    end
   end
 
 end

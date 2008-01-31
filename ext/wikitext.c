@@ -1368,7 +1368,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 i = NIL_P(capture) ? output : capture;
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(i, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
+                    rb_str_append(i, rb_str_new((const char *)ext_link_end_literal, sizeof(ext_link_end_literal)));
                 else if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                 {
                     if (NIL_P(link_text))
