@@ -996,6 +996,11 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse("[http://google.com/ Google <nowiki>[</nowiki> rocks]").should == expected  # was a bug
   end
 
+  it 'should pass "[" in link text through literally' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google [ rocks</a></p>\n}
+    @parser.parse("[http://google.com/ Google [ rocks]").should == expected  # was a bug
+  end
+
   describe 'invalid links' do
     it "should pass through links which don't have a target" do
       expected = "<p>[well]</p>\n"
