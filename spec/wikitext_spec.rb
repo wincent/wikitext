@@ -1013,6 +1013,9 @@ describe Wikitext::Parser, 'external links' do
 
       expected = %Q{<p>[<a href="http://example.com/" class="external">http://example.com/</a></p>\n}
       @parser.parse("[http://example.com/").should == expected
+
+      expected = %Q{<p>[<a href="http://example.com/" class="external">http://example.com/</a> visit</p>\n}
+      @parser.parse("[http://example.com/ visit").should == expected # was a bug
     end
   end
 

@@ -1246,6 +1246,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource);
                         if (token && token->type == SPACE)
                         {
+                            rb_ary_push(scope, INT2FIX(SPACE));
                             link_target = i;
                             link_text   = rb_str_new2("");
                             capture     = link_text;
@@ -1586,9 +1587,22 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case ANTLR3_TOKEN_EOF:
                 // close any open scopes on hitting EOF
-                i = NIL_P(capture) ? output : capture;
+                if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                {
+                    // this is a syntax error; an unclosed external link
+                    if (!rb_ary_includes(scope, INT2FIX(P)))
+                    {
+                        // create a paragraph if necessary
+                        rb_str_append(output, rb_str_new((const char *)p_start_literal, sizeof(p_start_literal)));
+                        rb_ary_push(scope, INT2FIX(P));
+                        rb_ary_push(line, INT2FIX(P));
+                    }
+                    _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                        line_ending);
+                    capture = Qnil;
+                }
                 for (j = 0, k = RARRAY_LEN(scope); j < k; j++)
-                    _Wikitext_pop_from_stack(scope, i, line_ending);
+                    _Wikitext_pop_from_stack(scope, output, line_ending);
                 goto clean_up_token_stream; // break not enough here (want to break out of outer while loop, not inner switch statement)
 
             default:
