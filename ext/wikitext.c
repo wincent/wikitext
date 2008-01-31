@@ -1310,20 +1310,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             // strings in square brackets which don't match this syntax get passed through literally; eg:
             //      he was very angery [sic] about the turn of events
             case EXT_LINK_START:
+                i = NIL_P(capture) ? output : capture;
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
+                    rb_str_append(i, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
                 else if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
-                {
-                    // already in external link scope!
-                    i = rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal));
-                    if (NIL_P(link_text))
-                        // this must be the first character of our link text
-                        link_text = i;
-                    else
-                        // add to existing link text
-                        rb_str_append(link_text, i);
-                }
+                    // already in external link scope! (and in fact, must be capturing link_text right now)
+                    rb_str_append(i, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
                 else if (rb_ary_includes(scope, INT2FIX(LINK_START)))
                 {
                     // already in internal link scope!
@@ -1350,9 +1343,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // look ahead: expect a URI
                     token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource);
                     if (token && token->type == URI)
-                    {
                         rb_ary_push(scope, INT2FIX(EXT_LINK_START));    // so far so good, jump back to the top of the loop
-                    }
                     else
                     {
                         // only get here if there was a syntax error (missing URI)
