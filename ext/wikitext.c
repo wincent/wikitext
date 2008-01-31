@@ -494,6 +494,128 @@ void ANTLR3_INLINE _Wikitext_pop_excess_elements(VALUE capture, VALUE scope, VAL
     }
 }
 
+VALUE static ANTLR3_INLINE _Wikitext_ucs2_char_to_hex_entity(ANTLR3_UINT16 character)
+{
+    ANTLR3_UINT16 hex_string[8] = { '&', '#', 'x', 0, 0, 0, 0, ';' };
+    ANTLR3_UINT16 scratch       = (character & 0xf000) >> 12;                       // start at most significant nibble
+    hex_string[3]               = (scratch <= 9 ? scratch + 48 : scratch + 87);     // convert 0-15 to UCS-2: '0'-'9', 'a'-'f'
+    scratch                     = (character & 0x0f00) >> 8;
+    hex_string[4]               = (scratch <= 9 ? scratch + 48 : scratch + 87);
+    scratch                     = (character & 0x00f0) >> 4;
+    hex_string[5]               = (scratch <= 9 ? scratch + 48 : scratch + 87);
+    scratch                     = (character & 0x000f);
+    hex_string[6]               = (scratch <= 9 ? scratch + 48 : scratch + 87);
+    return rb_str_new((const char *)hex_string, sizeof(hex_string));
+}
+
+// takes a UCS-2 input string and returns a converted string, also in UCS-2 with:
+//      - non-printable (non-ASCII) characters converted to numeric entities
+//      - QUOT and AMP characters converted to named entities
+VALUE static ANTLR3_INLINE _Wikitext_sanitize_link_target(VALUE string)
+{
+    string              = StringValue(string);              // raises if string is nil or doesn't quack like a string
+    uint16_t    *src    = (uint16_t *)RSTRING_PTR(string);
+    long        len     = RSTRING_LEN(string);
+    uint16_t    *end    = src + (len / sizeof(uint16_t));
+
+    // start with a destination buffer of the same size as the source plus some slop (one entity), will realloc if necessary
+    // this efficiently handles the most common case (where the size of the buffer doesn't change)
+    uint16_t    *dest   = malloc(len + 16);
+    if (dest == NULL)
+        rb_raise(rb_eNoMemError, "failed to allocate temporary storage (memory allocation error)");
+    void *dest_ptr      = dest; // hang on to this so we can pass it to free() later
+
+    while (src < end)
+    {
+        // need at most 8 characters (16 bytes) to display each character
+        if ((void *)(dest + 8) > (dest_ptr + len))                      // outgrowing buffer, must reallocate
+        {
+            uint16_t *old_dest      = dest;
+            void *old_dest_ptr      = dest_ptr;
+            len                     = len + (end - src) * 16;           // allocate enough for worst case
+            dest                    = realloc(dest_ptr, len);           // will never have to realloc more than once
+            if (dest == NULL)
+            {
+                // would have used reallocf, but this has to run on Linux too, not just Darwin
+                free(dest_ptr);
+                rb_raise(rb_eNoMemError, "failed to re-allocate temporary storage (memory allocation error)");
+            }
+            dest_ptr    = dest;
+            dest        = dest_ptr + ((void *)old_dest - old_dest_ptr);
+        }
+
+        if (*src == '"')                 // QUOT
+        {
+            memcpy(dest, quot_entity_literal, sizeof(quot_entity_literal));
+            dest += sizeof(quot_entity_literal) / sizeof(uint16_t);
+        }
+        else if (*src == '&')            // AMP
+        {
+            memcpy(dest, amp_entity_literal, sizeof(amp_entity_literal));
+            dest += sizeof(amp_entity_literal) / sizeof(uint16_t);;
+        }
+        else if (*src == '<')           // LESS_THAN
+        {
+printf("LESS_THAN must raise here\n");
+        }
+        else if (*src == '>')           // GREATER_THAN
+        {
+printf("GREAETER THAN must raise here\n");
+        }
+        else if (*src >= 0x20 && *src <= 0x7e)    // printable ASCII
+        {
+            *dest = *src;
+            dest++;
+        }
+        else    // all others: must convert to hexadecimal entities
+        {
+            VALUE       entity      = _Wikitext_ucs2_char_to_hex_entity(*src);
+            uint16_t    *entity_src = (uint16_t *)RSTRING_PTR(entity);
+            long        entity_len  = RSTRING_LEN(entity); // should always be 8 characters (16 bytes)
+            memcpy(dest, entity_src, entity_len);
+            dest += entity_len / sizeof(uint16_t);
+        }
+        src++;
+    }
+    VALUE out = rb_str_new(dest_ptr, ((void *)dest - dest_ptr));
+    free(dest_ptr);
+    return out;
+}
+
+// not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
+void static ANTLR3_INLINE _Wikitext_rollback_failed_link(VALUE output, VALUE scope, VALUE line, VALUE link_target, VALUE link_text,
+    VALUE link_class, VALUE line_ending)
+{
+    if (!rb_ary_includes(scope, INT2FIX(P)) &&
+        !rb_ary_includes(scope, INT2FIX(H6_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H5_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H4_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H3_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H2_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H1_START)))
+    {
+        // create a paragraph if necessary
+        rb_str_append(output, rb_str_new((const char *)p_start_literal, sizeof(p_start_literal)));
+        rb_ary_push(scope, INT2FIX(P));
+        rb_ary_push(line, INT2FIX(P));
+    }
+    rb_str_append(output, rb_str_new((const char *)link_start_literal, sizeof(link_start_literal)));
+    if (!NIL_P(link_target))
+    {
+        // TODO: must sanitize link_target:
+        //      can have DEFAULT (non-ASCII) tokens in it (must be converted to numeric entities)
+        //      can also have QUOT and AMP tokens in it (should convert into named entities)
+        rb_str_append(output, link_target);
+        if (rb_ary_includes(scope, INT2FIX(SEPARATOR)))
+        {
+            rb_str_append(output, rb_str_new((const char *)separator_literal, sizeof(separator_literal)));
+            if (!NIL_P(link_text))
+                rb_str_append(output, link_text);
+        }
+    }
+    _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(LINK_START), Qtrue, line_ending);
+}
+
 void static ANTLR3_INLINE _Wikitext_rollback_failed_external_link(VALUE output, VALUE scope, VALUE line, VALUE link_target,
     VALUE link_text, VALUE link_class, VALUE autolink, VALUE line_ending)
 {
@@ -650,9 +772,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         long i                      = 0;
         long j                      = 0;
         long k                      = 0;
-
-        // for converting UCS-2 character to a hex string when generating a numeric entity
-        ANTLR3_UINT16 hex_string[8] = { '&', '#', 'x', 0, 0, 0, 0, ';' };
 
         // The following giant switch statement contains cases for all the possible token types.
         // In the most basic sense we are emitting the HTML that corresponds to each token,
@@ -1320,6 +1439,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             //          renders <a href="/wiki/Foo_%E2%82%AC">foo &euro;</a>
             //          example [[foo €]]
             //          renders <a href="/wiki/Foo_%E2%82%AC">foo €</a>
+            // we'll impose similar restrictions here for the link target; allowed tokens will be:
+            //      SPACE, PRINTABLE, DEFAULT, QUOT and AMP
+            // everything else will be rejected
             case LINK_START:
                 i = NIL_P(capture) ? output : capture;
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
@@ -1330,14 +1452,44 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_append(i, rb_str_new((const char *)link_start_literal, sizeof(link_start_literal)));
                 else if (rb_ary_includes(scope, INT2FIX(LINK_START)))
                 {
-                    // already in internal link scope!
+                    // already in internal link scope! this is a syntax error
+                    _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
+                    rb_str_append(i, rb_str_new((const char *)link_start_literal, sizeof(link_start_literal)));
                 }
                 else // not in internal link scope yet
                 {
+                    rb_ary_push(scope, INT2FIX(LINK_START));
 
+                    // look ahead and try to gobble up link target
+                    token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource);
+                    if (token)
+                    {
+                        if (token->type == SPACE ||
+                            token->type == PRINTABLE ||
+                            token->type == DEFAULT ||
+                            token->type == QUOT ||
+                            token->type == AMP)
+                        {
+                            // accumulate these tokens into link_target
+
+                        }
+                        else if (token->type == LINK_END)
+                        {
+                            // if there was no separator + link text must use link target as link text
+                            // will have to pass it through the sanitizer as well
+                        }
+                        else if (token->type == SEPARATOR)
+                        {
+                            rb_ary_push(scope, INT2FIX(SEPARATOR));
+                        }
+                        else // unexpected token (syntax error)
+                        {
+                            _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
+                            continue; // jump back to top of loop to handle unexpected token
+                        }
+                    }
                 }
 
-                //     rb_ary_push(scope, INT2FIX(LINK_START));
                 break;
 
             case LINK_END:
@@ -1643,18 +1795,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                 _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-
-                // convert to hexadecimal numeric entity
-                j               = *((pANTLR3_UINT16)token->start);  // the character
-                k               = (j & 0xf000) >> 12;               // start at most significant nibble
-                hex_string[3]   = (k <= 9 ? k + 48 : k + 87);       // convert 0-15 to UCS-2: '0'-'9', 'a'-'f'
-                k               = (j & 0x0f00) >> 8;
-                hex_string[4]   = (k <= 9 ? k + 48 : k + 87);
-                k               = (j & 0x00f0) >> 4;
-                hex_string[5]   = (k <= 9 ? k + 48 : k + 87);
-                k               = (j & 0x000f);
-                hex_string[6]   = (k <= 9 ? k + 48 : k + 87);
-                rb_str_append(i, rb_str_new((const char *)hex_string, sizeof(hex_string)));
+                j = *((pANTLR3_UINT16)token->start);                        // the character
+                rb_str_append(i, _Wikitext_ucs2_char_to_hex_entity(j));     // convert to hexadecimal numeric entity
                 break;
 
             case ANTLR3_TOKEN_EOF:
@@ -1776,7 +1918,16 @@ VALUE _Wikitext_encode_link_target(uint16_t *input, long len)
     return rb_str_new((char *)dest_ptr, (dest - dest_ptr) * sizeof(uint16_t));
 }
 
-// public wrapper for the _Wikitext_encode_internal_link_target function (exposed for testing purposes)
+// public wrapper for the _Wikitext_sanitize_link_target function (exposed for testing purposes)
+// expects input to be UTF-8 encoded, and returns the result in the same format
+VALUE Wikitext_sanitize_link_target(VALUE self, VALUE input)
+{
+    VALUE ucs2  = Wikitext_utf8_to_ucs2(mWikitext, input);
+    VALUE out   = _Wikitext_sanitize_link_target(ucs2);
+    return Wikitext_ucs2_to_utf8(mWikitext, out);
+}
+
+// public wrapper for the _Wikitext_encode_link_target function (exposed for testing purposes)
 // expects input to be UTF-8 encoded, and returns the result in the same format
 VALUE Wikitext_encode_link_target(VALUE self, VALUE input)
 {
@@ -1825,7 +1976,20 @@ void Init_wikitext()
     // singleton methods
     rb_define_singleton_method(mWikitext, "utf8_to_ucs2", Wikitext_utf8_to_ucs2, 1);
     rb_define_singleton_method(mWikitext, "ucs2_to_utf8", Wikitext_ucs2_to_utf8, 1);
-    rb_define_singleton_method(mWikitext, "encode_internal_link_target", Wikitext_encode_internal_link_target, 1);
+
+    // sanitizes an internal link target for inclusion with the HTML stream; for example, a link target for the article titled:
+    //      foo, "bar" & baz €
+    // would be sanitized as:
+    //      foo, &quot;bar&quot; &amp; baz &#x20ac;
+    rb_define_singleton_method(mWikitext, "sanitize_link_target", Wikitext_sanitize_link_target, 1);
+
+    // encodes an internal link target for use as an anchor href; for example, the link target:
+    //      foo, "bar" & baz €
+    // would be encoded as:
+    //      foo%2c%20%22bar%22%20%26%20baz%e2%82%ac
+    // and used as follows (combined with the output of sanitize_link_target):
+    //      <a href="foo%2c%20%22bar%22%20%26%20baz%e2%82%ac">foo, &quot;bar&quot; &amp; baz &#x20ac;</a>
+    rb_define_singleton_method(mWikitext, "encode_link_target", Wikitext_encode_link_target, 1);
 
     // classes
     cParser     = rb_define_class_under(mWikitext, "Parser", rb_cObject);
