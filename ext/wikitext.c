@@ -33,6 +33,7 @@ enum {
 // "string literals" (pre-prepared arrays in UCS-2 encoding)
 // TODO: possibly cache instantiated string instances of these to avoid repeated instantiations
 static ANTLR3_UINT16 space_literal[]                = { ' ' };
+static ANTLR3_UINT16 separator_literal[]            = { '|' };
 static ANTLR3_UINT16 pre_start_literal[]            = { '<', 'p', 'r', 'e', '>' };
 static ANTLR3_UINT16 pre_end_literal[]              = { '<', '/', 'p', 'r', 'e', '>' };
 static ANTLR3_UINT16 blockquote_start_literal[]     = { '<', 'b', 'l', 'o', 'c', 'k', 'q', 'u', 'o', 't', 'e', '>' };
@@ -555,13 +556,9 @@ VALUE static ANTLR3_INLINE _Wikitext_sanitize_link_target(VALUE string)
             dest += sizeof(amp_entity_literal) / sizeof(uint16_t);;
         }
         else if (*src == '<')           // LESS_THAN
-        {
-printf("LESS_THAN must raise here\n");
-        }
+            INVALID_ENCODING("\"<\" may not appear in link text");
         else if (*src == '>')           // GREATER_THAN
-        {
-printf("GREAETER THAN must raise here\n");
-        }
+            INVALID_ENCODING("\">\" may not appear in link text");
         else if (*src >= 0x20 && *src <= 0x7e)    // printable ASCII
         {
             *dest = *src;

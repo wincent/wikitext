@@ -21,6 +21,14 @@ describe Wikitext, 'sanitizing a link target' do
     lambda { Wikitext.sanitize_link_target(nil) }.should raise_error
   end
 
+  it 'should complain if passed <' do
+    lambda { Wikitext.sanitize_link_target('<') }.should raise_error(RangeError, /</)
+  end
+
+  it 'should complain if passed >' do
+    lambda { Wikitext.sanitize_link_target('>') }.should raise_error(RangeError, />/)
+  end
+
   it 'should do nothing on zero-length input' do
     Wikitext.sanitize_link_target('').should == ''
   end
