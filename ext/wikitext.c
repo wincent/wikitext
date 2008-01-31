@@ -1305,6 +1305,21 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             // note that the forward slash is a reserved character which changes the meaning of an internal link;
             // this is a link that is external to the wiki but internal to the site as a whole:
             //      [[bug/12]] (a relative link to "/bug/12")
+            // MediaWiki has strict requirements about what it will accept as a link target:
+            //      all wikitext markup is disallowed:
+            //          example [[foo ''bar'' baz]]
+            //          renders [[foo <em>bar</em> baz]]        (ie. not a link)
+            //          example [[foo <em>bar</em> baz]]
+            //          renders [[foo <em>bar</em> baz]]        (ie. not a link)
+            //          example [[foo <nowiki>''</nowiki> baz]]
+            //          renders [[foo '' baz]]                  (ie. not a link)
+            //          example [[foo <bar> baz]]
+            //          renders [[foo &lt;bar&gt; baz]]         (ie. not a link)
+            //      HTML entities and non-ASCII, however, make it through:
+            //          example [[foo &euro;]]
+            //          renders <a href="/wiki/Foo_%E2%82%AC">foo &euro;</a>
+            //          example [[foo €]]
+            //          renders <a href="/wiki/Foo_%E2%82%AC">foo €</a>
             case LINK_START:
                 i = NIL_P(capture) ? output : capture;
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
@@ -1335,9 +1350,31 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_append(i, rb_str_new((const char *)link_end_literal, sizeof(link_end_literal)));
                 else if (rb_ary_includes(scope, INT2FIX(LINK_START)))
                 {
+                    // in internal link scope!
+                    if (NIL_P(link_target))
+                    {
+                        // syntax error: link with no link target
+                        //_Wikitext_encode_internal_link_target(pointer, lenght_in_characters_not_bytes)
+                    }
+                    else if (NIL_P(link_text))
+                    {
+                        // use link target as link text
+                    }
+                    else
+                    {
+                        // we have both link target and link text
+                        _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
+                        _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
+                        _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
+                        i = _Wikitext_hyperlink(link_target, link_text, link_class); // link target, link text, link class
+                        rb_str_append(output, i);
+                    }
                 }
-                else
+                else // wasn't in internal link scope
                 {
+                    _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
+                    _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
+                    rb_str_append(i, rb_str_new((const char *)link_end_literal, sizeof(link_end_literal)));
                 }
                 break;
 

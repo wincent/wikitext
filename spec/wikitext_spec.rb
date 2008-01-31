@@ -991,6 +991,22 @@ describe Wikitext::Parser, 'external links' do
     @parser = Wikitext::Parser.new
   end
 
+  it 'should pass through unexpected link end tokens literally' do
+    @parser.parse('foo ]] bar').should == "<p>foo ]] bar</p>\n"                 # in plain scope
+    @parser.parse('= foo ]] bar =').should == "<h1>foo ]] bar</h1>\n"           # in H1 scope
+    @parser.parse('== foo ]] bar ==').should == "<h2>foo ]] bar</h2>\n"         # in H2 scope
+    @parser.parse('=== foo ]] bar ===').should == "<h3>foo ]] bar</h3>\n"       # in H3 scope
+    @parser.parse('==== foo ]] bar ====').should == "<h4>foo ]] bar</h4>\n"     # in H4 scope
+    @parser.parse('===== foo ]] bar =====').should == "<h5>foo ]] bar</h5>\n"   # in H5 scope
+    @parser.parse('====== foo ]] bar ======').should == "<h6>foo ]] bar</h6>\n" # in H6 scope
+  end
+end
+
+describe Wikitext::Parser, 'external links' do
+  before do
+    @parser = Wikitext::Parser.new
+  end
+
   it 'should format valid external links' do
     expected = %Q{<p><a href="http://google.com/" class="external">Google</a></p>\n}
     @parser.parse('[http://google.com/ Google]').should == expected
