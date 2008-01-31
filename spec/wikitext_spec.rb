@@ -1033,6 +1033,11 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse("[http://google.com/ Google [ rocks]").should == expected  # was a bug
   end
 
+  it 'should pass "[[" in link text through literally' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google [[ rocks</a></p>\n}
+    @parser.parse("[http://google.com/ Google [[ rocks]").should == expected  # was a bug
+  end
+
   it 'should pass through ASCII entities in the link text' do
     expected = %Q{<p><a href="http://google.com/" class="external">Google &quot;SOC&quot;</a></p>\n}  # QUOT
     @parser.parse(%Q{[http://google.com/ Google "SOC"]}).should == expected

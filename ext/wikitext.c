@@ -1306,10 +1306,22 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             // this is a link that is external to the wiki but internal to the site as a whole:
             //      [[bug/12]] (a relative link to "/bug/12")
             case LINK_START:
-                // if in plain scope, starts a link scope (must record start marker)
-                // could potentially emit the '<a href="' at that point
-                // if elsewhere must treat this as plain text
-                // if (1) // real conditional to follow
+                i = NIL_P(capture) ? output : capture;
+                if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
+                    // already in <nowiki> span or <pre> block
+                    rb_str_append(i, rb_str_new((const char *)link_start_literal, sizeof(link_start_literal)));
+                else if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                    // already in external link scope! (and in fact, must be capturing link_text right now)
+                    rb_str_append(i, rb_str_new((const char *)link_start_literal, sizeof(link_start_literal)));
+                else if (rb_ary_includes(scope, INT2FIX(LINK_START)))
+                {
+                    // already in internal link scope!
+                }
+                else // not in internal link scope yet
+                {
+
+                }
+
                 //     rb_ary_push(scope, INT2FIX(LINK_START));
                 break;
 
