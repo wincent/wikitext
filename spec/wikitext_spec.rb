@@ -958,6 +958,17 @@ describe Wikitext::Parser, 'autolinking' do
   end
 end
 
+describe Wikitext::Parser, 'external links' do
+  before do
+    @parser = Wikitext::Parser.new
+  end
+
+  it 'should format valid external links' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google</a></p>\n}
+    @parser.parse('[http://google.com/ Google]').should == expected
+  end
+end
+
 describe Wikitext::Parser, 'with large slab of input text' do
 
   before do

@@ -506,7 +506,6 @@ void static ANTLR3_INLINE _Wikitext_rollback_failed_external_link(VALUE output, 
         }
     }
     _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
-    _Wikitext_pop_from_stack(scope, output, line_ending);
 }
 
 VALUE Wikitext_parser_initialize(VALUE self)
@@ -1359,8 +1358,35 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 break;
 
             case EXT_LINK_END:
-                // if in ext_link scope, this ends it (if link is valid will insert hyperlink)
-                // if elsewhere must treat this as plain text
+                i = NIL_P(capture) ? output : capture;
+                if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
+                    // already in <nowiki> span or <pre> block
+                    rb_str_append(i, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
+                else if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                {
+                    if (NIL_P(link_text))
+                        // this is a syntax error; external link with no link text
+                        _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                            line_ending);
+                    else
+                    {
+                        // success!
+                        _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
+                        _Wikitext_pop_excess_elements(scope, line, output, line_ending);
+                        _Wikitext_start_para_if_necessary(scope, line, output, &pending_crlf);
+                        i = _Wikitext_hyperlink(link_target, link_text, link_class); // link target, link text, link class
+                        rb_str_append(output, i);
+                    }
+                    link_target = Qnil;
+                    link_text   = Qnil;
+                    capture     = Qnil;
+                }
+                else
+                {
+                    _Wikitext_pop_excess_elements(scope, line, output, line_ending);
+                    _Wikitext_start_para_if_necessary(scope, line, output, &pending_crlf);
+                    rb_str_append(output, rb_str_new((const char *)ext_link_end_literal, sizeof(ext_link_end_literal)));
+                }
                 break;
 
             case SEPARATOR:
@@ -1521,7 +1547,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case PRINTABLE:
                 i = NIL_P(capture) ? output : capture;
-                _Wikitext_pop_excess_elements(scope, line, i, line_ending);
+                if (NIL_P(capture))
+                    _Wikitext_pop_excess_elements(scope, line, i, line_ending);
 
                 // given that PRINTABLE tokens will often come in runs, we peek ahead and see if there are any more so as to handle them all at once
                 j       = (long)token->start;   // initial starting position (pointer into input stream)
@@ -1533,7 +1560,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     token = NULL;
                 }
 
-                _Wikitext_start_para_if_necessary(scope, line, i, &pending_crlf);
+                if (NIL_P(capture))
+                    _Wikitext_start_para_if_necessary(scope, line, i, &pending_crlf);
                 rb_str_append(i, rb_str_new((const char *)j, k));
 
                 if (token != NULL)
