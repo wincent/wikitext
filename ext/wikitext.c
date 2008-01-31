@@ -1354,7 +1354,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (NIL_P(link_target))
                     {
                         // syntax error: link with no link target
-                        //_Wikitext_encode_internal_link_target(pointer, lenght_in_characters_not_bytes)
+                        //_Wikitext_encode_link_target(pointer, lenght_in_characters_not_bytes)
                     }
                     else if (NIL_P(link_text))
                     {
@@ -1713,7 +1713,7 @@ finalize:   // can raise exceptions only after all clean-up is done
 // to be equivalent to:
 //         thing. [[Foo]] was...
 // TODO: this is probably the right place to check if treat_slash_as_special is true and act accordingly
-VALUE _Wikitext_encode_internal_link_target(uint16_t *input, long len)
+VALUE _Wikitext_encode_link_target(uint16_t *input, long len)
 {
     static char percent = '%';
     static char hex[]   = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
@@ -1778,10 +1778,10 @@ VALUE _Wikitext_encode_internal_link_target(uint16_t *input, long len)
 
 // public wrapper for the _Wikitext_encode_internal_link_target function (exposed for testing purposes)
 // expects input to be UTF-8 encoded, and returns the result in the same format
-VALUE Wikitext_encode_internal_link_target(VALUE self, VALUE input)
+VALUE Wikitext_encode_link_target(VALUE self, VALUE input)
 {
-    VALUE ucs2 = Wikitext_utf8_to_ucs2(mWikitext, input);
-    VALUE out = _Wikitext_encode_internal_link_target((uint16_t *)RSTRING_PTR(ucs2), RSTRING_LEN(ucs2) / sizeof(uint16_t));
+    VALUE ucs2  = Wikitext_utf8_to_ucs2(mWikitext, input);
+    VALUE out   = _Wikitext_encode_link_target((uint16_t *)RSTRING_PTR(ucs2), RSTRING_LEN(ucs2) / sizeof(uint16_t));
     return Wikitext_ucs2_to_utf8(mWikitext, out);
 }
 
