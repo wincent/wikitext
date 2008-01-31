@@ -12,7 +12,7 @@ performance.
 One reason why I suspect the Ragel-based solution might be superior is
 that it is relatively straightforward to do everything in UTF-8 instead
 of the UCS-2 that the ANTLR C runtime defaults to. Doing everything in
-UTF-8 should remove a lot of clutter form the code because it will no
+UTF-8 should remove a lot of clutter from the code because it will no
 longer be necessary to perform all those cumbersome conversions to and
 from UCS-2, nor shadow the instance variables and maintain arrays of
 16-bit chars. For 99% of expected input the UTF-8 solution will be
