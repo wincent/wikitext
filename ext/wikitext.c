@@ -1326,9 +1326,19 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 break;
 
             case LINK_END:
-                // if in link scope, this ends it (if link is valid, will insert hyperlink)
-                // at this point probably do the '">link text</a>'
-                // if elsewhere must treat this as plain text
+                i = NIL_P(capture) ? output : capture;
+                if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
+                    // already in <nowiki> span or <pre> block
+                    rb_str_append(i, rb_str_new((const char *)link_end_literal, sizeof(link_end_literal)));
+                else if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                    // already in external link scope! (and in fact, must be capturing link_text right now)
+                    rb_str_append(i, rb_str_new((const char *)link_end_literal, sizeof(link_end_literal)));
+                else if (rb_ary_includes(scope, INT2FIX(LINK_START)))
+                {
+                }
+                else
+                {
+                }
                 break;
 
             // external links look like this:
