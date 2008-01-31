@@ -494,9 +494,22 @@ void ANTLR3_INLINE _Wikitext_pop_excess_elements(VALUE capture, VALUE scope, VAL
     }
 }
 
-void static ANTLR3_INLINE _Wikitext_rollback_failed_external_link(VALUE output, VALUE scope, VALUE link_target, VALUE link_text,
-    VALUE link_class, VALUE autolink, VALUE line_ending)
+void static ANTLR3_INLINE _Wikitext_rollback_failed_external_link(VALUE output, VALUE scope, VALUE line, VALUE link_target,
+    VALUE link_text, VALUE link_class, VALUE autolink, VALUE line_ending)
 {
+    if (!rb_ary_includes(scope, INT2FIX(P)) &&
+        !rb_ary_includes(scope, INT2FIX(H6_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H5_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H4_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H3_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H2_START)) &&
+        !rb_ary_includes(scope, INT2FIX(H1_START)))
+    {
+        // create a paragraph if necessary
+        rb_str_append(output, rb_str_new((const char *)p_start_literal, sizeof(p_start_literal)));
+        rb_ary_push(scope, INT2FIX(P));
+        rb_ary_push(line, INT2FIX(P));
+    }
     rb_str_append(output, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
     if (!NIL_P(link_target))
     {
@@ -1087,7 +1100,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                     {
                         // this is a syntax error; an unclosed external link
-                        _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                        _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                             line_ending);
                         link_target = Qnil;
                         link_text   = Qnil;
@@ -1112,7 +1125,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                     {
                         // this is a syntax error; an unclosed external link
-                        _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                        _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                             line_ending);
                         link_target = Qnil;
                         link_text   = Qnil;
@@ -1137,7 +1150,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                     {
                         // this is a syntax error; an unclosed external link
-                        _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                        _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                             line_ending);
                         link_target = Qnil;
                         link_text   = Qnil;
@@ -1162,7 +1175,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                     {
                         // this is a syntax error; an unclosed external link
-                        _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                        _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                             line_ending);
                         link_target = Qnil;
                         link_text   = Qnil;
@@ -1187,7 +1200,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                     {
                         // this is a syntax error; an unclosed external link
-                        _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                        _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                             line_ending);
                         link_target = Qnil;
                         link_text   = Qnil;
@@ -1212,7 +1225,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                     {
                         // this is a syntax error; an unclosed external link
-                        _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                        _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                             line_ending);
                         link_target = Qnil;
                         link_text   = Qnil;
@@ -1365,7 +1378,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (NIL_P(link_text))
                         // this is a syntax error; external link with no link text
-                        _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                        _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                             line_ending);
                     else
                     {
@@ -1482,7 +1495,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
                 {
                     // this is a syntax error; an unclosed external link
-                    _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                    _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                         line_ending);
                     link_target = Qnil;
                     link_text   = Qnil;
@@ -1588,26 +1601,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case ANTLR3_TOKEN_EOF:
                 // close any open scopes on hitting EOF
                 if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
-                {
                     // this is a syntax error; an unclosed external link
-                    if (!rb_ary_includes(scope, INT2FIX(P)) &&
-                        !rb_ary_includes(scope, INT2FIX(H6_START)) &&
-                        !rb_ary_includes(scope, INT2FIX(H5_START)) &&
-                        !rb_ary_includes(scope, INT2FIX(H4_START)) &&
-                        !rb_ary_includes(scope, INT2FIX(H3_START)) &&
-                        !rb_ary_includes(scope, INT2FIX(H2_START)) &&
-                        !rb_ary_includes(scope, INT2FIX(H1_START)))
-                    {
-                        // create a paragraph if necessary
-                        rb_str_append(output, rb_str_new((const char *)p_start_literal, sizeof(p_start_literal)));
-                        rb_ary_push(scope, INT2FIX(P));
-                        rb_ary_push(line, INT2FIX(P));
-                    }
-                    _Wikitext_rollback_failed_external_link(output, scope, link_target, link_text, link_class, autolink,
+                    _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                         line_ending);
-                    capture = Qnil;
-                }
-                for (j = 0, k = RARRAY_LEN(scope); j < k; j++)
+                for (i = 0, j = RARRAY_LEN(scope); i < j; i++)
                     _Wikitext_pop_from_stack(scope, output, line_ending);
                 goto clean_up_token_stream; // break not enough here (want to break out of outer while loop, not inner switch statement)
 
