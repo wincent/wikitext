@@ -1126,12 +1126,20 @@ describe Wikitext::Parser, 'external links' do
   end
 
   describe 'invalid links' do
-    it "should pass through links which don't have a target" do
+    it "should pass through links which don't have a valid target" do
       expected = "<p>[well]</p>\n"
       @parser.parse("[well]").should == expected
     end
 
+    it "should pass through links which don't have any target" do
+      expected = "<p>[]</p>\n"
+      @parser.parse('[]').should == expected
+    end
+
     it 'should pass through unterminated links (EOF)' do
+      expected = "<p>[</p>\n"
+      @parser.parse('[').should == expected
+
       expected = "<p>[well</p>\n"
       @parser.parse("[well").should == expected
 
@@ -1164,6 +1172,9 @@ describe Wikitext::Parser, 'external links' do
     end
 
     it 'should pass through unterminated links (end-of-line)' do
+      expected = "<p>[</p>\n"
+      @parser.parse("[\n").should == expected
+
       expected = "<p>[well</p>\n"
       @parser.parse("[well\n").should == expected
 
