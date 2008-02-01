@@ -66,8 +66,86 @@ describe Wikitext::Parser, 'internal links' do
     @parser.parse('[[foo, "bar" & baz €]]').should == expected
   end
 
-  it 'should recognize link text placed after the separator' do
-    @parser.parse('[[foo|bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+  describe 'custom link text' do
+    it 'should recognize link text placed after the separator' do
+      @parser.parse('[[foo|bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+    end
+
+    it 'should allow em markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <em>baz</em></a></p>\n}
+      @parser.parse("[[foo|bar ''baz'']]").should == expected
+    end
+
+    it 'should allow strong markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <strong>baz</strong></a></p>\n}
+      @parser.parse("[[foo|bar '''baz''']]").should == expected
+    end
+
+    it 'should allow strong/em markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <strong><em>baz</em></strong></a></p>\n}
+      @parser.parse("[[foo|bar '''''baz''''']]").should == expected
+    end
+
+    it 'should allow tt markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
+      @parser.parse('[[foo|bar <tt>baz</tt>]]').should == expected
+    end
+
+    it 'should allow named entities in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &copy;</a></p>\n}
+      @parser.parse('[[foo|bar &copy;]]').should == expected
+
+      # explicitly test &quot; because it is tokenized separately from the other named entities
+      expected = %Q{<p><a href="/wiki/foo">bar &quot;</a></p>\n}
+      @parser.parse('[[foo|bar &quot;]]').should == expected
+
+      # explicitly test &amp; because it is tokenized separately from the other named entities
+      expected = %Q{<p><a href="/wiki/foo">bar &amp;</a></p>\n}
+      @parser.parse('[[foo|bar &amp;]]').should == expected
+    end
+
+    it 'should allow decimal entities in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &#8364;</a></p>\n}
+      @parser.parse('[[foo|bar &#8364;]]').should == expected
+    end
+
+    it 'should allow hexadecimal entities in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &#x20ac;</a></p>\n}
+      @parser.parse('[[foo|bar &#x20ac;]]').should == expected
+    end
+
+    it 'should sanitize non-ASCII characters in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &#x20ac;</a></p>\n}
+      @parser.parse('[[foo|bar €]]').should == expected
+    end
+
+    it 'should sanitize characters that have special meaning in HTML in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &lt;</a></p>\n}
+      @parser.parse('[[foo|bar <]]').should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar &gt;</a></p>\n}
+      @parser.parse('[[foo|bar >]]').should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar &amp;</a></p>\n}
+      @parser.parse('[[foo|bar &]]').should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar &quot;baz&quot;</a></p>\n}
+      @parser.parse('[[foo|bar "baz"]]').should == expected
+    end
+
+    it 'should allow nowiki markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar [[</a></p>\n}
+      @parser.parse("[[foo|bar <nowiki>[[</nowiki>]]").should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar [</a></p>\n}
+      @parser.parse("[[foo|bar <nowiki>[</nowiki>]]").should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar ]]</a></p>\n}
+      @parser.parse("[[foo|bar <nowiki>]]</nowiki>]]").should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar ]</a></p>\n}
+      @parser.parse("[[foo|bar <nowiki>]</nowiki>]]").should == expected
+    end
   end
 
   describe 'overriding the link prefix' do
