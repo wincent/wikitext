@@ -52,8 +52,10 @@ static ANTLR3_UINT16 strong_em_literal[]            = { '<', 's', 't', 'r', 'o',
 static ANTLR3_UINT16 escaped_strong_em_literal[]    = { '\'', '\'', '\'', '\'', '\'' };
 static ANTLR3_UINT16 tt_start_literal[]             = { '<', 't', 't', '>' };
 static ANTLR3_UINT16 tt_end_literal[]               = { '<', '/', 't', 't', '>' };
+static ANTLR3_UINT16 tt_literal[]                   = { '`' };
 static ANTLR3_UINT16 escaped_tt_start_literal[]     = { '&', 'l', 't', ';', 't', 't', '&', 'g', 't', ';' };
 static ANTLR3_UINT16 escaped_tt_end_literal[]       = { '&', 'l', 't', ';', '/', 't', 't', '&', 'g', 't', ';' };
+static ANTLR3_UINT16 escaped_tt_literal[]           = { '`', '`' };
 static ANTLR3_UINT16 ol_start_literal[]             = { '<', 'o', 'l', '>' };
 static ANTLR3_UINT16 ol_end_literal[]               = { '<', '/', 'o', 'l', '>' };
 static ANTLR3_UINT16 ul_start_literal[]             = { '<', 'u', 'l', '>' };
@@ -351,6 +353,10 @@ void _Wikitext_pop_from_stack(VALUE stack, VALUE target, VALUE line_ending)
 
         case EM:
             rb_str_append(target, rb_str_new((const char *)em_end_literal, sizeof(em_end_literal) ));
+            break;
+
+        case TT:
+            rb_str_append(target, rb_str_new((const char *)tt_end_literal, sizeof(tt_end_literal)));
             break;
 
         case TT_START:
@@ -1082,18 +1088,62 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 break;
 
-            case TT_START:
-                if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)) || rb_ary_includes(scope, INT2FIX(TT_START)))
-                    // already in <nowiki> span, <pre> block, or TT_START span
-                    rb_str_append(output, rb_str_new((const char *)escaped_tt_start_literal, sizeof(escaped_tt_start_literal)));
+            case TT:
+                if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
+                    // already in <nowiki> span or <pre> block
+                    rb_str_append(output, rb_str_new((const char *)tt_literal, sizeof(tt_literal)));
+                else
+                {
+                    i = NIL_P(capture) ? output : capture;
+                    if (rb_ary_includes(scope, INT2FIX(TT_START)))
+                        // already in span started with <tt>, no choice but to emit this literally
+                        rb_str_append(output, rb_str_new((const char *)tt_literal, sizeof(tt_literal)));
+                    else if (rb_ary_includes(scope, INT2FIX(TT)))
+                        // TT (`) already seen, this is a closing tag
+                        _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(TT), Qtrue, line_ending);
+                    else
+                    {
+                        // this is a new opening
+                        _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
+                        _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
+                        rb_str_append(i, rb_str_new((const char *)tt_start_literal, sizeof(tt_start_literal)));
+                        rb_ary_push(scope, INT2FIX(TT));
+                        rb_ary_push(line, INT2FIX(TT));
+                    }
+                }
+                break;
+
+            case ESCAPED_TT:
+                if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
+                    // already in <nowiki> span, <pre> block
+                    rb_str_append(output, rb_str_new((const char *)escaped_tt_literal, sizeof(escaped_tt_literal)));
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
                     _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                     _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                    rb_str_append(i, rb_str_new((const char *)tt_start_literal, sizeof(tt_start_literal)));
-                    rb_ary_push(scope, INT2FIX(TT_START));
-                    rb_ary_push(line, INT2FIX(TT_START));
+                    rb_str_append(i, rb_str_new((const char *)escaped_tt_literal, sizeof(escaped_tt_literal)));
+                }
+                break;
+
+            case TT_START:
+                if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
+                    // already in <nowiki> span, <pre> block
+                    rb_str_append(output, rb_str_new((const char *)escaped_tt_start_literal, sizeof(escaped_tt_start_literal)));
+                else
+                {
+                    i = NIL_P(capture) ? output : capture;
+                    if (rb_ary_includes(scope, INT2FIX(TT_START)) || rb_ary_includes(scope, INT2FIX(TT)))
+                        // already in TT_START (<tt>) or TT (`) span)
+                        rb_str_append(output, rb_str_new((const char *)escaped_tt_start_literal, sizeof(escaped_tt_start_literal)));
+                    else
+                    {
+                        _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
+                        _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
+                        rb_str_append(i, rb_str_new((const char *)tt_start_literal, sizeof(tt_start_literal)));
+                        rb_ary_push(scope, INT2FIX(TT_START));
+                        rb_ary_push(line, INT2FIX(TT_START));
+                    }
                 }
                 break;
 

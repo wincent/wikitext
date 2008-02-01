@@ -53,3 +53,34 @@ describe Wikitext::Parser, 'parsing <tt> spans' do
     @parser.parse('<nowiki><tt>foo</tt></nowiki>').should == "<p>&lt;tt&gt;foo&lt;/tt&gt;</p>\n"
   end
 end
+
+describe Wikitext::Parser, 'parsing backtick spans' do
+  before do
+    @parser = Wikitext::Parser.new
+  end
+
+  it 'should recognize paired backticks' do
+    @parser.parse('foo `bar` baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
+  end
+
+  it 'should automatically insert missing closing backtick' do
+    @parser.parse('foo `bar').should == "<p>foo <tt>bar</tt></p>\n"
+  end
+
+  it 'should automatically close unclosed spans upon hitting newline' do
+    @parser.parse("foo `bar\nbaz").should == "<p>foo <tt>bar</tt> baz</p>\n"
+  end
+
+  it 'should handle (illegal) interleaved spans' do
+    @parser.parse("foo `bar '''inner` baz'''").should == "<p>foo <tt>bar <strong>inner</strong></tt> baz<strong></strong></p>\n"
+  end
+
+  it 'should have no effect inside <pre> blocks' do
+    @parser.parse(' `foo`').should == "<pre>`foo`</pre>\n"
+  end
+
+  it 'should have no effect inside <nowiki> spans' do
+    @parser.parse('<nowiki>`foo`</nowiki>').should == "<p>`foo`</p>\n"
+  end
+end
+
