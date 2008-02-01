@@ -1470,8 +1470,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         {
                             // didn't see the space! this must be an error
                             _Wikitext_pop_from_stack(scope, output, line_ending);
-                            _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
-                            _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
+                            _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
+                            _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
                             rb_str_append(output, rb_str_new((const char *)ext_link_start_literal, sizeof(ext_link_start_literal)));
                             if (autolink == Qtrue)
                                 i = _Wikitext_hyperlink(Qnil, i, i, link_class); // link target, link text, link class
@@ -1614,11 +1614,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         // use link target as link text
                         link_text = _Wikitext_sanitize_link_target(link_target);
                     link_target = _Wikitext_encode_link_target(link_target);
-                    _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
+                    _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(LINK_START), Qtrue, line_ending);
                     _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
                     i = _Wikitext_hyperlink(prefix, link_target, link_text, Qnil); // link target, link text, link class
                     rb_str_append(output, i);
+                    link_target = Qnil;
+                    link_text   = Qnil;
+                    capture     = Qnil;
                 }
                 else // wasn't in internal link scope
                 {

@@ -66,6 +66,11 @@ describe Wikitext::Parser, 'internal links' do
     @parser.parse('[[foo, "bar" & baz €]]').should == expected
   end
 
+  it 'should handle links in paragraph flows' do
+    expected = %Q{<p>foo <a href="/wiki/bar">bar</a> baz</p>\n}
+    @parser.parse('foo [[bar]] baz').should == expected # was a bug
+  end
+
   describe 'custom link text' do
     it 'should recognize link text placed after the separator' do
       @parser.parse('[[foo|bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
