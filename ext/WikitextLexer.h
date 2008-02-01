@@ -35,6 +35,8 @@
  *  - void      pWikitextLexer->EM(pWikitextLexer)
  *  - void      pWikitextLexer->TT_START(pWikitextLexer)
  *  - void      pWikitextLexer->TT_END(pWikitextLexer)
+ *  - void      pWikitextLexer->ESCAPED_TT(pWikitextLexer)
+ *  - void      pWikitextLexer->TT(pWikitextLexer)
  *  - void      pWikitextLexer->OL(pWikitextLexer)
  *  - void      pWikitextLexer->UL(pWikitextLexer)
  *  - void      pWikitextLexer->H6(pWikitextLexer)
@@ -80,6 +82,8 @@
  *  - void      pWikitextLexer->PRINTABLE(pWikitextLexer)
  *  - void      pWikitextLexer->DEFAULT(pWikitextLexer)
  *  - void      pWikitextLexer->Tokens(pWikitextLexer)
+ * 
+ * 
  * 
  * 
  * 
@@ -182,6 +186,8 @@ typedef struct WikitextLexer_Ctx_struct
     void (*mEM)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mTT_START)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mTT_END)	(struct WikitextLexer_Ctx_struct * ctx);
+    void (*mESCAPED_TT)	(struct WikitextLexer_Ctx_struct * ctx);
+    void (*mTT)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mOL)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mUL)	(struct WikitextLexer_Ctx_struct * ctx);
     void (*mH6)	(struct WikitextLexer_Ctx_struct * ctx);
@@ -269,6 +275,8 @@ typedef struct WikitextLexer_Ctx_struct
 
 
 
+
+
     unsigned char * (*getGrammarFileName)();
     void	    (*free)   (struct WikitextLexer_Ctx_struct * ctx);
         
@@ -293,60 +301,62 @@ ANTLR3_API pWikitextLexer WikitextLexerNew         (pANTLR3_INPUT_STREAM     ins
 #undef	Tokens
 #endif 
 #define PRE      6
+#define ESCAPED_TT      15
 #define TT_END      14
 #define P      4
 #define TT_START      13
-#define H1_END      34
-#define H6      17
-#define URI      40
-#define H2_END      33
-#define H2_START      27
+#define H1_END      36
+#define H6      19
+#define URI      42
+#define H2_END      35
+#define H2_START      29
 #define BLOCKQUOTE      9
-#define H5_END      30
-#define LESS      54
+#define H5_END      32
+#define LESS      56
 #define NO_WIKI_START      7
-#define H3      20
-#define UL      16
-#define LINK_START      41
-#define H6_END      29
-#define AMP      53
-#define AMP_ENTITY      48
-#define GREATER      55
-#define H1      22
-#define LINK_END      42
-#define HTTP      35
-#define H6_START      23
-#define H2      21
-#define SPACE      46
-#define H5_START      24
-#define URI_CHARS      38
-#define PRINTABLE      57
-#define NAMED_ENTITY      49
+#define H3      22
+#define UL      18
+#define LINK_START      43
+#define H6_END      31
+#define AMP      55
+#define AMP_ENTITY      50
+#define GREATER      57
+#define H1      24
+#define LINK_END      44
+#define HTTP      37
+#define H6_START      25
+#define H2      23
+#define SPACE      48
+#define H5_START      26
+#define URI_CHARS      40
+#define PRINTABLE      59
+#define NAMED_ENTITY      51
 #define LI      5
-#define CRLF      56
-#define H4      19
-#define H3_END      32
-#define H5      18
-#define HEX_ENTITY      50
-#define FTP      36
+#define CRLF      58
+#define H4      21
+#define H3_END      34
+#define H5      20
+#define HEX_ENTITY      52
+#define FTP      38
 #define NO_WIKI_END      8
-#define H3_START      26
-#define H4_END      31
-#define EXT_LINK_END      44
-#define DECIMAL_ENTITY      51
-#define SEPARATOR      45
-#define H4_START      25
-#define H1_START      28
+#define H3_START      28
+#define H4_END      33
+#define EXT_LINK_END      46
+#define DECIMAL_ENTITY      53
+#define SEPARATOR      47
+#define TT      16
+#define H4_START      27
+#define H1_START      30
 #define EOF      -1
-#define QUOT_ENTITY      47
-#define OL      15
-#define Tokens      59
+#define QUOT_ENTITY      49
+#define OL      17
+#define Tokens      61
 #define STRONG_EM      10
-#define DEFAULT      58
-#define EXT_LINK_START      43
-#define SPECIAL_URI_CHARS      39
-#define SVN      37
-#define QUOT      52
+#define DEFAULT      60
+#define EXT_LINK_START      45
+#define SPECIAL_URI_CHARS      41
+#define SVN      39
+#define QUOT      54
 #define EM      12
 #define STRONG      11
 #ifdef	EOF
