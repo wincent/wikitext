@@ -52,6 +52,10 @@ describe Wikitext::Parser, 'parsing <tt> spans' do
   it 'should have no effect inside <nowiki> spans' do
     @parser.parse('<nowiki><tt>foo</tt></nowiki>').should == "<p>&lt;tt&gt;foo&lt;/tt&gt;</p>\n"
   end
+
+  it 'should have no effect if a backtick span is already open' do
+    @parser.parse('foo `<tt>bar</tt>` baz').should == "<p>foo <tt>&lt;tt&gt;bar&lt;/tt&gt;</tt> baz</p>\n"
+  end
 end
 
 describe Wikitext::Parser, 'parsing backtick spans' do
@@ -81,6 +85,10 @@ describe Wikitext::Parser, 'parsing backtick spans' do
 
   it 'should have no effect inside <nowiki> spans' do
     @parser.parse('<nowiki>`foo`</nowiki>').should == "<p>`foo`</p>\n"
+  end
+
+  it 'should have no effect if a <tt> span is already open' do
+    @parser.parse('foo <tt>`bar`</tt> baz').should == "<p>foo <tt>`bar`</tt> baz</p>\n"
   end
 end
 
