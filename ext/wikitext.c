@@ -31,7 +31,7 @@ enum {
 };
 
 // "string literals" (pre-prepared arrays in UCS-2 encoding)
-// TODO: possibly cache instantiated string instances of these to avoid repeated instantiations
+// TODO: possibly cache instantiated string instances of these to avoid repeated instantiations; use rb_obj_freeze
 static ANTLR3_UINT16 space_literal[]                = { ' ' };
 static ANTLR3_UINT16 separator_literal[]            = { '|' };
 static ANTLR3_UINT16 quote_literal[]                = { '"' };
