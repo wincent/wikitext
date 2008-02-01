@@ -1580,6 +1580,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         else if (token->type == SEPARATOR)
                         {
                             rb_ary_push(scope, INT2FIX(SEPARATOR));
+                            link_text   = rb_str_new2("");
+                            capture     = link_text;
                             token = NULL;
                             break;
                         }
@@ -1608,23 +1610,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (rb_ary_includes(scope, INT2FIX(LINK_START)))
                 {
                     // in internal link scope!
-                    if (NIL_P(link_target))
-                    {
-                        // syntax error: link with no link target
-                        //_Wikitext_encode_link_target(pointer, lenght_in_characters_not_bytes)
-                    }
-                    else
-                    {
-                        if (NIL_P(link_text))
-                            // use link target as link text
-                            link_text = _Wikitext_sanitize_link_target(link_target);
-                        link_target = _Wikitext_encode_link_target(link_target);
-                        _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
-                        _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
-                        _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
-                        i = _Wikitext_hyperlink(prefix, link_target, link_text, Qnil); // link target, link text, link class
-                        rb_str_append(output, i);
-                    }
+                    if (NIL_P(link_text))
+                        // use link target as link text
+                        link_text = _Wikitext_sanitize_link_target(link_target);
+                    link_target = _Wikitext_encode_link_target(link_target);
+                    _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
+                    _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
+                    _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
+                    i = _Wikitext_hyperlink(prefix, link_target, link_text, Qnil); // link target, link text, link class
+                    rb_str_append(output, i);
                 }
                 else // wasn't in internal link scope
                 {

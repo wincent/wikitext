@@ -66,7 +66,9 @@ describe Wikitext::Parser, 'internal links' do
     @parser.parse('[[foo, "bar" & baz €]]').should == expected
   end
 
-  it 'should recognize link text placed after the separator'
+  it 'should recognize link text placed after the separator' do
+    @parser.parse('[[foo|bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+  end
 
   describe 'overriding the link prefix' do
     it 'should be able to override the link prefix' do
