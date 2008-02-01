@@ -76,9 +76,19 @@ describe Wikitext::Parser, 'internal links' do
       @parser.parse("[[foo|bar ''baz'']]").should == expected
     end
 
+    it 'should automatically close unclosed em markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <em>baz</em></a></p>\n}
+      @parser.parse("[[foo|bar ''baz]]").should == expected
+    end
+
     it 'should allow strong markup in the custom link text' do
       expected = %Q{<p><a href="/wiki/foo">bar <strong>baz</strong></a></p>\n}
       @parser.parse("[[foo|bar '''baz''']]").should == expected
+    end
+
+    it 'should automatically close unclosed strong markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <strong>baz</strong></a></p>\n}
+      @parser.parse("[[foo|bar '''baz]]").should == expected
     end
 
     it 'should allow strong/em markup in the custom link text' do
@@ -86,9 +96,19 @@ describe Wikitext::Parser, 'internal links' do
       @parser.parse("[[foo|bar '''''baz''''']]").should == expected
     end
 
+    it 'should automatically close unclosed strong/em markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <strong><em>baz</em></strong></a></p>\n}
+      @parser.parse("[[foo|bar '''''baz]]").should == expected
+    end
+
     it 'should allow tt markup in the custom link text' do
       expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
       @parser.parse('[[foo|bar <tt>baz</tt>]]').should == expected
+    end
+
+    it 'should automatically close unclosd tt markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
+      @parser.parse('[[foo|bar <tt>baz]]').should == expected
     end
 
     it 'should allow named entities in the custom link text' do
