@@ -1,0 +1,6 @@
+*.o
+*.bundle
+.built
+Makefile
+mkmf.log
+
