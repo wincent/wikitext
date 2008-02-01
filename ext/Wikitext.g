@@ -56,8 +56,7 @@ TT_START        : '<' ('t' | 'T') ('t' | 'T') '>' ;
 TT_END          : '</' ('t' | 'T') ('t' | 'T') '>' ;
 
 // backticks are a synonym for <tt></tt>: eg `foobar` and <tt>foobar</tt> are equivalent
-// in the rare cases where you need to include a literal backtick, use a double backtick
-ESCAPED_TT      : '``' ;
+// in the rare cases where you need to include a literal backtick, use a <nowiki></nowiki> span
 TT              : '`' ;
 
 // lists

@@ -1113,19 +1113,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 break;
 
-            case ESCAPED_TT:
-                if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
-                    // already in <nowiki> span, <pre> block
-                    rb_str_append(output, rb_str_new((const char *)escaped_tt_literal, sizeof(escaped_tt_literal)));
-                else
-                {
-                    i = NIL_P(capture) ? output : capture;
-                    _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
-                    _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                    rb_str_append(i, rb_str_new((const char *)escaped_tt_literal, sizeof(escaped_tt_literal)));
-                }
-                break;
-
             case TT_START:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span, <pre> block
