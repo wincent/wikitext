@@ -58,7 +58,10 @@
             ((uint32_t)(*(p - 1)) & 0x3f) << 6 |
             (*p & 0x3f);
     }
-#    uri
+
+    uri_chars           = (alnum | [@$&'(\*\+=%_~/#] | '-')+ ;
+    special_uri_chars   = ([:!),;\.\?])+ ;
+    uri                 = (/http:\/\//i | /ftp:\/\//i | /svn:\/\//i) uri_chars (special_uri_chars uri_chars)* ;
 
     main := |*
 
@@ -250,6 +253,12 @@
             }
             else
                 EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        uri
+        {
+            EMIT(URI);
             fbreak;
         };
 
