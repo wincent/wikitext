@@ -56,6 +56,14 @@ again, a '''different ''order'''''
 
 a normal paragraph again
 
+This is where we show a link to an article on [[GCC]].
+Related to that, [[GCC|a link]] to the same
+article but with custom link text.
+
+External links [http://example.com work too].
+As well as autolinks as seen http://example.com/
+here.
+
 # this is an ordered list
 # which continues
 ## and has another ordered list
@@ -103,6 +111,8 @@ which would '''otherwise''' have &lt;tt&gt;special&lt;/tt&gt; meaning
 although explicit entities &copy; are passed through unchanged
 </pre>
 <p>a normal paragraph again</p>
+<p>This is where we show a link to an article on <a href="/wiki/GCC">GCC</a>. Related to that, <a href="/wiki/GCC">a link</a> to the same article but with custom link text.</p>
+<p>External links <a href="http://example.com" class="external">work too</a>. As well as autolinks as seen <a href="http://example.com/" class="external">http://example.com/</a> here.</p>
 <ol>
 <li>this is an ordered list</li>
 <li>which continues
