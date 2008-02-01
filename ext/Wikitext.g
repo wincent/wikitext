@@ -122,7 +122,11 @@ EXT_LINK_END    : ']' ;
 SEPARATOR       : '|' ;
 SPACE           : ' ' ;
 
-// named entities (eg &copy;, &frac14;)
+// these named entities are special cased seeing as they are the only ones allowed in internal link targets
+QUOT_ENTITY     : '&quot;' ;
+AMP_ENTITY      : '&amp;' ;
+
+// all other named entities (eg &copy;, &frac14;)
 NAMED_ENTITY    :  '&' ('a'..'z' | 'A'..'Z')+ ('0'..'9')* ';' ;
 
 // numeric (Unicode) entities (eg &#9099;)
