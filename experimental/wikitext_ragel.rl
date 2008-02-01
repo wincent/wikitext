@@ -28,8 +28,36 @@
 %%{
     machine wikitext;
 
-    action mark { MARK(); }
+    action mark
+    {
+        MARK();
+    }
 
+    action non_printable_ascii
+    {
+        token.code_point = *p & 0x7f;
+    }
+
+    action two_byte_utf8_sequence
+    {
+        token.code_point = ((uint32_t)(*(p - 1)) & 0x1f) << 6 |
+            (*p & 0x3f);
+    }
+
+    action three_byte_utf8_sequence
+    {
+        token.code_point = ((uint32_t)(*(p - 2)) & 0x0f) << 12 |
+            ((uint32_t)(*(p - 1)) & 0x3f) << 6 |
+            (*p & 0x3f);
+    }
+
+    action four_byte_utf8_sequence
+    {
+        token.code_point = ((uint32_t)(*(p - 3)) & 0x07) << 18 |
+            ((uint32_t)(*(p - 2)) & 0x3f) << 12 |
+            ((uint32_t)(*(p - 1)) & 0x3f) << 6 |
+            (*p & 0x3f);
+    }
 #    uri
 
     main := |*
@@ -124,57 +152,190 @@
             fbreak;
         };
 
-        '='{6}
+        # not sure how to test for EOF
+        #'='{6} %mark (' '* ( '\n' | '\r' | EOF ))?
+        '='{6} %mark (' '* ( '\n' | '\r'))?
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            {
+                REWIND();
                 EMIT(H6_START);
+            }
+            else if (p > mark)
+            {
+                REWIND();
+                EMIT(H6_END);
+            }
             else
                 EMIT(PRINTABLE);
             fbreak;
         };
 
-        '='{5}
+        '='{5} %mark (' '* ( '\n' | '\r'))?
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            {
+                REWIND();
                 EMIT(H5_START);
-            else
+            }
+            else if (p > mark)
+            {
+                REWIND();
+                EMIT(H6_END);
+            }
                 EMIT(PRINTABLE);
             fbreak;
         };
 
-        '='{4}
+        '='{4} %mark (' '* ( '\n' | '\r'))?
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            {
+                REWIND();
                 EMIT(H4_START);
+            }
+            else if (p > mark)
+            {
+                REWIND();
+                EMIT(H4_END);
+            }
             else
                 EMIT(PRINTABLE);
             fbreak;
         };
 
-        '='{3}
+        '='{3} %mark (' '* ( '\n' | '\r'))?
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            {
+                REWIND();
                 EMIT(H3_START);
+            }
+            else if (p > mark)
+            {
+                REWIND();
+                EMIT(H3_END);
+            }
             else
                 EMIT(PRINTABLE);
             fbreak;
         };
 
-        '='{2}
+        '='{2} %mark (' '* ( '\n' | '\r'))?
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            {
+                REWIND();
                 EMIT(H2_START);
+            }
+            else if (p > mark)
+            {
+                REWIND();
+                EMIT(H2_END);
+            }
             else
                 EMIT(PRINTABLE);
             fbreak;
         };
 
-        '='
+        '=' %mark (' '* ( '\n' | '\r'))?
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            {
+                REWIND();
                 EMIT(H1_START);
+            }
+            else if (p > mark)
+            {
+                REWIND();
+                EMIT(H1_END);
+            }
             else
                 EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        '[['
+        {
+            EMIT(LINK_START);
+            fbreak;
+        };
+
+        ']]'
+        {
+            EMIT(LINK_END);
+            fbreak;
+        };
+
+        '|'
+        {
+            EMIT(SEPARATOR);
+            fbreak;
+        };
+
+        '['
+        {
+            EMIT(EXT_LINK_START);
+            fbreak;
+        };
+
+        ']'
+        {
+            EMIT(EXT_LINK_END);
+            fbreak;
+        };
+
+        '&quot;'
+        {
+            EMIT(QUOT_ENTITY);
+            fbreak;
+        };
+
+        '&amp;'
+        {
+            EMIT(AMP_ENTITY);
+            fbreak;
+        };
+
+        '&' alpha+ digit* ';'
+        {
+            EMIT(NAMED_ENTITY);
+            fbreak;
+        };
+
+        '&#' [xX] xdigit+ ';'
+        {
+            EMIT(HEX_ENTITY);
+            fbreak;
+        };
+
+        '&#' digit+ ';'
+        {
+            EMIT(DECIMAL_ENTITY);
+            fbreak;
+        };
+
+        '"'
+        {
+            EMIT(QUOT);
+            fbreak;
+        };
+
+        '&'
+        {
+            EMIT(AMP);
+            fbreak;
+        };
+
+        '<'
+        {
+            EMIT(LESS);
+            fbreak;
+        };
+
+        '>'
+        {
+            EMIT(GREATER);
             fbreak;
         };
 
@@ -186,81 +347,40 @@
             fbreak;
         };
 
+        # all the printable ASCII characters (0x20 to 0x7e) excluding those explicitly covered elsewhere:
+        # skip space (0x20), quote (0x22), ampersand (0x26), less than (0x3c), greater than (0x3e),
+        # left bracket 0x5b, right bracket 0x5d, backtick (0x60), and vertical bar (0x7c)
+        (0x21 | 0x23..0x25 | 0x27..0x3b | 0x3d | 0x3f..0x5a | 0x5c | 0x5e..0x5f | 0x61..0x7b | 0x7e)+
+        {
+            EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        # here is where we handle the UTF-8 and everything else
+        #
+        #     one_byte_sequence   = byte begins with zero;
+        #     two_byte_sequence   = first byte begins with 110 (0xc0..0xdf), next with 10 (0x80..9xbf);
+        #     three_byte_sequence = first byte begins with 1110 (0xe0..0xef), next two with 10 (0x80..9xbf);
+        #     four_byte_sequence  = first byte begins with 11110 (0xf0..0xf7), next three with 10 (0x80..9xbf);
+        #
+        #     within the ranges specified, we also exclude these illegal sequences:
+        #       1100000x (c0 c1)    overlong encoding, lead byte of 2 byte seq but code point <= 127
+        #       11110101 (f5)       restricted by RFC 3629 lead byte of 4-byte sequence for codepoint above 10ffff
+        #       1111011x (f6, f7)   restricted by RFC 3629 lead byte of 4-byte sequence for codepoint above 10ffff
+        (0x01..0x1f | 0x7f)                             %non_printable_ascii        |
+        (0xc2..0xdf 0x80..0xbf)                         %two_byte_utf8_sequence     |
+        (0xe0..0xef 0x80..0xbf 0x80..0xbf)              %three_byte_utf8_sequence   |
+        (0xf0..0xf4 0x80..0xbf 0x80..0xbf 0x80..0xbf)   %four_byte_utf8_sequence
+        {
+            EMIT(DEFAULT);
+            token.column_stop = token.column_start + 1;
+            fbreak;
+        };
+
     *|;
-
-
-#     # only if last thing on line
-#     # see Ragel manual 6.6 "implementing lookahead"
-#     h1_end              = "=";
-#     h2_end              = "==";
-#     h3_end              = "===";
-#     h4_end              = "====";
-#     h5_end              = "=====";
-#     h6_end              = "======";
-# 
-#     link_start          = "[[";
-#     link_end            = "]]";
-#     separator           = "|";
-#     external_link_start = "[";
-#     external_link_end   = "]";
-#     space               = " ";
-# 
-#     quot_entity         = "&quot;";
-#     amp_entity          = "&amp;";
-#     named_entity        = "&" alpha+ digit* ";";
-#     hex_entity          = "&#" [xX] xdigit+ ";";
-#     decimal_entity      = "&#" digit+ ";";
-# 
-#     quot                = '"';
-#     amp                 = "&";
-#     less                = "<";
-#     greater             = ">";
-# 
-#     crlf                = ("\r"? "\n") | "\r";
-#     printable           = printable ascii not explicitly handled above +;
-#     # have to be careful here
-#     # ragel will try the longest match
-#     # so =================== wouldn't match h6 followed by =+
-#     # it would just match =+
-#     # so have to be careful not to include stuff that can be included in printable
-#     # and may have to lose the + on the printable
-#     
-#     # all the printable ASCII characters (0x20 to 0x7e) excluding those explicitly covered elsewhere
-#     # skip space (0x20), quote (0x22), ampersand (0x26), less than (0x3c),greater than (0x3e),
-#     # left bracket 0x5b, right bracket 0x5d, backtick (0x60), and vertical bar (0x7c)
-#     printable           = (0x21 | 0x23..0x25 | 0x27..0x3b | 0x3d | 0x3f..0x5a | 0x5c | 0x5e..0x5f | 0x61..0x7b | 0x7e)+;
-#     # may need to handle =, * and # here as well, and apostrophe  0x3d, 0x2a, 0x23, 0x27
-#     # otherwise the longest match thing will bite us
-#     # and think about how it interacts with the URI matching
-# 
-#     # here is where we handle the UTF-8
-#     default             = everything else
-#                           and unprintable ASCII
-# 
-#     one_byte_sequence   = byte begins with zero;
-#     two_byte_sequence   = first byte begins with 110, next with 10;
-#     three_byte_sequence = first byte begins with 1110, next two with 10;
-#     four_byte_sequence  = first byte begins with 11110, next three with 10;
-#     
-#     illegal sequences:
-#         11000000x C0 C1 overlong encoding, lead byte of 2 byte seq but code point <= 127
-#         
-#         11110101  F5, F6, F7 restricted by RFC 3629 lead byte of 4-byte sequence for codepoint above 10ffff
-#         1111011x
-#     
-#         111110xx  F8, F9, FA, FB, FC, FD RFC 3629, lead byte of a seq 5 or 6 bytes long
-#         1111110x
-#     
-#         1111111x  FE, FF invalid, lead byte of a sequence 7 or 8 bytes long
-#     
 
     write data;
 }%%
-
-// with a Ragel scanner seeing as it does longest match
-// my printable tokens can be runs now
-// so i won't have to accumulate them in the parser
-// still want the default tokens to be per-char, seeing as I have to convert them into entities
 
 // for now we use the scanner as a tokenizer that returns one token at a time, just like ANTLR
 // ultimately we could look at embedding all of the transformation inside the scanner itself (combined scanner/parser)

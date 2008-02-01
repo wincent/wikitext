@@ -13,19 +13,21 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <ruby/ruby.h>
+#include <stdint.h>
 
 // error raised when scanning fails
 extern VALUE eWikitextError;
 
 typedef struct
 {
-    char    *start;
-    char    *stop;
-    size_t  line_start;
-    size_t  line_stop;
-    size_t  column_start;
-    size_t  column_stop;
-    int     type;
+    char        *start;
+    char        *stop;
+    size_t      line_start;
+    size_t      line_stop;
+    size_t      column_start;
+    size_t      column_stop;
+    uint32_t    code_point;
+    int         type;
 } token_t;
 
 enum token_types {
