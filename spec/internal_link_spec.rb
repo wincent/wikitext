@@ -49,10 +49,24 @@ describe Wikitext::Parser, 'internal links' do
     @parser.parse('[[hello "world"]]').should == %Q{<p><a href="/wiki/hello%20%22world%22">hello &quot;world&quot;</a></p>\n}
   end
 
+  it 'should encode and sanitize ampersands' do
+    @parser.parse('[[a & b]]').should == %Q{<p><a href="/wiki/a%20%26%20b">a &amp; b</a></p>\n}
+  end
+
+  it 'should allow ampersand entities (special exception)' do
+    @parser.parse('[[a &amp; b]]').should == %Q{<p><a href="/wiki/a%20%26%20b">a &amp; b</a></p>\n}
+  end
+
+  it 'should allow quote entities (special exception)' do
+    @parser.parse('[[a &quot; b]]').should == %Q{<p><a href="/wiki/a%20%22%20b">a &quot; b</a></p>\n}
+  end
+
   it 'should handle mixed scenarios (quotes, ampersands, non-ASCII characers)' do
     expected = %Q{<p><a href="/wiki/foo%2c%20%22bar%22%20%26%20baz%20%e2%82%ac">foo, &quot;bar&quot; &amp; baz &#x20ac;</a></p>\n}
     @parser.parse('[[foo, "bar" & baz €]]').should == expected
   end
+
+  it 'should recognize link text placed after the separator'
 
   describe 'overriding the link prefix' do
     it 'should be able to override the link prefix' do
@@ -63,6 +77,12 @@ describe Wikitext::Parser, 'internal links' do
     it 'should interpet a nil link prefix as meaning no prefix' do
       @parser.internal_link_prefix = nil
       @parser.parse('[[foo]]').should == %Q{<p><a href="foo">foo</a></p>\n}
+    end
+  end
+
+  describe 'invalid links' do
+    it 'should not allow entities in the link text' do
+      @parser.parse('[[a &euro; b]]').should == "<p>[[a &euro; b]]</p>\n"
     end
   end
 end

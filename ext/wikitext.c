@@ -34,6 +34,8 @@ enum {
 // TODO: possibly cache instantiated string instances of these to avoid repeated instantiations
 static ANTLR3_UINT16 space_literal[]                = { ' ' };
 static ANTLR3_UINT16 separator_literal[]            = { '|' };
+static ANTLR3_UINT16 quote_literal[]                = { '"' };
+static ANTLR3_UINT16 ampersand_literal[]            = { '&' };
 static ANTLR3_UINT16 pre_start_literal[]            = { '<', 'p', 'r', 'e', '>' };
 static ANTLR3_UINT16 pre_end_literal[]              = { '<', '/', 'p', 'r', 'e', '>' };
 static ANTLR3_UINT16 blockquote_start_literal[]     = { '<', 'b', 'l', 'o', 'c', 'k', 'q', 'u', 'o', 't', 'e', '>' };
@@ -660,6 +662,12 @@ VALUE _Wikitext_encode_link_target(VALUE in)
 void static ANTLR3_INLINE _Wikitext_rollback_failed_link(VALUE output, VALUE scope, VALUE line, VALUE link_target, VALUE link_text,
     VALUE link_class, VALUE line_ending)
 {
+    // I'd like to remove this paragraph creation from here and instead put it where the scope is first entered: would be cleaner
+    // same for the method below
+    // basically we can create a paragraph at that point because we know we'll either be emitting a valid link or the residue
+    // left behind by an invalid one
+    int scope_includes_separator = rb_ary_includes(scope, INT2FIX(SEPARATOR));
+    _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(LINK_START), Qtrue, line_ending);
     if (!rb_ary_includes(scope, INT2FIX(P)) &&
         !rb_ary_includes(scope, INT2FIX(H6_START)) &&
         !rb_ary_includes(scope, INT2FIX(H5_START)) &&
@@ -678,19 +686,20 @@ void static ANTLR3_INLINE _Wikitext_rollback_failed_link(VALUE output, VALUE sco
     {
         VALUE sanitized = _Wikitext_sanitize_link_target(link_target);
         rb_str_append(output, sanitized);
-        if (rb_ary_includes(scope, INT2FIX(SEPARATOR)))
+        if (scope_includes_separator)
         {
             rb_str_append(output, rb_str_new((const char *)separator_literal, sizeof(separator_literal)));
             if (!NIL_P(link_text))
                 rb_str_append(output, link_text);
         }
     }
-    _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(LINK_START), Qtrue, line_ending);
 }
 
 void static ANTLR3_INLINE _Wikitext_rollback_failed_external_link(VALUE output, VALUE scope, VALUE line, VALUE link_target,
     VALUE link_text, VALUE link_class, VALUE autolink, VALUE line_ending)
 {
+    int scope_includes_space = rb_ary_includes(scope, INT2FIX(SPACE));
+    _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
     if (!rb_ary_includes(scope, INT2FIX(P)) &&
         !rb_ary_includes(scope, INT2FIX(H6_START)) &&
         !rb_ary_includes(scope, INT2FIX(H5_START)) &&
@@ -710,14 +719,13 @@ void static ANTLR3_INLINE _Wikitext_rollback_failed_external_link(VALUE output, 
         if (autolink == Qtrue)
             link_target = _Wikitext_hyperlink(Qnil, link_target, link_target, link_class); // link target, link text, link class
         rb_str_append(output, link_target);
-        if (rb_ary_includes(scope, INT2FIX(SPACE)))
+        if (scope_includes_space)
         {
             rb_str_append(output, rb_str_new((const char *)space_literal, sizeof(space_literal)));
             if (!NIL_P(link_text))
                 rb_str_append(output, link_text);
         }
     }
-    _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
 }
 
 VALUE Wikitext_parser_initialize(VALUE self)
@@ -1544,11 +1552,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // look ahead and try to gobble up link target
                     while ((token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource)))
                     {
-                        if (token->type == SPACE ||
-                            token->type == PRINTABLE ||
-                            token->type == DEFAULT ||
-                            token->type == QUOT ||
-                            token->type == AMP)
+                        if (token->type == SPACE        ||
+                            token->type == PRINTABLE    ||
+                            token->type == DEFAULT      ||
+                            token->type == QUOT         ||
+                            token->type == QUOT_ENTITY  ||
+                            token->type == AMP          ||
+                            token->type == AMP_ENTITY)
                         {
                             // accumulate these tokens into link_target
                             if (NIL_P(link_target))
@@ -1556,7 +1566,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                                 link_target = rb_str_new2("");
                                 capture     = link_target;
                             }
-                            rb_str_append(link_target, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
+                            if (token->type == QUOT_ENTITY)
+                                // don't insert the entity, insert the literal quote
+                                rb_str_append(link_target, rb_str_new((const char *)quote_literal, sizeof(quote_literal)));
+                            else if (token->type == AMP_ENTITY)
+                                // don't insert the entity, insert the literal ampersand
+                                rb_str_append(link_target, rb_str_new((const char *)ampersand_literal, sizeof(ampersand_literal)));
+                            else
+                                rb_str_append(link_target, rb_str_new((const char *)token->start, (token->stop + 1 - token->start)));
                         }
                         else if (token->type == LINK_END)
                             break; // jump back to top of loop (will handle this in LINK_END case below)
@@ -1569,6 +1586,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         else // unexpected token (syntax error)
                         {
                             _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
+                            link_target = Qnil;
+                            link_text   = Qnil;
+                            capture     = Qnil;
                             break; // jump back to top of loop to handle unexpected token
                         }
                     }
@@ -1741,6 +1761,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
                 break;
 
+            case QUOT_ENTITY:
+            case AMP_ENTITY:
             case NAMED_ENTITY:
             case DECIMAL_ENTITY:
                 // pass these through unaltered as they are case sensitive
