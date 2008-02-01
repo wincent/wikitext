@@ -55,7 +55,6 @@ static ANTLR3_UINT16 tt_end_literal[]               = { '<', '/', 't', 't', '>' 
 static ANTLR3_UINT16 tt_literal[]                   = { '`' };
 static ANTLR3_UINT16 escaped_tt_start_literal[]     = { '&', 'l', 't', ';', 't', 't', '&', 'g', 't', ';' };
 static ANTLR3_UINT16 escaped_tt_end_literal[]       = { '&', 'l', 't', ';', '/', 't', 't', '&', 'g', 't', ';' };
-static ANTLR3_UINT16 escaped_tt_literal[]           = { '`', '`' };
 static ANTLR3_UINT16 ol_start_literal[]             = { '<', 'o', 'l', '>' };
 static ANTLR3_UINT16 ol_end_literal[]               = { '<', '/', 'o', 'l', '>' };
 static ANTLR3_UINT16 ul_start_literal[]             = { '<', 'u', 'l', '>' };
