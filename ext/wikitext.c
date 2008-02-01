@@ -1912,6 +1912,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // this is a syntax error; an unclosed external link
                     _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                         line_ending);
+                else if (rb_ary_includes(scope, INT2FIX(LINK_START)))
+                    // this is a syntax error; an unclosed internal link
+                    _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
                 for (i = 0, j = RARRAY_LEN(scope); i < j; i++)
                     _Wikitext_pop_from_stack(scope, output, line_ending);
                 goto clean_up_token_stream; // break not enough here (want to break out of outer while loop, not inner switch statement)

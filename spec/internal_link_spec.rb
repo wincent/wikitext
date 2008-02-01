@@ -194,7 +194,10 @@ describe Wikitext::Parser, 'internal links' do
       end
     end
 
-    describe 'unterminated link text' do
+    describe 'unterminated link text (end-of-file)' do
+      it 'should rollback and show the unterminated link' do
+        @parser.parse('[[foo|hello').should == %Q{<p>[[foo|hello</p>\n}
+      end
     end
   end
 end
