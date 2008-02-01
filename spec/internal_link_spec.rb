@@ -203,6 +203,18 @@ describe Wikitext::Parser, 'internal links' do
       end
     end
 
+    describe 'link cut off at separator (end-of-file)' do
+      it 'should rollback and show the unterminated link' do
+        @parser.parse('[[foo|').should == %Q{<p>[[foo|</p>\n}
+      end
+    end
+
+    describe 'link cut off at separator (end-of-line)' do
+      it 'should rollback and show the unterminated link' do
+        @parser.parse("[[foo|\n").should == %Q{<p>[[foo|</p>\n}
+      end
+    end
+
     describe 'unterminated link text (end-of-file)' do
       it 'should rollback and show the unterminated link' do
         @parser.parse('[[foo|hello').should == %Q{<p>[[foo|hello</p>\n}
