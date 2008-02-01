@@ -64,6 +64,9 @@ External links [http://example.com work too].
 As well as autolinks as seen http://example.com/
 here.
 
+Look at how we handle bad syntax. [[This is an unterminated
+link. And [http://example.com/ is another.
+
 # this is an ordered list
 # which continues
 ## and has another ordered list
@@ -113,6 +116,7 @@ although explicit entities &copy; are passed through unchanged
 <p>a normal paragraph again</p>
 <p>This is where we show a link to an article on <a href="/wiki/GCC">GCC</a>. Related to that, <a href="/wiki/GCC">a link</a> to the same article but with custom link text.</p>
 <p>External links <a href="http://example.com" class="external">work too</a>. As well as autolinks as seen <a href="http://example.com/" class="external">http://example.com/</a> here.</p>
+<p>Look at how we handle bad syntax. [[This is an unterminated link. And [<a href="http://example.com/" class="external">http://example.com/</a> is another.</p>
 <ol>
 <li>this is an ordered list</li>
 <li>which continues
