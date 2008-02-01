@@ -21,10 +21,14 @@
 #include "wikitext_ragel.h"
 #include <stdio.h>
 
-#define EMIT(t) do { token.type = t; token.column_stop += (pe - p); } while (0)
+#define EMIT(t)     do { token.type = t; token.stop = p + 1; token.column_stop += (token.stop - token.start); } while (0)
+#define MARK()      do { mark = p; } while (0)
+#define REWIND()    do { p = mark; } while (0)
 
 %%{
     machine wikitext;
+
+    action mark { MARK(); }
 
 #    uri
 
@@ -79,15 +83,14 @@
         };
 
         # consider adding <blockquote></blockquote> HTML tags as well later on
-        '>' ' '?
+        '>' %mark ' '?
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
                 EMIT(BLOCKQUOTE);
             else
             {
+                REWIND();
                 EMIT(GREATER);
-                token.stop = token.start + 1;
-                token.column_stop++;
             }
             fbreak;
         };
@@ -103,6 +106,78 @@
             fbreak;
         };
 
+        '#'
+        {
+            if (token.column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
+                EMIT(OL);
+            else
+                EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        '*'
+        {
+            if (token.column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
+                EMIT(UL);
+            else
+                EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        '='{6}
+        {
+            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+                EMIT(H6_START);
+            else
+                EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        '='{5}
+        {
+            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+                EMIT(H5_START);
+            else
+                EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        '='{4}
+        {
+            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+                EMIT(H4_START);
+            else
+                EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        '='{3}
+        {
+            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+                EMIT(H3_START);
+            else
+                EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        '='{2}
+        {
+            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+                EMIT(H2_START);
+            else
+                EMIT(PRINTABLE);
+            fbreak;
+        };
+
+        '='
+        {
+            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+                EMIT(H1_START);
+            else
+                EMIT(PRINTABLE);
+            fbreak;
+        };
+
         ("\r"? "\n") | "\r"
         {
             EMIT(CRLF);
@@ -112,21 +187,8 @@
         };
 
     *|;
-    
-#     " " => { prepare_token... if col == 0, token->type = PRE, else = SPACE }
-# 
-#     # only if in first column, immediately after another list token, or immediately preceded by blockquote
-#     ol                  = "#"; # in action we set token type appropriately, likewise for others below...
-#     ul                  = "*";
-# 
-#     # only if in first column, or immediately after blockquote
-#     h1_start            = "=";
-#     h2_start            = "==";
-#     h3_start            = "===";
-#     h4_start            = "====";
-#     h5_start            = "=====";
-#     h6_start            = "======";
-# 
+
+
 #     # only if last thing on line
 #     # see Ragel manual 6.6 "implementing lookahead"
 #     h1_end              = "=";
@@ -234,6 +296,7 @@ token_t next_token(token_t *last_token, char *p, char *pe)
         return token;
     }
 
+    char    *mark;      // for manual backtracking
     char    *eof = pe;  // required for backtracking (longest match determination)
     int     cs;         // current state (standard Ragel)
     char    *ts;        // token start (scanner)
@@ -245,7 +308,5 @@ token_t next_token(token_t *last_token, char *p, char *pe)
         rb_raise(eWikitextError, "failed before finding a token");
     else if (token.type == NO_TOKEN)
         rb_raise(eWikitextError, "failed to produce a token");
-    else
-        token.stop = p; // token.type already filled out in action
     return token;
 }
