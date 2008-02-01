@@ -152,16 +152,14 @@
             fbreak;
         };
 
-        # not sure how to test for EOF
-        #'='{6} %mark (' '* ( '\n' | '\r' | EOF ))?
-        '='{6} %mark (' '* ( '\n' | '\r'))?
+        '='{6} %mark ' '*
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H6_START);
             }
-            else if (p > mark)
+            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
             {
                 REWIND();
                 EMIT(H6_END);
@@ -171,14 +169,14 @@
             fbreak;
         };
 
-        '='{5} %mark (' '* ( '\n' | '\r'))?
+        '='{5} %mark ' '*
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H5_START);
             }
-            else if (p > mark)
+            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
             {
                 REWIND();
                 EMIT(H6_END);
@@ -187,14 +185,14 @@
             fbreak;
         };
 
-        '='{4} %mark (' '* ( '\n' | '\r'))?
+        '='{4} %mark ' '*
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H4_START);
             }
-            else if (p > mark)
+            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
             {
                 REWIND();
                 EMIT(H4_END);
@@ -204,14 +202,14 @@
             fbreak;
         };
 
-        '='{3} %mark (' '* ( '\n' | '\r'))?
+        '='{3} %mark ' '*
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H3_START);
             }
-            else if (p > mark)
+            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
             {
                 REWIND();
                 EMIT(H3_END);
@@ -221,14 +219,14 @@
             fbreak;
         };
 
-        '='{2} %mark (' '* ( '\n' | '\r'))?
+        '='{2} %mark ' '*
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H2_START);
             }
-            else if (p > mark)
+            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
             {
                 REWIND();
                 EMIT(H2_END);
@@ -238,14 +236,14 @@
             fbreak;
         };
 
-        '=' %mark (' '* ( '\n' | '\r'))?
+        '=' %mark ' '*
         {
             if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H1_START);
             }
-            else if (p > mark)
+            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
             {
                 REWIND();
                 EMIT(H1_END);
