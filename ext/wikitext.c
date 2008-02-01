@@ -1610,7 +1610,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (rb_ary_includes(scope, INT2FIX(LINK_START)))
                 {
                     // in internal link scope!
-                    if (NIL_P(link_text))
+                    if (NIL_P(link_text) || RSTRING_LEN(link_text) == 0)
                         // use link target as link text
                         link_text = _Wikitext_sanitize_link_target(link_target);
                     link_target = _Wikitext_encode_link_target(link_target);

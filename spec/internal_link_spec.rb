@@ -164,5 +164,17 @@ describe Wikitext::Parser, 'internal links' do
     it 'should not allow entities in the link text' do
       @parser.parse('[[a &euro; b]]').should == "<p>[[a &euro; b]]</p>\n"
     end
+
+    describe 'unterminated link targets' do
+    end
+
+    describe 'missing link text' do
+      it 'should use link target' do
+        @parser.parse('[[foo|]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+      end
+    end
+
+    describe 'unterminated link text' do
+    end
   end
 end
