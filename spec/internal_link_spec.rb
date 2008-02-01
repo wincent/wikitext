@@ -1,0 +1,235 @@
+#!/usr/bin/env ruby
+# Copyright 2007-2008 Wincent Colaiuta
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+require File.join(File.dirname(__FILE__), 'spec_helper.rb')
+require 'wikitext'
+
+describe Wikitext::Parser, 'internal links' do
+  before do
+    @parser = Wikitext::Parser.new
+  end
+
+  it 'should pass through unexpected link end tokens literally' do
+    @parser.parse('foo ]] bar').should == "<p>foo ]] bar</p>\n"                                     # in plain scope
+    @parser.parse("foo '']]'' bar").should == "<p>foo <em>]]</em> bar</p>\n"                        # in EM scope
+    @parser.parse("foo ''']]''' bar").should == "<p>foo <strong>]]</strong> bar</p>\n"              # in STRONG scope
+    @parser.parse("foo ''''']]''''' bar").should == "<p>foo <strong><em>]]</em></strong> bar</p>\n" # in STRONG_EM scope
+    @parser.parse('foo <tt>]]</tt> bar').should == "<p>foo <tt>]]</tt> bar</p>\n"                   # in TT scope
+    @parser.parse('= foo ]] bar =').should == "<h1>foo ]] bar</h1>\n"                               # in H1 scope
+    @parser.parse('== foo ]] bar ==').should == "<h2>foo ]] bar</h2>\n"                             # in H2 scope
+    @parser.parse('=== foo ]] bar ===').should == "<h3>foo ]] bar</h3>\n"                           # in H3 scope
+    @parser.parse('==== foo ]] bar ====').should == "<h4>foo ]] bar</h4>\n"                         # in H4 scope
+    @parser.parse('===== foo ]] bar =====').should == "<h5>foo ]] bar</h5>\n"                       # in H5 scope
+    @parser.parse('====== foo ]] bar ======').should == "<h6>foo ]] bar</h6>\n"                     # in H6 scope
+    @parser.parse('> ]]').should == "<blockquote><p>]]</p>\n</blockquote>\n"                        # in BLOCKQUOTE scope
+  end
+
+  it 'should turn single words into links' do
+    @parser.parse('[[foo]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+  end
+
+  it 'should turn multiple words into links' do
+    @parser.parse('[[foo bar]]').should == %Q{<p><a href="/wiki/foo%20bar">foo bar</a></p>\n}
+  end
+
+  it 'should encode and sanitize quotes' do
+    # note how percent encoding is used in the href, and named entities in the link text
+    @parser.parse('[[hello "world"]]').should == %Q{<p><a href="/wiki/hello%20%22world%22">hello &quot;world&quot;</a></p>\n}
+  end
+
+  it 'should encode and sanitize ampersands' do
+    @parser.parse('[[a & b]]').should == %Q{<p><a href="/wiki/a%20%26%20b">a &amp; b</a></p>\n}
+  end
+
+  it 'should allow ampersand entities (special exception)' do
+    @parser.parse('[[a &amp; b]]').should == %Q{<p><a href="/wiki/a%20%26%20b">a &amp; b</a></p>\n}
+  end
+
+  it 'should allow quote entities (special exception)' do
+    @parser.parse('[[a &quot; b]]').should == %Q{<p><a href="/wiki/a%20%22%20b">a &quot; b</a></p>\n}
+  end
+
+  it 'should handle mixed scenarios (quotes, ampersands, non-ASCII characers)' do
+    expected = %Q{<p><a href="/wiki/foo%2c%20%22bar%22%20%26%20baz%20%e2%82%ac">foo, &quot;bar&quot; &amp; baz &#x20ac;</a></p>\n}
+    @parser.parse('[[foo, "bar" & baz €]]').should == expected
+  end
+
+  it 'should handle links in paragraph flows' do
+    expected = %Q{<p>foo <a href="/wiki/bar">bar</a> baz</p>\n}
+    @parser.parse('foo [[bar]] baz').should == expected # was a bug
+  end
+
+  describe 'custom link text' do
+    it 'should recognize link text placed after the separator' do
+      @parser.parse('[[foo|bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+    end
+
+    it 'should allow em markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <em>baz</em></a></p>\n}
+      @parser.parse("[[foo|bar ''baz'']]").should == expected
+    end
+
+    it 'should automatically close unclosed em markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <em>baz</em></a></p>\n}
+      @parser.parse("[[foo|bar ''baz]]").should == expected
+    end
+
+    it 'should allow strong markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <strong>baz</strong></a></p>\n}
+      @parser.parse("[[foo|bar '''baz''']]").should == expected
+    end
+
+    it 'should automatically close unclosed strong markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <strong>baz</strong></a></p>\n}
+      @parser.parse("[[foo|bar '''baz]]").should == expected
+    end
+
+    it 'should allow strong/em markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <strong><em>baz</em></strong></a></p>\n}
+      @parser.parse("[[foo|bar '''''baz''''']]").should == expected
+    end
+
+    it 'should automatically close unclosed strong/em markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <strong><em>baz</em></strong></a></p>\n}
+      @parser.parse("[[foo|bar '''''baz]]").should == expected
+    end
+
+    it 'should allow tt markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
+      @parser.parse('[[foo|bar <tt>baz</tt>]]').should == expected
+    end
+
+    it 'should automatically close unclosd tt markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
+      @parser.parse('[[foo|bar <tt>baz]]').should == expected
+    end
+
+    it 'should allow named entities in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &copy;</a></p>\n}
+      @parser.parse('[[foo|bar &copy;]]').should == expected
+
+      # explicitly test &quot; because it is tokenized separately from the other named entities
+      expected = %Q{<p><a href="/wiki/foo">bar &quot;</a></p>\n}
+      @parser.parse('[[foo|bar &quot;]]').should == expected
+
+      # explicitly test &amp; because it is tokenized separately from the other named entities
+      expected = %Q{<p><a href="/wiki/foo">bar &amp;</a></p>\n}
+      @parser.parse('[[foo|bar &amp;]]').should == expected
+    end
+
+    it 'should allow decimal entities in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &#8364;</a></p>\n}
+      @parser.parse('[[foo|bar &#8364;]]').should == expected
+    end
+
+    it 'should allow hexadecimal entities in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &#x20ac;</a></p>\n}
+      @parser.parse('[[foo|bar &#x20ac;]]').should == expected
+    end
+
+    it 'should sanitize non-ASCII characters in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &#x20ac;</a></p>\n}
+      @parser.parse('[[foo|bar €]]').should == expected
+    end
+
+    it 'should sanitize characters that have special meaning in HTML in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar &lt;</a></p>\n}
+      @parser.parse('[[foo|bar <]]').should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar &gt;</a></p>\n}
+      @parser.parse('[[foo|bar >]]').should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar &amp;</a></p>\n}
+      @parser.parse('[[foo|bar &]]').should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar &quot;baz&quot;</a></p>\n}
+      @parser.parse('[[foo|bar "baz"]]').should == expected
+    end
+
+    it 'should allow nowiki markup in the custom link text' do
+      expected = %Q{<p><a href="/wiki/foo">bar [[</a></p>\n}
+      @parser.parse("[[foo|bar <nowiki>[[</nowiki>]]").should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar [</a></p>\n}
+      @parser.parse("[[foo|bar <nowiki>[</nowiki>]]").should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar ]]</a></p>\n}
+      @parser.parse("[[foo|bar <nowiki>]]</nowiki>]]").should == expected
+
+      expected = %Q{<p><a href="/wiki/foo">bar ]</a></p>\n}
+      @parser.parse("[[foo|bar <nowiki>]</nowiki>]]").should == expected
+    end
+  end
+
+  describe 'overriding the link prefix' do
+    it 'should be able to override the link prefix' do
+      @parser.internal_link_prefix = '/custom/'
+      @parser.parse('[[foo]]').should == %Q{<p><a href="/custom/foo">foo</a></p>\n}
+    end
+
+    it 'should interpet a nil link prefix as meaning no prefix' do
+      @parser.internal_link_prefix = nil
+      @parser.parse('[[foo]]').should == %Q{<p><a href="foo">foo</a></p>\n}
+    end
+  end
+
+  describe 'invalid links' do
+    it 'should not allow entities in the link text' do
+      @parser.parse('[[a &euro; b]]').should == "<p>[[a &euro; b]]</p>\n"
+    end
+
+    describe 'unterminated link targets (end-of-file)' do
+      it 'should rollback and show the unterminated link' do
+        @parser.parse('[[foo').should == %Q{<p>[[foo</p>\n}
+      end
+    end
+
+    describe 'unterminated link targets (end-of-line)' do
+      it 'should rollback and show the unterminated link' do
+        @parser.parse("[[foo\n").should == %Q{<p>[[foo</p>\n}
+      end
+    end
+
+    describe 'missing link text' do
+      it 'should use link target' do
+        @parser.parse('[[foo|]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+      end
+    end
+
+    describe 'link cut off at separator (end-of-file)' do
+      it 'should rollback and show the unterminated link' do
+        @parser.parse('[[foo|').should == %Q{<p>[[foo|</p>\n}
+      end
+    end
+
+    describe 'link cut off at separator (end-of-line)' do
+      it 'should rollback and show the unterminated link' do
+        @parser.parse("[[foo|\n").should == %Q{<p>[[foo|</p>\n}
+      end
+    end
+
+    describe 'unterminated link text (end-of-file)' do
+      it 'should rollback and show the unterminated link' do
+        @parser.parse('[[foo|hello').should == %Q{<p>[[foo|hello</p>\n}
+      end
+    end
+
+    describe 'unterminated link text (end-of-line)' do
+      it 'should rollback and show the unterminated link' do
+        @parser.parse("[[foo|hello\n").should == %Q{<p>[[foo|hello</p>\n}
+      end
+    end
+  end
+end

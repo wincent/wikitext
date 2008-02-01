@@ -59,6 +59,7 @@ end
 desc 'Run specs'
 Spec::Rake::SpecTask.new('spec') do |t|
   t.spec_files  = FileList['spec/**/*_spec.rb']
+  t.spec_opts   = ['--color']
 end
 
 SPEC = Gem::Specification.new do |s|

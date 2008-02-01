@@ -52,9 +52,12 @@ STRONG_EM       : '\'' '\'' '\'' '\'' '\'' ;
 STRONG          : '\'' '\'' '\'' ;
 EM              : '\'' '\'' ;
 
-// make backticks a synonym for this: eg `foobar` and <tt>foobar</tt> would be equivalent
 TT_START        : '<' ('t' | 'T') ('t' | 'T') '>' ;
 TT_END          : '</' ('t' | 'T') ('t' | 'T') '>' ;
+
+// backticks are a synonym for <tt></tt>: eg `foobar` and <tt>foobar</tt> are equivalent
+// in the rare cases where you need to include a literal backtick, use a <nowiki></nowiki> span
+TT              : '`' ;
 
 // lists
 // only valid in first column, immediately after another list token, or immediately nested inside a blockquote
@@ -122,7 +125,11 @@ EXT_LINK_END    : ']' ;
 SEPARATOR       : '|' ;
 SPACE           : ' ' ;
 
-// named entities (eg &copy;, &frac14;)
+// these named entities are special cased seeing as they are the only ones allowed in internal link targets
+QUOT_ENTITY     : '&quot;' ;
+AMP_ENTITY      : '&amp;' ;
+
+// all other named entities (eg &copy;, &frac14;)
 NAMED_ENTITY    :  '&' ('a'..'z' | 'A'..'Z')+ ('0'..'9')* ';' ;
 
 // numeric (Unicode) entities (eg &#9099;)
@@ -160,7 +167,10 @@ PRINTABLE       : '\u0021'              // skip space (0x20) and quote (0x22)
                 | '\u0023'..'\u0025'    // skip ampersand (0x26)
                 | '\u0027'..'\u003B'
                 | '\u003D'              // skip less than (0x3C) and greater than (0x3E)
-                | '\u003F'..'\u007B'    // skip vertical bar (0x7C)
+                | '\u003F'..'\u005a'    // skip [ (0x5B)
+                | '\u005C'              // skip ] (0x5D)
+                | '\u005E'..'\u005F'    // skip ` (0x60)
+                | '\u0061'..'\u007B'    // skip vertical bar (0x7C)
                 | '\u007E'
                 ;
 
