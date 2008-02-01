@@ -167,7 +167,9 @@ PRINTABLE       : '\u0021'              // skip space (0x20) and quote (0x22)
                 | '\u0023'..'\u0025'    // skip ampersand (0x26)
                 | '\u0027'..'\u003B'
                 | '\u003D'              // skip less than (0x3C) and greater than (0x3E)
-                | '\u003F'..'\u005F'    // skip ` (0x60)
+                | '\u003F'..'\u005a'    // skip [ (0x5B)
+                | '\u005C'              // skip ] (0x5D)
+                | '\u005E'..'\u005F'    // skip ` (0x60)
                 | '\u0061'..'\u007B'    // skip vertical bar (0x7C)
                 | '\u007E'
                 ;
