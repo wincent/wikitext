@@ -14,9 +14,10 @@
 
 #include "wikitext_ragel.h"
 
-static VALUE mWikitext          = 0;    // Wikitext
-static VALUE cWikitextParser    = 0;    // Wikitext::Parser
-VALUE eWikitextError            = 0;    // Wikitext::Error
+static VALUE mWikitext              = 0;    // Wikitext
+static VALUE cWikitextParser        = 0;    // Wikitext::Parser
+static VALUE cWikitextParserToken   = 0;    // Wikitext::Parser::Token
+VALUE eWikitextError                = 0;    // Wikitext::Error
 
 // return a hash of token types
 // we make this available for unit testing purposes
@@ -24,7 +25,8 @@ VALUE Wikitext_token_types(VALUE self)
 {
     VALUE hash = rb_hash_new();
 
-#define SET_TOKEN_TYPE(identifier)      (void)rb_hash_aset(hash, rb_str_new2(#identifier), INT2FIX(identifier))
+#define SET_TOKEN_TYPE(identifier)  (void)rb_hash_aset(hash, INT2FIX(identifier), \
+    rb_funcall(rb_funcall(rb_str_new2(#identifier), rb_intern("downcase"), 0), rb_intern("to_sym"), 0))
 
     SET_TOKEN_TYPE(NO_TOKEN);
     SET_TOKEN_TYPE(P);
@@ -72,7 +74,7 @@ VALUE Wikitext_token_types(VALUE self)
     SET_TOKEN_TYPE(CRLF);
     SET_TOKEN_TYPE(PRINTABLE);
     SET_TOKEN_TYPE(DEFAULT);
-    SET_TOKEN_TYPE(EOF);
+    SET_TOKEN_TYPE(END_OF_FILE);
 
 #undef SET_TOKEN_TYPE
 
@@ -81,8 +83,27 @@ VALUE Wikitext_token_types(VALUE self)
 
 VALUE Wikitext_parser_initialize(VALUE self)
 {
-    // no need to call super here
+    // no need to call super here; rb_call_super()
     return self;
+}
+
+// for testing and debugging only
+VALUE _Wikitext_hash_for_token(token_t *token)
+{
+    VALUE object = rb_class_new_instance(0, NULL, cWikitextParserToken);
+    (void)rb_iv_set(object, "@start",           LONG2NUM((long)token->start));
+    (void)rb_iv_set(object, "@stop",            LONG2NUM((long)token->stop));
+    (void)rb_iv_set(object, "@line_start",      LONG2NUM(token->line_start));
+    (void)rb_iv_set(object, "@line_stop",       LONG2NUM(token->line_stop));
+    (void)rb_iv_set(object, "@column_start",    LONG2NUM(token->column_start));
+    (void)rb_iv_set(object, "@column_stop",     LONG2NUM(token->column_stop));
+    (void)rb_iv_set(object, "@code_point",      INT2NUM(token->code_point));
+
+    // look-up the token type
+    VALUE types = Wikitext_token_types(Qnil);
+    VALUE type  = rb_hash_aref(types, INT2FIX(token->type));
+    (void)rb_iv_set(object, "@token_type",      type);
+    return object;
 }
 
 // for testing and debugging only
@@ -91,6 +112,7 @@ VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
     if (NIL_P(string))
         return Qnil;
     string = StringValue(string);
+    VALUE tokens = rb_ary_new();
     char *p = RSTRING_PTR(string);
     long len = RSTRING_LEN(string);
     char *pe = p + len;
@@ -98,6 +120,7 @@ VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
     printf("input: start %#x, stop %#x\n", p, pe);
 #endif
     token_t token = next_token(NULL, p, pe);
+    rb_ary_push(tokens, _Wikitext_hash_for_token(&token));
 #ifdef DEBUG
     printf("token: start %#x, stop %#x, type %d (line start %d, column start %d, line stop %d, column stop %d)\n",
         token.start, token.stop, token.type, token.line_start, token.column_start, token.line_stop, token.column_stop);
@@ -105,12 +128,13 @@ VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
     while (token.type != END_OF_FILE)
     {
         token = next_token(&token, NULL, pe);
+        rb_ary_push(tokens, _Wikitext_hash_for_token(&token));
 #ifdef DEBUG
         printf("token: start %#x, stop %#x, type %d (line start %d, column start %d, line stop %d, column stop %d)\n",
             token.start, token.stop, token.type, token.line_start, token.column_start, token.line_stop, token.column_stop);
 #endif
     }
-    return Qnil;
+    return tokens;
 }
 
 // for benchmarking raw tokenization speed only
@@ -142,4 +166,16 @@ void Init_wikitext()
     rb_define_method(cWikitextParser, "initialize", Wikitext_parser_initialize, 0);
     rb_define_method(cWikitextParser, "tokenize", Wikitext_parser_tokenize, 1);
     rb_define_method(cWikitextParser, "benchmarking_tokenize", Wikitext_parser_benchmarking_tokenize, 1);
+
+    // Wikitext::Parser::Token
+    cWikitextParserToken = rb_define_class_under(cWikitextParser, "Token", rb_cObject);
+    rb_define_attr(cWikitextParserToken, "start", Qtrue, Qfalse);
+    rb_define_attr(cWikitextParserToken, "stop", Qtrue, Qfalse);
+    rb_define_attr(cWikitextParserToken, "line_start", Qtrue, Qfalse);
+    rb_define_attr(cWikitextParserToken, "line_stop", Qtrue, Qfalse);
+    rb_define_attr(cWikitextParserToken, "column_start", Qtrue, Qfalse);
+    rb_define_attr(cWikitextParserToken, "column_stop", Qtrue, Qfalse);
+    rb_define_attr(cWikitextParserToken, "code_point", Qtrue, Qfalse);
+    rb_define_attr(cWikitextParserToken, "token_type", Qtrue, Qfalse);
+    rb_define_attr(cWikitextParserToken, "string_value", Qtrue, Qfalse);
 }
