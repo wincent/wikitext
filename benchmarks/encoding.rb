@@ -13,8 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-require File.dirname(__FILE__) + '/ext/wikitext'
+require File.join(File.dirname(__FILE__), '..', 'ext', 'wikitext')
 require 'benchmark'
 require 'iconv'
 
@@ -106,6 +105,3 @@ Benchmark.bmbm do |job|
   internal_to_utf8  job, 'internal (longer ASCII to UTF-8)',      Wikitext::utf8_to_ucs2(longer_slab_of_ASCII_text)
   internal_to_utf8  job, 'internal (longer non-ASCII to UTF-8)',  Wikitext::utf8_to_ucs2(longer_slab_of_UTF8_text)
 end
-
-
-
