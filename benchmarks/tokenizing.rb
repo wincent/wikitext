@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require File.join(File.dirname(__FILE__), 'wikitext')
+require File.join(File.dirname(__FILE__), '..', 'ext', 'wikitext')
 require 'benchmark'
 
 # 91 characters, 91 bytes
