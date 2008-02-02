@@ -94,16 +94,37 @@ VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
     char *p = RSTRING_PTR(string);
     long len = RSTRING_LEN(string);
     char *pe = p + len;
+#ifdef DEBUG
     printf("input: start %#x, stop %#x\n", p, pe);
+#endif
     token_t token = next_token(NULL, p, pe);
+#ifdef DEBUG
     printf("token: start %#x, stop %#x, type %d (line start %d, column start %d, line stop %d, column stop %d)\n",
         token.start, token.stop, token.type, token.line_start, token.column_start, token.line_stop, token.column_stop);
+#endif
     while (token.type != END_OF_FILE)
     {
         token = next_token(&token, NULL, pe);
+#ifdef DEBUG
         printf("token: start %#x, stop %#x, type %d (line start %d, column start %d, line stop %d, column stop %d)\n",
             token.start, token.stop, token.type, token.line_start, token.column_start, token.line_stop, token.column_stop);
+#endif
     }
+    return Qnil;
+}
+
+// for benchmarking raw tokenization speed only
+VALUE Wikitext_parser_benchmarking_tokenize(VALUE self, VALUE string)
+{
+    if (NIL_P(string))
+        return Qnil;
+    string = StringValue(string);
+    char *p = RSTRING_PTR(string);
+    long len = RSTRING_LEN(string);
+    char *pe = p + len;
+    token_t token = next_token(NULL, p, pe);
+    while (token.type != END_OF_FILE)
+        token = next_token(&token, NULL, pe);
     return Qnil;
 }
 
@@ -120,4 +141,5 @@ void Init_wikitext()
     cWikitextParser = rb_define_class_under(mWikitext, "Parser", rb_cObject);
     rb_define_method(cWikitextParser, "initialize", Wikitext_parser_initialize, 0);
     rb_define_method(cWikitextParser, "tokenize", Wikitext_parser_tokenize, 1);
+    rb_define_method(cWikitextParser, "benchmarking_tokenize", Wikitext_parser_benchmarking_tokenize, 1);
 }
