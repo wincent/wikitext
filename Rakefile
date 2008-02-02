@@ -19,7 +19,7 @@ require 'rubygems'
 require 'spec/rake/spectask'
 
 CLEAN.include   Rake::FileList['**/*.so', '**/*.bundle', '**/*.o', '**/mkmf.log', '**/Makefile']
-CLOBBER.include Rake::FileList['WikitextLexer.c', 'WikitextLexer.h', 'Wikitext.tokens']
+CLOBBER.include Rake::FileList['ext/wikitext_ragel.c']
 
 task :default => :all
 
@@ -27,18 +27,26 @@ desc 'Build all and run all specs'
 task :all => [:make, :spec]
 
 extension_makefile  = 'ext/Makefile'
+ragel               = 'ext/wikitext_ragel.c'
 built_extension     = "ext/wikitext.#{Config::CONFIG['DLEXT']}" # wikitext.bundle (Darwin), wikitext.so (Linux)
 extension_files     = FileList[
   'ext/Makefile',
   'ext/wikitext.c',
   'ext/wikitext.h',
-  'ext/WikitextLexer.c',
-  'ext/WikitextLexer.h',
-  'ext/Wikitext.g'
+  'ext/wikitext_ragel.c',
+  'ext/wikitext_ragel.h'
 ]
 
 desc 'Build C extension'
-task :make => [extension_makefile, built_extension]
+task :make => [ragel, extension_makefile, built_extension]
+
+file ragel => ['ext/wikitext_ragel.rl'] do
+  Dir.chdir('ext') do
+    # pass the -s switch here because otherwise Ragel is totally silent
+    # I like to have visual confirmation that it's actually run
+    sh 'ragel -s wikitext_ragel.rl'
+  end
+end
 
 file extension_makefile => ['ext/extconf.rb', 'ext/depend'] do
   Dir.chdir('ext') do
