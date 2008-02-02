@@ -21,7 +21,7 @@
 #include "wikitext_ragel.h"
 #include <stdio.h>
 
-#define EMIT(t)     do { token.type = t; token.stop = p + 1; token.column_stop += (token.stop - token.start); } while (0)
+#define EMIT(t)     do { out->type = t; out->stop = p + 1; out->column_stop += (out->stop - out->start); } while (0)
 #define MARK()      do { mark = p; } while (0)
 #define REWIND()    do { p = mark; } while (0)
 
@@ -35,25 +35,25 @@
 
     action non_printable_ascii
     {
-        token.code_point = *p & 0x7f;
+        out->code_point = *p & 0x7f;
     }
 
     action two_byte_utf8_sequence
     {
-        token.code_point = ((uint32_t)(*(p - 1)) & 0x1f) << 6 |
+        out->code_point = ((uint32_t)(*(p - 1)) & 0x1f) << 6 |
             (*p & 0x3f);
     }
 
     action three_byte_utf8_sequence
     {
-        token.code_point = ((uint32_t)(*(p - 2)) & 0x0f) << 12 |
+        out->code_point = ((uint32_t)(*(p - 2)) & 0x0f) << 12 |
             ((uint32_t)(*(p - 1)) & 0x3f) << 6 |
             (*p & 0x3f);
     }
 
     action four_byte_utf8_sequence
     {
-        token.code_point = ((uint32_t)(*(p - 3)) & 0x07) << 18 |
+        out->code_point = ((uint32_t)(*(p - 3)) & 0x07) << 18 |
             ((uint32_t)(*(p - 2)) & 0x3f) << 12 |
             ((uint32_t)(*(p - 1)) & 0x3f) << 6 |
             (*p & 0x3f);
@@ -114,9 +114,9 @@
         };
 
         # consider adding <blockquote></blockquote> HTML tags as well later on
-        '>' %mark ' '?
+        '>' @mark ' '?
         {
-            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
                 EMIT(BLOCKQUOTE);
             else
             {
@@ -130,7 +130,7 @@
         # consider adding real <pre> and </pre> HTML tags later on
         ' '
         {
-            if (token.column_start == 1)
+            if (out->column_start == 1)
                 EMIT(PRE);
             else
                 EMIT(SPACE);
@@ -139,7 +139,7 @@
 
         '#'
         {
-            if (token.column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
                 EMIT(OL);
             else
                 EMIT(PRINTABLE);
@@ -148,16 +148,16 @@
 
         '*'
         {
-            if (token.column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
                 EMIT(UL);
             else
                 EMIT(PRINTABLE);
             fbreak;
         };
 
-        '='{6} %mark ' '*
+        '='{6} @mark ' '*
         {
-            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H6_START);
@@ -172,9 +172,9 @@
             fbreak;
         };
 
-        '='{5} %mark ' '*
+        '='{5} @mark ' '*
         {
-            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H5_START);
@@ -188,9 +188,9 @@
             fbreak;
         };
 
-        '='{4} %mark ' '*
+        '='{4} @mark ' '*
         {
-            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H4_START);
@@ -205,9 +205,9 @@
             fbreak;
         };
 
-        '='{3} %mark ' '*
+        '='{3} @mark ' '*
         {
-            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H3_START);
@@ -222,9 +222,9 @@
             fbreak;
         };
 
-        '='{2} %mark ' '*
+        '='{2} @mark ' '*
         {
-            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H2_START);
@@ -239,9 +239,9 @@
             fbreak;
         };
 
-        '=' %mark ' '*
+        '=' @mark ' '*
         {
-            if (token.column_start == 1 || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(H1_START);
@@ -349,8 +349,8 @@
         ("\r"? "\n") | "\r"
         {
             EMIT(CRLF);
-            token.column_stop = 1;
-            token.line_stop++;
+            out->column_stop = 1;
+            out->line_stop++;
             fbreak;
         };
 
@@ -380,7 +380,7 @@
         (0xf0..0xf4 0x80..0xbf 0x80..0xbf 0x80..0xbf)   %four_byte_utf8_sequence
         {
             EMIT(DEFAULT);
-            token.column_stop = token.column_start + 1;
+            out->column_stop = out->column_start + 1;
             fbreak;
         };
 
@@ -394,33 +394,32 @@
 // pass in the last token because that's useful for the scanner to know
 // p data pointer (required by Ragel machine); overriden with contents of last_token if supplied
 // pe data end pointer (required by Ragel machine)
-token_t next_token(token_t *last_token, char *p, char *pe)
+void next_token(token_t *out, token_t *last_token, char *p, char *pe)
 {
-    // the token object to be returned
-    token_t token;
-    token.type              = NO_TOKEN;
-    int     last_token_type = NO_TOKEN;
+    int last_token_type = NO_TOKEN;
     if (last_token)
     {
         last_token_type     = last_token->type;
         p = last_token->stop;
-        token.line_start    = token.line_stop   = last_token->line_stop;
-        token.column_start  = token.column_stop = last_token->column_stop;
+        out->line_start     = out->line_stop    = last_token->line_stop;
+        out->column_start   = out->column_stop  = last_token->column_stop;
     }
     else
     {
-        token.line_start    = 1;
-        token.column_start  = 1;
-        token.line_stop     = 1;
-        token.column_stop   = 1;
+        out->line_start     = 1;
+        out->column_start   = 1;
+        out->line_stop      = 1;
+        out->column_stop    = 1;
     }
-    token.start = p;
+    out->type       = NO_TOKEN;
+    out->code_point = 0;
+    out->start      = p;
     if (p == pe)
     {
         // all done, have reached end of input
-        token.stop  = p;
-        token.type  = END_OF_FILE;
-        return token;
+        out->stop  = p;
+        out->type  = END_OF_FILE;
+        return;
     }
 
     char    *mark;      // for manual backtracking
@@ -433,7 +432,6 @@ token_t next_token(token_t *last_token, char *p, char *pe)
     %% write exec;
     if (cs == wikitext_error)
         rb_raise(eWikitextError, "failed before finding a token");
-    else if (token.type == NO_TOKEN)
+    else if (out->type == NO_TOKEN)
         rb_raise(eWikitextError, "failed to produce a token");
-    return token;
 }

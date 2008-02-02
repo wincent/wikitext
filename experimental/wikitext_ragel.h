@@ -14,4 +14,4 @@
 
 #include "wikitext.h"
 
-token_t next_token(token_t *last_token, char *p, char *pe);
+void next_token(token_t *out, token_t *last_token, char *p, char *pe);

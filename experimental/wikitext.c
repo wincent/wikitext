@@ -88,7 +88,7 @@ VALUE Wikitext_parser_initialize(VALUE self)
 }
 
 // for testing and debugging only
-VALUE _Wikitext_hash_for_token(token_t *token)
+VALUE _Wikitext_token(token_t *token)
 {
     VALUE object = rb_class_new_instance(0, NULL, cWikitextParserToken);
     (void)rb_iv_set(object, "@start",           LONG2NUM((long)token->start));
@@ -103,6 +103,7 @@ VALUE _Wikitext_hash_for_token(token_t *token)
     VALUE types = Wikitext_token_types(Qnil);
     VALUE type  = rb_hash_aref(types, INT2FIX(token->type));
     (void)rb_iv_set(object, "@token_type",      type);
+    (void)rb_iv_set(object, "@string_value",    rb_str_new(token->start, token->stop - token->start));
     return object;
 }
 
@@ -116,23 +117,13 @@ VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
     char *p = RSTRING_PTR(string);
     long len = RSTRING_LEN(string);
     char *pe = p + len;
-#ifdef DEBUG
-    printf("input: start %#x, stop %#x\n", p, pe);
-#endif
-    token_t token = next_token(NULL, p, pe);
-    rb_ary_push(tokens, _Wikitext_hash_for_token(&token));
-#ifdef DEBUG
-    printf("token: start %#x, stop %#x, type %d (line start %d, column start %d, line stop %d, column stop %d)\n",
-        token.start, token.stop, token.type, token.line_start, token.column_start, token.line_stop, token.column_stop);
-#endif
+    token_t token;
+    next_token(&token, NULL, p, pe);
+    rb_ary_push(tokens, _Wikitext_token(&token));
     while (token.type != END_OF_FILE)
     {
-        token = next_token(&token, NULL, pe);
-        rb_ary_push(tokens, _Wikitext_hash_for_token(&token));
-#ifdef DEBUG
-        printf("token: start %#x, stop %#x, type %d (line start %d, column start %d, line stop %d, column stop %d)\n",
-            token.start, token.stop, token.type, token.line_start, token.column_start, token.line_stop, token.column_stop);
-#endif
+        next_token(&token, &token, NULL, pe);
+        rb_ary_push(tokens, _Wikitext_token(&token));
     }
     return tokens;
 }
@@ -146,9 +137,10 @@ VALUE Wikitext_parser_benchmarking_tokenize(VALUE self, VALUE string)
     char *p = RSTRING_PTR(string);
     long len = RSTRING_LEN(string);
     char *pe = p + len;
-    token_t token = next_token(NULL, p, pe);
+    token_t token;
+    next_token(&token, NULL, p, pe);
     while (token.type != END_OF_FILE)
-        token = next_token(&token, NULL, pe);
+        next_token(&token, &token, NULL, pe);
     return Qnil;
 }
 
