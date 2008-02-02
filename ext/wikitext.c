@@ -743,6 +743,106 @@ VALUE Wikitext_parser_initialize(VALUE self)
     return self;
 }
 
+VALUE Wikitext_parser_benchmarking_tokenize(int argc, VALUE *argv, VALUE self)
+{
+    // preliminaries
+    int     exception       = no_exception;
+    int     exception_info  = 0;
+    VALUE   output          = rb_str_new2("");  // although not explicitly UCS-2 encoded, a zero-length C string will work fine
+    VALUE   capture         = Qnil;             // sometimes we want to capture output rather than send it to the output variable
+
+    // process arguments
+    VALUE string, options;
+    if (rb_scan_args(argc, argv, "11", &string, &options) == 1) // 1 mandatory argument, 1 optional argument
+        options = rb_hash_new();                                // default to an empty hash if no argument passed
+
+    // convert string from UTF-8 to UCS-2LE or UCS-2BE
+    VALUE ucs2input = Wikitext_utf8_to_ucs2(mWikitext, string);
+
+    // set up lexer
+    pANTLR3_UINT16          pointer = (pANTLR3_UINT16)RSTRING_PTR(ucs2input);
+    ANTLR3_UINT64           count   = (ANTLR3_UINT64)RSTRING_LEN(ucs2input) / 2;
+
+    pANTLR3_INPUT_STREAM    stream  = antlr3NewUCS2StringInPlaceStream(pointer, count, NULL);
+    if ((ANTLR3_UINT64)stream == (ANTLR3_UINT64)ANTLR3_ERR_NOMEM)
+    {
+        exception = input_stream_memory;
+        goto finalize;
+    }
+    else if ((ANTLR3_UINT64)stream < 0)
+    {
+        exception = input_stream_other;
+        goto finalize;
+    }
+
+    pWikitextLexer lexer = WikitextLexerNew(stream);
+    if ((ANTLR3_UINT64)lexer == (ANTLR3_UINT64)ANTLR3_ERR_NOMEM)
+    {
+        exception = lexer_memory;
+        goto clean_up_input_stream;
+    }
+    else if ((ANTLR3_UINT64)lexer < 0)
+    {
+        exception = lexer_other;
+        goto clean_up_input_stream;
+    }
+
+    // install custom nextToken() override
+    original_next_token = lexer->pLexer->tokSource->nextToken;
+    lexer->pLexer->tokSource->nextToken = _Wikitext_next_token;
+    lexer->pLexer->rec->userp = NULL;
+
+    pANTLR3_COMMON_TOKEN_STREAM tstream = antlr3CommonTokenStreamSourceNew(ANTLR3_SIZE_HINT, lexer->pLexer->tokSource);
+    if ((ANTLR3_UINT64)tstream == ANTLR3_ERR_NOMEM)
+    {
+        exception = token_stream_memory;
+        goto clean_up_lexer;
+    }
+    else if ((ANTLR3_UINT64)tstream < 0)
+    {
+        exception = token_stream_other;
+        goto clean_up_lexer;
+    }
+    do
+    {
+        // check to see if we have a token hanging around from a previous iteration of this loop
+        pANTLR3_COMMON_TOKEN token = lexer->pLexer->tokSource->nextToken(lexer->pLexer->tokSource);
+        if (token == NULL)
+            // will keep going until hit EOF
+            continue;
+        ANTLR3_UINT32 type = token->getType(token);
+        if (type == ANTLR3_TOKEN_EOF)
+            break;
+    } while (1);
+
+clean_up_token_stream:
+    tstream->free(tstream);
+clean_up_lexer:
+    lexer->free(lexer);
+clean_up_input_stream:
+    stream->close(stream);
+finalize:   // can raise exceptions only after all clean-up is done
+    switch (exception)
+    {
+        case input_stream_memory:
+            rb_raise(rb_eNoMemError, "failed to create input stream (memory allocation error)");
+        case input_stream_other:
+            rb_raise(rb_eSystemCallError, "failed to create input stream (antlr3NewUCS2StringInPlaceStream error %d)", (ANTLR3_UINT64)stream);
+        case lexer_memory:
+            rb_raise(rb_eNoMemError, "failed to create lexer (memory allocation error)");
+        case lexer_other:
+            rb_raise(rb_eSystemCallError, "failed to create lexer (WikitextLexerNew error %d)", (ANTLR3_UINT64)lexer);
+        case token_stream_memory:
+            rb_raise(rb_eNoMemError, "failed to create token stream (memory allocation error)");
+        case token_stream_other:
+            rb_raise(rb_eSystemCallError, "failed to create token stream (antlr3CommonTokenStreamSourceNew error %d)", (ANTLR3_UINT64)tstream);
+        default:
+            break;
+    }
+
+    return Wikitext_ucs2_to_utf8(mWikitext, output);
+}
+
 // Input string must be UTF-8 encoded.
 // Note that ANTLR expects a UCS-2 encoded string, so the input is converted automatically.
 // If the input string contains characters not encodable in UCS-2 an exception will be raised.
@@ -2076,6 +2176,7 @@ void Init_wikitext()
     // instance methods
     rb_define_method(cParser, "initialize", Wikitext_parser_initialize, 0);
     rb_define_method(cParser, "parse", Wikitext_parser_parse, -1);
+    rb_define_method(cParser, "benchmarking_tokenize", Wikitext_parser_benchmarking_tokenize, -1);
     rb_define_method(cParser, "line_ending=", Wikitext_parser_set_line_ending, 1);
     rb_define_method(cParser, "internal_link_prefix=", Wikitext_parser_set_internal_link_prefix, 1);
     rb_define_method(cParser, "external_link_class=", Wikitext_parser_set_external_link_class, 1);
