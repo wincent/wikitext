@@ -15,7 +15,7 @@
 #include <ruby/ruby.h>
 #include <stdint.h>     /* uint32_t */
 
-#define TOKEN_TEXT(token)   rb_str_new((const char *)token->start, (token->stop + 1 - token->start))
+#define TOKEN_TEXT(token)   rb_str_new((const char *)token->start, (token->stop - token->start))
 
 typedef struct
 {
