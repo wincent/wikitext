@@ -15,6 +15,8 @@
 #include <ruby/ruby.h>
 #include <stdint.h>
 
+#define ruby_inspect(obj) rb_funcall(rb_mKernel, rb_intern("p"), 1, obj)
+
 // Wikitext
 extern VALUE mWikitext;
 
