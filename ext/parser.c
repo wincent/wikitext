@@ -53,64 +53,34 @@ inline VALUE escaped_tt_end(void)
     return rb_str_new2("&lt;/tt&gt;");
 }
 
-inline VALUE escaped_h6_start(void)
+inline VALUE literal_h6(void)
 {
-    return rb_str_new2("&lt;h6&gt;");
+    return rb_str_new2("======");
 }
 
-inline VALUE escaped_h6_end(void)
+inline VALUE literal_h5(void)
 {
-    return rb_str_new2("&lt;/h6&gt;");
+    return rb_str_new2("=====");
 }
 
-inline VALUE escaped_h5_start(void)
+inline VALUE literal_h4(void)
 {
-    return rb_str_new2("&lt;h5&gt;");
+    return rb_str_new2("====");
 }
 
-inline VALUE escaped_h5_end(void)
+inline VALUE literal_h3(void)
 {
-    return rb_str_new2("&lt;/h5&gt;");
+    return rb_str_new2("===");
 }
 
-inline VALUE escaped_h4_start(void)
+inline VALUE literal_h2(void)
 {
-    return rb_str_new2("&lt;h4&gt;");
+    return rb_str_new2("==");
 }
 
-inline VALUE escaped_h4_end(void)
+inline VALUE literal_h1(void)
 {
-    return rb_str_new2("&lt;/h4&gt;");
-}
-
-inline VALUE escaped_h3_start(void)
-{
-    return rb_str_new2("&lt;h3&gt;");
-}
-
-inline VALUE escaped_h3_end(void)
-{
-    return rb_str_new2("&lt;/h3&gt;");
-}
-
-inline VALUE escaped_h2_start(void)
-{
-    return rb_str_new2("&lt;h2&gt;");
-}
-
-inline VALUE escaped_h2_end(void)
-{
-    return rb_str_new2("&lt;/h2&gt;");
-}
-
-inline VALUE escaped_h1_start(void)
-{
-    return rb_str_new2("&lt;h1&gt;");
-}
-
-inline VALUE escaped_h1_end(void)
-{
-    return rb_str_new2("&lt;/h1&gt;");
+    return rb_str_new2("=");
 }
 
 inline VALUE pre_start(void)
@@ -1385,7 +1355,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H6_END:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_h6_end());
+                    rb_str_append(output, literal_h6());
                 else
                 {
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
@@ -1402,7 +1372,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h6 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, escaped_h6_end());
+                        rb_str_append(output, literal_h6());
                     }
                 }
                 break;
@@ -1410,7 +1380,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H5_END:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_h5_end());
+                    rb_str_append(output, literal_h5());
                 else
                 {
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
@@ -1427,7 +1397,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h5 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, escaped_h5_end());
+                        rb_str_append(output, literal_h5());
                     }
                 }
                 break;
@@ -1435,7 +1405,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H4_END:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_h4_end());
+                    rb_str_append(output, literal_h4());
                 else
                 {
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
@@ -1452,7 +1422,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h4 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, escaped_h4_end());
+                        rb_str_append(output, literal_h4());
                     }
                 }
                 break;
@@ -1460,7 +1430,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H3_END:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_h3_end());
+                    rb_str_append(output, literal_h3());
                 else
                 {
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
@@ -1477,7 +1447,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h3 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, escaped_h3_end());
+                        rb_str_append(output, literal_h3());
                     }
                 }
                 break;
@@ -1485,7 +1455,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H2_END:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_h2_end());
+                    rb_str_append(output, literal_h2());
                 else
                 {
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
@@ -1502,7 +1472,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h2 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, escaped_h2_end());
+                        rb_str_append(output, literal_h2());
                     }
                 }
                 break;
@@ -1510,7 +1480,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H1_END:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_h1_end());
+                    rb_str_append(output, literal_h1());
                 else
                 {
                     if (rb_ary_includes(scope, INT2FIX(EXT_LINK_START)))
@@ -1527,7 +1497,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h1 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, escaped_h1_end());
+                        rb_str_append(output, literal_h1());
                     }
                 }
                 break;

@@ -25,6 +25,8 @@
 #define EMIT(t)     do { out->type = t; out->stop = p + 1; out->column_stop += (out->stop - out->start); } while (0)
 #define MARK()      do { mark = p; } while (0)
 #define REWIND()    do { p = mark; } while (0)
+#define AT_END()    (p + 1 == pe)
+#define NEXT_CHAR() (*(p + 1))
 
 %%{
     machine wikitext;
@@ -166,13 +168,16 @@
                 REWIND();
                 EMIT(H6_START);
             }
-            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
+            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
             {
                 REWIND();
                 EMIT(H6_END);
             }
             else
+            {
+                REWIND();
                 EMIT(PRINTABLE);
+            }
             fbreak;
         };
 
@@ -183,12 +188,16 @@
                 REWIND();
                 EMIT(H5_START);
             }
-            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
+            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
             {
                 REWIND();
                 EMIT(H6_END);
             }
+            else
+            {
+                REWIND();
                 EMIT(PRINTABLE);
+            }
             fbreak;
         };
 
@@ -199,13 +208,16 @@
                 REWIND();
                 EMIT(H4_START);
             }
-            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
+            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
             {
                 REWIND();
                 EMIT(H4_END);
             }
             else
+            {
+                REWIND();
                 EMIT(PRINTABLE);
+            }
             fbreak;
         };
 
@@ -216,13 +228,16 @@
                 REWIND();
                 EMIT(H3_START);
             }
-            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
+            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
             {
                 REWIND();
                 EMIT(H3_END);
             }
             else
+            {
+                REWIND();
                 EMIT(PRINTABLE);
+            }
             fbreak;
         };
 
@@ -233,13 +248,16 @@
                 REWIND();
                 EMIT(H2_START);
             }
-            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
+            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
             {
                 REWIND();
                 EMIT(H2_END);
             }
             else
+            {
+                REWIND();
                 EMIT(PRINTABLE);
+            }
             fbreak;
         };
 
@@ -250,13 +268,16 @@
                 REWIND();
                 EMIT(H1_START);
             }
-            else if (p > mark && (p == pe || *(p + 1) == '\n' || *(p + 1) == '\r'))
+            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
             {
                 REWIND();
                 EMIT(H1_END);
             }
             else
+            {
+                REWIND();
                 EMIT(PRINTABLE);
+            }
             fbreak;
         };
 
@@ -359,9 +380,9 @@
         };
 
         # all the printable ASCII characters (0x20 to 0x7e) excluding those explicitly covered elsewhere:
-        # skip space (0x20), quote (0x22), ampersand (0x26), less than (0x3c), greater than (0x3e),
+        # skip space (0x20), quote (0x22), ampersand (0x26), less than (0x3c), equals (0x3d), greater than (0x3e),
         # left bracket 0x5b, right bracket 0x5d, backtick (0x60), and vertical bar (0x7c)
-        (0x21 | 0x23..0x25 | 0x27..0x3b | 0x3d | 0x3f..0x5a | 0x5c | 0x5e..0x5f | 0x61..0x7b | 0x7e)+
+        (0x21 | 0x23..0x25 | 0x27..0x3b | 0x3f..0x5a | 0x5c | 0x5e..0x5f | 0x61..0x7b | 0x7e)+
         {
             EMIT(PRINTABLE);
             fbreak;
