@@ -13,154 +13,99 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "wikitext_ragel.h"
+#include "parser.h"
 
-static VALUE mWikitext              = 0;    // Wikitext
-static VALUE cWikitextParser        = 0;    // Wikitext::Parser
-static VALUE cWikitextParserToken   = 0;    // Wikitext::Parser::Token
-VALUE eWikitextError                = 0;    // Wikitext::Error
-
-// return a hash of token types
-// we make this available for unit testing purposes
-VALUE Wikitext_token_types(VALUE self)
-{
-    VALUE hash = rb_hash_new();
-
-#define SET_TOKEN_TYPE(identifier)  (void)rb_hash_aset(hash, INT2FIX(identifier), \
-    rb_funcall(rb_funcall(rb_str_new2(#identifier), rb_intern("downcase"), 0), rb_intern("to_sym"), 0))
-
-    SET_TOKEN_TYPE(NO_TOKEN);
-    SET_TOKEN_TYPE(P);
-    SET_TOKEN_TYPE(LI);
-    SET_TOKEN_TYPE(PRE);
-    SET_TOKEN_TYPE(NO_WIKI_START);
-    SET_TOKEN_TYPE(NO_WIKI_END);
-    SET_TOKEN_TYPE(BLOCKQUOTE);
-    SET_TOKEN_TYPE(STRONG_EM);
-    SET_TOKEN_TYPE(STRONG);
-    SET_TOKEN_TYPE(EM);
-    SET_TOKEN_TYPE(TT_START);
-    SET_TOKEN_TYPE(TT_END);
-    SET_TOKEN_TYPE(TT);
-    SET_TOKEN_TYPE(OL);
-    SET_TOKEN_TYPE(UL);
-    SET_TOKEN_TYPE(H6_START);
-    SET_TOKEN_TYPE(H5_START);
-    SET_TOKEN_TYPE(H4_START);
-    SET_TOKEN_TYPE(H3_START);
-    SET_TOKEN_TYPE(H2_START);
-    SET_TOKEN_TYPE(H1_START);
-    SET_TOKEN_TYPE(H6_END);
-    SET_TOKEN_TYPE(H5_END);
-    SET_TOKEN_TYPE(H4_END);
-    SET_TOKEN_TYPE(H3_END);
-    SET_TOKEN_TYPE(H2_END);
-    SET_TOKEN_TYPE(H1_END);
-    SET_TOKEN_TYPE(URI);
-    SET_TOKEN_TYPE(LINK_START);
-    SET_TOKEN_TYPE(LINK_END);
-    SET_TOKEN_TYPE(EXT_LINK_START);
-    SET_TOKEN_TYPE(EXT_LINK_END);
-    SET_TOKEN_TYPE(SEPARATOR);
-    SET_TOKEN_TYPE(SPACE);
-    SET_TOKEN_TYPE(QUOT_ENTITY);
-    SET_TOKEN_TYPE(AMP_ENTITY);
-    SET_TOKEN_TYPE(NAMED_ENTITY);
-    SET_TOKEN_TYPE(HEX_ENTITY);
-    SET_TOKEN_TYPE(DECIMAL_ENTITY);
-    SET_TOKEN_TYPE(QUOT);
-    SET_TOKEN_TYPE(AMP);
-    SET_TOKEN_TYPE(LESS);
-    SET_TOKEN_TYPE(GREATER);
-    SET_TOKEN_TYPE(CRLF);
-    SET_TOKEN_TYPE(PRINTABLE);
-    SET_TOKEN_TYPE(DEFAULT);
-    SET_TOKEN_TYPE(END_OF_FILE);
-
-#undef SET_TOKEN_TYPE
-
-    return hash;
-}
-
-VALUE Wikitext_parser_initialize(VALUE self)
-{
-    // no need to call super here; rb_call_super()
-    return self;
-}
-
-// for testing and debugging only
-VALUE _Wikitext_token(token_t *token)
-{
-    VALUE object = rb_class_new_instance(0, NULL, cWikitextParserToken);
-    (void)rb_iv_set(object, "@start",           LONG2NUM((long)token->start));
-    (void)rb_iv_set(object, "@stop",            LONG2NUM((long)token->stop));
-    (void)rb_iv_set(object, "@line_start",      LONG2NUM(token->line_start));
-    (void)rb_iv_set(object, "@line_stop",       LONG2NUM(token->line_stop));
-    (void)rb_iv_set(object, "@column_start",    LONG2NUM(token->column_start));
-    (void)rb_iv_set(object, "@column_stop",     LONG2NUM(token->column_stop));
-    (void)rb_iv_set(object, "@code_point",      INT2NUM(token->code_point));
-
-    // look-up the token type
-    VALUE types = Wikitext_token_types(Qnil);
-    VALUE type  = rb_hash_aref(types, INT2FIX(token->type));
-    (void)rb_iv_set(object, "@token_type",      type);
-    (void)rb_iv_set(object, "@string_value",    rb_str_new(token->start, token->stop - token->start));
-    return object;
-}
-
-// for testing and debugging only
-VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
-{
-    if (NIL_P(string))
-        return Qnil;
-    string = StringValue(string);
-    VALUE tokens = rb_ary_new();
-    char *p = RSTRING_PTR(string);
-    long len = RSTRING_LEN(string);
-    char *pe = p + len;
-    token_t token;
-    next_token(&token, NULL, p, pe);
-    rb_ary_push(tokens, _Wikitext_token(&token));
-    while (token.type != END_OF_FILE)
-    {
-        next_token(&token, &token, NULL, pe);
-        rb_ary_push(tokens, _Wikitext_token(&token));
-    }
-    return tokens;
-}
-
-// for benchmarking raw tokenization speed only
-VALUE Wikitext_parser_benchmarking_tokenize(VALUE self, VALUE string)
-{
-    if (NIL_P(string))
-        return Qnil;
-    string = StringValue(string);
-    char *p = RSTRING_PTR(string);
-    long len = RSTRING_LEN(string);
-    char *pe = p + len;
-    token_t token;
-    next_token(&token, NULL, p, pe);
-    while (token.type != END_OF_FILE)
-        next_token(&token, &token, NULL, pe);
-    return Qnil;
-}
+VALUE mWikitext              = 0;   // Wikitext
+VALUE cWikitextParser        = 0;   // Wikitext::Parser
+VALUE eWikitextParserError   = 0;   // Wikitext::Parser::Error
+VALUE cWikitextParserToken   = 0;   // Wikitext::Parser::Token
 
 void Init_wikitext()
 {
     // Wikitext
     mWikitext = rb_define_module("Wikitext");
-    rb_define_singleton_method(mWikitext, "token_types", Wikitext_token_types, 0);
-
-    // Wikitext::Error
-    eWikitextError = rb_define_class_under(mWikitext, "Error", rb_eException);
 
     // Wikitext::Parser
     cWikitextParser = rb_define_class_under(mWikitext, "Parser", rb_cObject);
     rb_define_method(cWikitextParser, "initialize", Wikitext_parser_initialize, 0);
+    rb_define_method(cWikitextParser, "parse", Wikitext_parser_parse, 1);
     rb_define_method(cWikitextParser, "tokenize", Wikitext_parser_tokenize, 1);
     rb_define_method(cWikitextParser, "benchmarking_tokenize", Wikitext_parser_benchmarking_tokenize, 1);
 
+    // sanitizes an internal link target for inclusion with the HTML stream; for example, a link target for the article titled:
+    //      foo, "bar" & baz €
+    // would be sanitized as:
+    //      foo, &quot;bar&quot; &amp; baz &#x20ac;
+    rb_define_singleton_method(cWikitextParser, "sanitize_link_target", Wikitext_sanitize_link_target, 1);
+
+    // encodes an internal link target for use as an anchor href; for example, the link target:
+    //      foo, "bar" & baz €
+    // would be encoded as:
+    //      foo%2c%20%22bar%22%20%26%20baz%e2%82%ac
+    // and used as follows (combined with the output of sanitize_link_target):
+    //      <a href="foo%2c%20%22bar%22%20%26%20baz%e2%82%ac">foo, &quot;bar&quot; &amp; baz &#x20ac;</a>
+    rb_define_singleton_method(cWikitextParser, "encode_link_target", Wikitext_encode_link_target, 1);
+
+    // override default line_ending
+    // defaults to "\n"
+    rb_define_attr(cWikitextParser, "line_ending", Qtrue, Qtrue);
+
+    // the prefix to be prepended to internal links; defaults to "/wiki/"
+    // for example, given an internal_link_prefix of "/wiki/"
+    //      [[Apple]]
+    // would be transformed into:
+    //      <a href="/wiki/Apple">Apple</a>
+    rb_define_attr(cWikitextParser, "internal_link_prefix", Qtrue, Qtrue);
+
+    // CSS class to be applied to external links; defaults to "external"
+    // for example, given an external_link_class of "external":
+    //      [http://www.google.com/ the best search engine]
+    // would be transformed into:
+    //      <a class="external" href="http://www.google.com/">the best search engine</a>
+    rb_define_attr(cWikitextParser, "external_link_class", Qtrue, Qtrue);
+
+    // CSS class to be applied to external links; defaults to "mailto"
+    // for example:
+    //      [mailto:user@example.com user@example.com]
+    // or if autolinking of email addresses is turned on (not yet implemented) just
+    //      user@example.com
+    // would be transformed into:
+    //      <a class="mailto" href="mailto:user@example.com">user@example.com</a>
+    rb_define_attr(cWikitextParser, "mailto_class", Qtrue, Qtrue);
+
+    // whether to autolink URIs found in the plain scope
+    // when true:
+    //      http://apple.com/
+    // will be transformed to:
+    //      <a href="http://apple.com/">http://apple.com/</a>
+    // and if an external_link_class is set (to "external", for example) then the transformation will be:
+    //      <a class="external" href="http://apple.com/">http://apple.com/</a>
+    rb_define_attr(cWikitextParser, "autolink", Qtrue, Qtrue);
+
+    // whether "slash" in link text is treated specially
+    // when true, any link containing a slash is considered to be a relative link within the current site, but outside the wiki
+    // in other words, while:
+    //      [[interesting article]]
+    // is a wiki link (assuming the internal_link_prefix of "/wiki/"):
+    //      <a href="/wiki/interesting+article">interesting article</a>
+    // in contrast:
+    //      [[issue/400]]
+    // is interpreted as a link external to the wiki but internal to the site, and is converted into:
+    //      <a href="/issue/400">issue/400</a>
+    // this design is intended to work well with preprocessors, that can scan the input for things like:
+    //      issue #400
+    // and transform them before feeding them into the wikitext parser as:
+    //      [[issue/400|issue #400]]
+    // which in turn would be transformed into:
+    //      <a href="/issue/400">issue #400</a>
+    rb_define_attr(cWikitextParser, "treat_slash_as_special", Qtrue, Qtrue);
+
+    // Wikitext::Parser::Error
+    eWikitextParserError = rb_define_class_under(mWikitext, "Error", rb_eException);
+
     // Wikitext::Parser::Token
     cWikitextParserToken = rb_define_class_under(cWikitextParser, "Token", rb_cObject);
+    rb_define_singleton_method(cWikitextParserToken, "token_types", Wikitext_parser_token_types, 0);
     rb_define_attr(cWikitextParserToken, "start", Qtrue, Qfalse);
     rb_define_attr(cWikitextParserToken, "stop", Qtrue, Qfalse);
     rb_define_attr(cWikitextParserToken, "line_start", Qtrue, Qfalse);

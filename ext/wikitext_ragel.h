@@ -12,6 +12,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "wikitext.h"
+#include "token.h"
 
 void next_token(token_t *out, token_t *last_token, char *p, char *pe);

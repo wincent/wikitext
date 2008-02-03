@@ -16,9 +16,9 @@
 require File.join(File.dirname(__FILE__), 'spec_helper.rb')
 require 'wikitext'
 
-describe Wikitext, 'token_types method' do
+describe Wikitext::Parser::Token do
   before do
-    @tokens = Wikitext::token_types
+    @tokens = Wikitext::Parser::Token.types
   end
 
   it 'should report the available token types as a hash' do
@@ -27,8 +27,8 @@ describe Wikitext, 'token_types method' do
 
   it 'should report token names as symbols and values as numbers' do
     @tokens.each do |k, v|
-      k.should be_kind_of(Integer)
       v.should be_kind_of(Symbol)
+      k.should be_kind_of(Integer)
     end
   end
 
@@ -43,7 +43,6 @@ end
 describe Wikitext::Parser, 'tokenizing' do
   before do
     @parser = Wikitext::Parser.new
-    @types  = Wikitext::token_types
   end
 
   it 'should do nothing if passed nil' do
@@ -167,6 +166,6 @@ link. And [http://example.com/ is another.
 SLAB
 
     @tokens = @parser.tokenize(large_block_of_text)
-    @tokens
+    @tokens.length.should > 0
   end
 end

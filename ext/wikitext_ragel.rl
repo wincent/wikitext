@@ -19,6 +19,7 @@
 //----------------------------------------------------------------------//
 
 #include "wikitext_ragel.h"
+#include "wikitext.h"
 #include <stdio.h>
 
 #define EMIT(t)     do { out->type = t; out->stop = p + 1; out->column_stop += (out->stop - out->start); } while (0)
@@ -128,10 +129,13 @@
 
         # shorthand for <pre> and </pre>
         # consider adding real <pre> and </pre> HTML tags later on
-        ' '
+        ' ' @mark ' '*
         {
             if (out->column_start == 1)
+            {
+                REWIND();
                 EMIT(PRE);
+            }
             else
                 EMIT(SPACE);
             fbreak;
@@ -431,7 +435,7 @@ void next_token(token_t *out, token_t *last_token, char *p, char *pe)
     %% write init;
     %% write exec;
     if (cs == wikitext_error)
-        rb_raise(eWikitextError, "failed before finding a token");
+        rb_raise(eWikitextParserError, "failed before finding a token");
     else if (out->type == NO_TOKEN)
-        rb_raise(eWikitextError, "failed to produce a token");
+        rb_raise(eWikitextParserError, "failed to produce a token");
 }

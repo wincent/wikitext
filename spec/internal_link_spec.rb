@@ -76,6 +76,14 @@ describe Wikitext::Parser, 'internal links' do
       @parser.parse('[[foo|bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
     end
 
+    it 'should treat a separator inside the link text as part of the link text' do
+      @parser.parse('[[foo|bar|baz]]').should == %Q{<p><a href="/wiki/foo">bar|baz</a></p>\n}
+    end
+
+    it 'should treat separators outside of links as normal text' do
+      @parser.parse('foo|bar').should == %Q{<p>foo|bar</p>\n}
+    end
+
     it 'should allow em markup in the custom link text' do
       expected = %Q{<p><a href="/wiki/foo">bar <em>baz</em></a></p>\n}
       @parser.parse("[[foo|bar ''baz'']]").should == expected

@@ -13,17 +13,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <ruby/ruby.h>
-#include <stdint.h>
 
-// Wikitext
-extern VALUE mWikitext;
+VALUE Wikitext_parser_initialize(VALUE self);
 
-// Wikitext::Parser
-extern VALUE cWikitextParser;
+VALUE Wikitext_parser_tokenize(VALUE self, VALUE string);
 
-// Wikitext::Parser::Error
-// error raised when scanning fails
-extern VALUE eWikitextParserError;
+VALUE Wikitext_parser_benchmarking_tokenize(VALUE self, VALUE string);
 
-// Wikitext::Parser::Token
-extern VALUE cWikitextParserToken;
+VALUE Wikitext_sanitize_link_target(VALUE self, VALUE string);
+
+VALUE Wikitext_encode_link_target(VALUE self, VALUE in);
+
+VALUE Wikitext_parser_parse(VALUE self, VALUE string);

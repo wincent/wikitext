@@ -26,6 +26,16 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse('[http://google.com/ Google]').should == expected
   end
 
+  it 'should treat runs of spaces after the link target as a single space' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google</a></p>\n}
+    @parser.parse('[http://google.com/                  Google]').should == expected
+  end
+
+  it 'should not treat runs of spaces within the link text as a single space' do
+    expected = %Q{<p><a href="http://google.com/" class="external">Google    search</a></p>\n}
+    @parser.parse('[http://google.com/ Google    search]').should == expected
+  end
+
   it 'should format a link with emphasis in the link text' do
     expected = %Q{<p><a href="http://google.com/" class="external">Google <em>rocks</em></a></p>\n}
     @parser.parse("[http://google.com/ Google ''rocks'']").should == expected
