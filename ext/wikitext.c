@@ -101,7 +101,7 @@ void Init_wikitext()
     rb_define_attr(cWikitextParser, "treat_slash_as_special", Qtrue, Qtrue);
 
     // Wikitext::Parser::Error
-    eWikitextParserError = rb_define_class_under(mWikitext, "Error", rb_eException);
+    eWikitextParserError = rb_define_class_under(cWikitextParser, "Error", rb_eException);
 
     // Wikitext::Parser::Token
     cWikitextParserToken = rb_define_class_under(cWikitextParser, "Token", rb_cObject);
