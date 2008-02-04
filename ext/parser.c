@@ -28,19 +28,19 @@ inline VALUE escaped_no_wiki_end(void)
     return rb_str_new2("&lt;/nowiki&gt;");
 }
 
-inline VALUE escaped_strong_em_start(void)
+inline VALUE literal_strong_em(void)
 {
-    return rb_str_new2("&lt;strong&gt;&lt;em&gt;");
+    return rb_str_new2("'''''");
 }
 
-inline VALUE escaped_strong_start(void)
+inline VALUE literal_strong(void)
 {
-    return rb_str_new2("&lt;strong&gt;");
+    return rb_str_new2("'''");
 }
 
-inline VALUE escaped_em_start(void)
+inline VALUE literal_em(void)
 {
-    return rb_str_new2("&lt;em&gt;");
+    return rb_str_new2("''");
 }
 
 inline VALUE escaped_tt_start(void)
@@ -1017,7 +1017,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                 {
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_strong_em_start());
+                    rb_str_append(output, literal_strong_em());
                     break;
                 }
 
@@ -1081,7 +1081,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case STRONG:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_strong_start());
+                    rb_str_append(output, literal_strong());
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
@@ -1103,7 +1103,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case EM:
                 if (rb_ary_includes(scope, INT2FIX(NO_WIKI_START)) || rb_ary_includes(scope, INT2FIX(PRE)))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_em_start());
+                    rb_str_append(output, literal_em());
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
