@@ -43,7 +43,9 @@ inline void ary_free(ary_t *ary)
 
 inline int ary_entry(ary_t *ary, long idx)
 {
-    return ary->count > idx ? ary->entries[idx] : INT_MAX;
+    if (idx < 0)
+        idx = ary->count + idx;
+    return (idx > 0 && ary->count > idx) ? ary->entries[idx] : INT_MAX;
 }
 
 inline int ary_delete_at(ary_t *ary, long idx)
