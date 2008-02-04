@@ -154,7 +154,7 @@ lîñk. Añd [http://example.com/ î∫ äñöth€r.
 # ñ€w lî∫t
 SLAB
 
-def tokenize job, description, parser, input
+def parse job, description, parser, input
   job.report(description) do
     100_000.times { parser.parse input }
   end
@@ -162,8 +162,8 @@ end
 
 parser = Wikitext::Parser.new
 Benchmark.bmbm do |job|
-  tokenize job, 'short slab of ASCII text', parser, short_slab_of_ASCII_text
-  tokenize job, 'short slab of UTF-8 text', parser, short_slab_of_UTF8_text
-  tokenize job, 'longer slab of ASCII text', parser, longer_slab_of_ASCII_text
-  tokenize job, 'longer slab of UTF-8 text', parser, longer_slab_of_UTF8_text
+  parse job, 'short slab of ASCII text', parser, short_slab_of_ASCII_text
+  parse job, 'short slab of UTF-8 text', parser, short_slab_of_UTF8_text
+  parse job, 'longer slab of ASCII text', parser, longer_slab_of_ASCII_text
+  parse job, 'longer slab of UTF-8 text', parser, longer_slab_of_UTF8_text
 end
