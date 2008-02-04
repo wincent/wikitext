@@ -585,7 +585,7 @@ void inline _Wikitext_pop_excess_elements(VALUE capture, VALUE scope, VALUE line
     }
 }
 
-#define INVALID_ENCODING(msg)  do { if (dest_ptr) free(dest_ptr); rb_raise(rb_eRangeError, "invalid encoding: " msg); } while(0)
+#define INVALID_ENCODING(msg)  do { if (dest_ptr) free(dest_ptr); rb_raise(eWikitextParserError, "invalid encoding: " msg); } while(0)
 
 // convert a single UTF-8 codepoint to UTF-32
 // expects an input buffer, src, containing a UTF-8 encoded character (which may be multi-byte)
