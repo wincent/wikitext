@@ -501,6 +501,10 @@ void _Wikitext_pop_from_stack(VALUE stack, VALUE target, VALUE line_ending)
             rb_str_append(target, line_ending);
             break;
 
+        case END_OF_FILE:
+            // nothing to do
+            break;
+
         default:
             // should probably raise an exception here
             break;
@@ -880,16 +884,9 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
         // many restrictions depend on what is at the top of the stack
         VALUE top = rb_ary_entry(scope, -1);
 
-        if (type != END_OF_FILE)
-        {
-            // push current token into line buffer (but not EOF as it won't fit inside a Fixnum)
-            // provides us with context-sensitive "memory" of what's been seen so far on this line
-            VALUE current = INT2FIX(type);
-
-            // for lines with *lots* of consecutive PRINTABLES this could be quite wasteful, so only store one
-            //if (type != PRINTABLE || NIL_P(top) || FIX2INT(top) != PRINTABLE)
-                rb_ary_push(line_buffer, current);
-        }
+        // push current token into line buffer (but not EOF as it won't fit inside a Fixnum)
+        // provides us with context-sensitive "memory" of what's been seen so far on this line
+        rb_ary_push(line_buffer, INT2FIX(type));
 
         // can't declare new variables inside a switch statement, so predeclare them here
         long remove_strong          = -1;
