@@ -26,6 +26,7 @@
 #define MARK()      do { mark = p; } while (0)
 #define REWIND()    do { p = mark; } while (0)
 #define AT_END()    (p + 1 == pe)
+#define DISTANCE()  (p + 1 - ts)
 #define NEXT_CHAR() (*(p + 1))
 
 %%{
@@ -161,117 +162,49 @@
             fbreak;
         };
 
-        '='{6} @mark ' '*
+        '='+ @mark ' '*
         {
             if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
-                EMIT(H6_START);
+                if (DISTANCE() == 1)
+                    EMIT(H1_START);
+                else if (DISTANCE() == 2)
+                    EMIT(H2_START);
+                else if (DISTANCE() == 3)
+                    EMIT(H3_START);
+                else if (DISTANCE() == 4)
+                    EMIT(H4_START);
+                else if (DISTANCE() == 5)
+                    EMIT(H5_START);
+                else if (DISTANCE() == 6)
+                    EMIT(H6_START);
+                else if (DISTANCE() > 6)
+                {
+                    p = ts + 6;
+                    EMIT(H6_START);
+                }
             }
             else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
             {
                 REWIND();
-                EMIT(H6_END);
-            }
-            else
-            {
-                REWIND();
-                EMIT(PRINTABLE);
-            }
-            fbreak;
-        };
-
-        '='{5} @mark ' '*
-        {
-            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
-            {
-                REWIND();
-                EMIT(H5_START);
-            }
-            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
-            {
-                REWIND();
-                EMIT(H6_END);
-            }
-            else
-            {
-                REWIND();
-                EMIT(PRINTABLE);
-            }
-            fbreak;
-        };
-
-        '='{4} @mark ' '*
-        {
-            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
-            {
-                REWIND();
-                EMIT(H4_START);
-            }
-            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
-            {
-                REWIND();
-                EMIT(H4_END);
-            }
-            else
-            {
-                REWIND();
-                EMIT(PRINTABLE);
-            }
-            fbreak;
-        };
-
-        '='{3} @mark ' '*
-        {
-            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
-            {
-                REWIND();
-                EMIT(H3_START);
-            }
-            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
-            {
-                REWIND();
-                EMIT(H3_END);
-            }
-            else
-            {
-                REWIND();
-                EMIT(PRINTABLE);
-            }
-            fbreak;
-        };
-
-        '='{2} @mark ' '*
-        {
-            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
-            {
-                REWIND();
-                EMIT(H2_START);
-            }
-            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
-            {
-                REWIND();
-                EMIT(H2_END);
-            }
-            else
-            {
-                REWIND();
-                EMIT(PRINTABLE);
-            }
-            fbreak;
-        };
-
-        '=' @mark ' '*
-        {
-            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
-            {
-                REWIND();
-                EMIT(H1_START);
-            }
-            else if (AT_END() || NEXT_CHAR() == '\n' || NEXT_CHAR() == '\r')
-            {
-                REWIND();
-                EMIT(H1_END);
+                if (DISTANCE() == 1)
+                    EMIT(H1_END);
+                else if (DISTANCE() == 2)
+                    EMIT(H2_END);
+                else if (DISTANCE() == 3)
+                    EMIT(H3_END);
+                else if (DISTANCE() == 4)
+                    EMIT(H4_END);
+                else if (DISTANCE() == 5)
+                    EMIT(H5_END);
+                else if (DISTANCE() == 6)
+                    EMIT(H6_END);
+                else if (DISTANCE() > 6)
+                {
+                    p -= 6; // will scan the H6 on the next scan
+                    EMIT(PRINTABLE);
+                }
             }
             else
             {
