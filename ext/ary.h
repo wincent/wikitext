@@ -24,6 +24,8 @@ typedef struct
 // in the test suite array count goes no higher than 25 or 26
 #define DEFAULT_ENTRY_COUNT 64
 
+#define NO_ITEM(item) (item == INT_MAX)
+
 inline ary_t *ary_new(void)
 {
     ary_t *ary      = ALLOC_N(ary_t, 1);
