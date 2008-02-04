@@ -25,9 +25,9 @@ describe Wikitext::Parser, 'parsing unordered lists' do
     @parser.parse('*foo').should == "<ul>\n<li>foo</li>\n</ul>\n"
   end
 
-  it 'should allow and consume an optional space after the last <ul> marker' do
+  it 'should allow and consume optional space after the last <ul> marker' do
     @parser.parse('* foo').should == "<ul>\n<li>foo</li>\n</ul>\n"    # exactly one space consumed
-    @parser.parse('*  foo').should == "<ul>\n<li> foo</li>\n</ul>\n"  # exactly one space consumed (and one echoed through)
+    @parser.parse('*  foo').should == "<ul>\n<li>foo</li>\n</ul>\n"   # multiple spaces consumed
   end
 
   it 'should consider a space after an <ul> marker to indicate that it will be the last marker' do

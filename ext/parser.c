@@ -1258,7 +1258,6 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 // list tokens can be nested so look ahead for any more which might affect the decision to push or pop
                 for (;;)
                 {
-                    NEXT_TOKEN();
                     type = token->type;
                     if (type == OL || type == UL)
                     {
@@ -1303,13 +1302,14 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         }
                         break;
                     }
+                    NEXT_TOKEN();
                 }
 
                 // TODO: consider adding indentation here... wouldn't be too hard...
                 if (type == OL || type == UL)
                 {
                     // if LI is at the top of a stack this is the start of a nested list
-                    if (FIX2INT(rb_ary_entry(scope, -1)) == LI)
+                    if (j > 0 && FIX2INT(rb_ary_entry(scope, -1)) == LI)
                         // so we should precede it with a CRLF
                         rb_str_append(output, line_ending);
                 }
