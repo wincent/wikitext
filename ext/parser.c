@@ -792,8 +792,8 @@ inline static VALUE _Wikitext_encode_link_target(VALUE self, VALUE in)
         else    // everything else gets URL-encoded
         {
             *dest++ = '%';
-            *dest++ = hex[(*input) / 16];   // left
-            *dest++ = hex[(*input) % 16];   // right
+            *dest++ = hex[(unsigned char)(*input) / 16];   // left
+            *dest++ = hex[(unsigned char)(*input) % 16];   // right
         }
     }
     VALUE out = rb_str_new(dest_ptr, dest - dest_ptr);
