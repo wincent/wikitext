@@ -81,21 +81,21 @@
             fbreak;
         };
 
-        "'"{5}
+        "'"{1,5}
         {
-            EMIT(STRONG_EM);
-            fbreak;
-        };
-
-        "'"{3}
-        {
-            EMIT(STRONG);
-            fbreak;
-        };
-
-        "'"{2}
-        {
-            EMIT(EM);
+            if (DISTANCE() == 5)
+                EMIT(STRONG_EM);
+            else if (DISTANCE() == 4)
+            {
+                p--;
+                EMIT(STRONG_EM);
+            }
+            else if (DISTANCE() == 3)
+                EMIT(STRONG);
+            else if (DISTANCE() == 2)
+                EMIT(EM);
+            else
+                EMIT(PRINTABLE);
             fbreak;
         };
 
@@ -313,9 +313,9 @@
         };
 
         # all the printable ASCII characters (0x20 to 0x7e) excluding those explicitly covered elsewhere:
-        # skip space (0x20), quote (0x22), ampersand (0x26), less than (0x3c), equals (0x3d), greater than (0x3e),
-        # left bracket 0x5b, right bracket 0x5d, backtick (0x60), and vertical bar (0x7c)
-        (0x21 | 0x23..0x25 | 0x27..0x3b | 0x3f..0x5a | 0x5c | 0x5e..0x5f | 0x61..0x7b | 0x7e)+
+        # skip space (0x20), quote (0x22), ampersand (0x26), apostrophe (0x27), less than (0x3c), equals (0x3d),
+        # greater than (0x3e), left bracket 0x5b, right bracket 0x5d, backtick (0x60), and vertical bar (0x7c)
+        (0x21 | 0x23..0x25 | 0x28..0x3b | 0x3f..0x5a | 0x5c | 0x5e..0x5f | 0x61..0x7b | 0x7e)+
         {
             EMIT(PRINTABLE);
             fbreak;

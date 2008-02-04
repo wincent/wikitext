@@ -34,19 +34,18 @@
 #line 35 "wikitext_ragel.c"
 static const char _wikitext_actions[] = {
 	0, 1, 0, 1, 1, 1, 5, 1, 
-	6, 1, 7, 1, 13, 1, 14, 1, 
-	15, 1, 16, 1, 17, 1, 18, 1, 
-	19, 1, 20, 1, 21, 1, 22, 1, 
-	23, 1, 24, 1, 25, 1, 26, 1, 
-	27, 1, 28, 1, 30, 1, 31, 1, 
-	32, 1, 33, 1, 34, 1, 35, 1, 
-	36, 1, 37, 1, 38, 1, 39, 1, 
-	40, 1, 41, 1, 42, 1, 43, 1, 
-	44, 1, 45, 2, 1, 29, 2, 2, 
+	6, 1, 7, 1, 12, 1, 13, 1, 
+	14, 1, 15, 1, 16, 1, 17, 1, 
+	18, 1, 19, 1, 20, 1, 21, 1, 
+	22, 1, 23, 1, 24, 1, 25, 1, 
+	26, 1, 27, 1, 28, 1, 30, 1, 
+	31, 1, 32, 1, 33, 1, 34, 1, 
+	35, 1, 36, 1, 37, 1, 38, 1, 
+	39, 1, 40, 1, 41, 1, 42, 1, 
+	43, 1, 44, 2, 1, 29, 2, 2, 
 	29, 2, 3, 29, 2, 4, 29, 2, 
 	7, 8, 2, 7, 9, 2, 7, 10, 
-	2, 7, 11, 2, 7, 12, 2, 28, 
-	1
+	2, 7, 11, 2, 28, 1
 };
 
 static const short _wikitext_key_offsets[] = {
@@ -55,9 +54,9 @@ static const short _wikitext_key_offsets[] = {
 	65, 73, 81, 89, 96, 100, 102, 104, 
 	106, 108, 110, 111, 113, 114, 116, 118, 
 	120, 122, 124, 125, 127, 128, 144, 177, 
-	178, 179, 192, 199, 213, 227, 241, 255, 
-	260, 262, 263, 264, 279, 294, 308, 322, 
-	336, 356, 376, 392, 407, 422, 437, 438
+	178, 179, 192, 199, 200, 201, 202, 203, 
+	208, 210, 211, 212, 227, 242, 256, 270, 
+	284, 307, 330, 346, 361, 376, 391, 392
 };
 
 static const char _wikitext_trans_keys[] = {
@@ -84,38 +83,33 @@ static const char _wikitext_trans_keys[] = {
 	96, 102, 104, 115, 124, 126, 127, -62, 
 	-33, -32, -17, -16, -12, 1, 31, 33, 
 	123, 10, 32, 33, 92, 126, 35, 37, 
-	39, 59, 63, 90, 94, 95, 97, 123, 
-	35, 97, 113, 65, 90, 98, 122, 33, 
-	39, 92, 126, 35, 37, 40, 59, 63, 
-	90, 94, 95, 97, 123, 33, 39, 92, 
+	40, 59, 63, 90, 94, 95, 97, 123, 
+	35, 97, 113, 65, 90, 98, 122, 39, 
+	39, 39, 39, 47, 78, 84, 110, 116, 
+	32, 61, 32, 32, 33, 84, 92, 116, 
 	126, 35, 37, 40, 59, 63, 90, 94, 
-	95, 97, 123, 33, 39, 92, 126, 35, 
+	95, 97, 123, 33, 80, 92, 112, 126, 
+	35, 37, 40, 59, 63, 90, 94, 95, 
+	97, 123, 33, 58, 92, 126, 35, 37, 
+	40, 59, 63, 90, 94, 95, 97, 123, 
+	33, 47, 92, 126, 35, 37, 40, 59, 
+	63, 90, 94, 95, 97, 123, 33, 47, 
+	92, 126, 35, 37, 40, 59, 63, 90, 
+	94, 95, 97, 123, 33, 41, 44, 46, 
+	61, 63, 92, 94, 95, 123, 126, 35, 
+	37, 38, 39, 40, 57, 58, 59, 64, 
+	90, 97, 122, 33, 41, 44, 46, 61, 
+	63, 92, 94, 95, 123, 126, 35, 37, 
+	38, 39, 40, 57, 58, 59, 64, 90, 
+	97, 122, 33, 41, 44, 46, 61, 63, 
+	95, 126, 35, 57, 58, 59, 64, 90, 
+	97, 122, 33, 84, 92, 116, 126, 35, 
 	37, 40, 59, 63, 90, 94, 95, 97, 
-	123, 33, 39, 92, 126, 35, 37, 40, 
-	59, 63, 90, 94, 95, 97, 123, 47, 
-	78, 84, 110, 116, 32, 61, 32, 32, 
-	33, 84, 92, 116, 126, 35, 37, 39, 
-	59, 63, 90, 94, 95, 97, 123, 33, 
-	80, 92, 112, 126, 35, 37, 39, 59, 
-	63, 90, 94, 95, 97, 123, 33, 58, 
-	92, 126, 35, 37, 39, 59, 63, 90, 
-	94, 95, 97, 123, 33, 47, 92, 126, 
-	35, 37, 39, 59, 63, 90, 94, 95, 
-	97, 123, 33, 47, 92, 126, 35, 37, 
-	39, 59, 63, 90, 94, 95, 97, 123, 
-	33, 38, 41, 44, 46, 61, 63, 92, 
-	94, 95, 123, 126, 35, 57, 58, 59, 
-	64, 90, 97, 122, 33, 38, 41, 44, 
-	46, 61, 63, 92, 94, 95, 123, 126, 
-	35, 57, 58, 59, 64, 90, 97, 122, 
-	33, 41, 44, 46, 61, 63, 95, 126, 
-	35, 57, 58, 59, 64, 90, 97, 122, 
-	33, 84, 92, 116, 126, 35, 37, 39, 
-	59, 63, 90, 94, 95, 97, 123, 33, 
-	86, 92, 118, 126, 35, 37, 39, 59, 
-	63, 90, 94, 95, 97, 123, 33, 78, 
-	92, 110, 126, 35, 37, 39, 59, 63, 
-	90, 94, 95, 97, 123, 91, 93, 0
+	123, 33, 86, 92, 118, 126, 35, 37, 
+	40, 59, 63, 90, 94, 95, 97, 123, 
+	33, 78, 92, 110, 126, 35, 37, 40, 
+	59, 63, 90, 94, 95, 97, 123, 91, 
+	93, 0
 };
 
 static const char _wikitext_single_lengths[] = {
@@ -124,9 +118,9 @@ static const char _wikitext_single_lengths[] = {
 	2, 2, 2, 1, 4, 2, 2, 2, 
 	2, 2, 1, 2, 1, 2, 2, 2, 
 	2, 2, 1, 2, 1, 8, 23, 1, 
-	1, 3, 3, 4, 4, 4, 4, 5, 
+	1, 3, 3, 1, 1, 1, 1, 5, 
 	2, 1, 1, 5, 5, 4, 4, 4, 
-	12, 12, 8, 5, 5, 5, 1, 1
+	11, 11, 8, 5, 5, 5, 1, 1
 };
 
 static const char _wikitext_range_lengths[] = {
@@ -135,9 +129,9 @@ static const char _wikitext_range_lengths[] = {
 	3, 3, 3, 3, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 4, 5, 0, 
-	0, 5, 2, 5, 5, 5, 5, 0, 
+	0, 5, 2, 0, 0, 0, 0, 0, 
 	0, 0, 0, 5, 5, 5, 5, 5, 
-	4, 4, 4, 5, 5, 5, 0, 0
+	6, 6, 4, 5, 5, 5, 0, 0
 };
 
 static const short _wikitext_index_offsets[] = {
@@ -146,9 +140,9 @@ static const short _wikitext_index_offsets[] = {
 	53, 59, 65, 71, 76, 81, 84, 87, 
 	90, 93, 96, 98, 101, 103, 106, 109, 
 	112, 115, 118, 120, 123, 125, 138, 167, 
-	169, 171, 180, 186, 196, 206, 216, 226, 
-	232, 235, 237, 239, 250, 261, 271, 281, 
-	291, 308, 325, 338, 349, 360, 371, 373
+	169, 171, 180, 186, 188, 190, 192, 194, 
+	200, 203, 205, 207, 218, 229, 239, 249, 
+	259, 277, 295, 308, 319, 330, 341, 343
 };
 
 static const char _wikitext_indicies[] = {
@@ -175,30 +169,27 @@ static const char _wikitext_indicies[] = {
 	48, 45, 46, 47, 48, 52, 1, 69, 
 	68, 71, 70, 52, 52, 52, 52, 52, 
 	52, 52, 52, 72, 74, 75, 76, 15, 
-	15, 73, 52, 78, 52, 52, 52, 52, 
-	52, 52, 52, 77, 52, 80, 52, 52, 
-	52, 52, 52, 52, 52, 79, 52, 82, 
-	52, 52, 52, 52, 52, 52, 52, 81, 
-	52, 83, 52, 52, 52, 52, 52, 52, 
-	52, 77, 85, 86, 87, 86, 87, 84, 
-	89, 59, 88, 89, 88, 91, 90, 52, 
-	92, 52, 92, 52, 52, 52, 52, 52, 
-	52, 77, 52, 93, 52, 93, 52, 52, 
-	52, 52, 52, 52, 77, 52, 94, 52, 
-	52, 52, 52, 52, 52, 52, 77, 52, 
-	95, 52, 52, 52, 52, 52, 52, 52, 
-	77, 52, 96, 52, 52, 52, 52, 52, 
-	52, 52, 77, 52, 44, 52, 52, 52, 
-	44, 52, 52, 52, 97, 52, 97, 97, 
-	52, 97, 97, 77, 98, 44, 98, 98, 
-	98, 44, 98, 52, 52, 97, 52, 97, 
-	97, 98, 97, 97, 72, 43, 43, 43, 
-	43, 44, 43, 44, 44, 44, 43, 44, 
-	44, 99, 52, 61, 52, 61, 52, 52, 
-	52, 52, 52, 52, 77, 52, 100, 52, 
-	100, 52, 52, 52, 52, 52, 52, 77, 
-	52, 93, 52, 93, 52, 52, 52, 52, 
-	52, 52, 77, 102, 101, 104, 103, 0
+	15, 73, 78, 77, 79, 77, 80, 77, 
+	81, 77, 83, 84, 85, 84, 85, 82, 
+	87, 59, 86, 87, 86, 89, 88, 52, 
+	91, 52, 91, 52, 52, 52, 52, 52, 
+	52, 90, 52, 92, 52, 92, 52, 52, 
+	52, 52, 52, 52, 90, 52, 93, 52, 
+	52, 52, 52, 52, 52, 52, 90, 52, 
+	94, 52, 52, 52, 52, 52, 52, 52, 
+	90, 52, 95, 52, 52, 52, 52, 52, 
+	52, 52, 90, 52, 52, 52, 52, 44, 
+	52, 52, 52, 96, 52, 96, 96, 44, 
+	96, 52, 96, 96, 90, 97, 97, 97, 
+	97, 44, 97, 52, 52, 96, 52, 96, 
+	96, 44, 96, 97, 96, 96, 72, 43, 
+	43, 43, 43, 44, 43, 44, 44, 44, 
+	43, 44, 44, 98, 52, 61, 52, 61, 
+	52, 52, 52, 52, 52, 52, 90, 52, 
+	99, 52, 99, 52, 52, 52, 52, 52, 
+	52, 90, 52, 92, 52, 92, 52, 52, 
+	52, 52, 52, 52, 90, 101, 100, 103, 
+	102, 0
 };
 
 static const char _wikitext_trans_targs_wi[] = {
@@ -211,28 +202,26 @@ static const char _wikitext_trans_targs_wi[] = {
 	38, 38, 39, 40, 41, 38, 41, 42, 
 	43, 41, 47, 48, 50, 51, 59, 60, 
 	62, 63, 38, 38, 38, 38, 38, 40, 
-	38, 38, 7, 13, 16, 38, 44, 38, 
-	45, 38, 46, 41, 38, 20, 29, 35, 
-	38, 49, 38, 38, 52, 53, 54, 55, 
-	56, 57, 57, 38, 61, 38, 38, 38, 
-	38
+	38, 38, 7, 13, 16, 38, 44, 45, 
+	46, 38, 38, 20, 29, 35, 38, 49, 
+	38, 38, 38, 52, 53, 54, 55, 56, 
+	57, 57, 38, 61, 38, 38, 38, 38
 };
 
 static const char _wikitext_trans_actions_wi[] = {
 	78, 0, 0, 81, 0, 0, 84, 69, 
-	0, 0, 37, 0, 35, 0, 33, 0, 
-	0, 0, 31, 0, 0, 0, 29, 71, 
+	0, 0, 39, 0, 37, 0, 35, 0, 
+	0, 0, 33, 0, 0, 0, 31, 71, 
 	0, 0, 0, 0, 0, 0, 0, 13, 
-	0, 19, 0, 0, 0, 0, 0, 11, 
-	0, 17, 67, 0, 9, 0, 0, 0, 
-	75, 102, 3, 1, 99, 39, 90, 9, 
-	0, 93, 9, 1, 1, 0, 0, 0, 
-	0, 0, 15, 27, 63, 41, 49, 0, 
-	73, 59, 0, 0, 0, 65, 0, 45, 
-	0, 43, 0, 87, 61, 0, 0, 0, 
-	51, 0, 47, 21, 0, 0, 0, 0, 
-	0, 96, 99, 53, 0, 55, 23, 57, 
-	25
+	0, 21, 0, 0, 0, 0, 0, 11, 
+	0, 19, 67, 0, 9, 0, 0, 0, 
+	75, 99, 3, 1, 96, 41, 87, 9, 
+	0, 90, 9, 1, 1, 0, 0, 0, 
+	0, 0, 17, 29, 63, 43, 49, 0, 
+	73, 59, 0, 0, 0, 45, 0, 0, 
+	0, 15, 61, 0, 0, 0, 51, 0, 
+	47, 23, 65, 0, 0, 0, 0, 0, 
+	93, 96, 53, 0, 55, 25, 57, 27
 };
 
 static const char _wikitext_to_state_actions[] = {
@@ -263,9 +252,9 @@ static const char _wikitext_eof_trans[] = {
 	8, 8, 8, 8, 24, 24, 24, 24, 
 	24, 24, 24, 24, 24, 24, 24, 24, 
 	24, 24, 24, 24, 24, 43, 0, 69, 
-	71, 73, 74, 78, 80, 82, 78, 85, 
-	89, 89, 91, 78, 78, 78, 78, 78, 
-	78, 73, 100, 78, 78, 78, 102, 104
+	71, 73, 74, 78, 78, 78, 78, 83, 
+	87, 87, 89, 91, 91, 91, 91, 91, 
+	91, 73, 99, 91, 91, 91, 101, 103
 };
 
 static const int wikitext_start = 38;
@@ -317,7 +306,7 @@ void next_token(token_t *out, token_t *last_token, char *p, char *pe)
     char    *te;        // token end (scanner)
     int     act;        // identity of last patterned matched (scanner)
     
-#line 321 "wikitext_ragel.c"
+#line 310 "wikitext_ragel.c"
 	{
 	cs = wikitext_start;
 	ts = 0;
@@ -326,7 +315,7 @@ void next_token(token_t *out, token_t *last_token, char *p, char *pe)
 	}
 #line 390 "wikitext_ragel.rl"
     
-#line 330 "wikitext_ragel.c"
+#line 319 "wikitext_ragel.c"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -347,7 +336,7 @@ _resume:
 #line 1 "wikitext_ragel.rl"
 	{ts = p;}
 	break;
-#line 351 "wikitext_ragel.c"
+#line 340 "wikitext_ragel.c"
 		}
 	}
 
@@ -454,36 +443,51 @@ _eof_trans:
 	{te = p+1;}
 	break;
 	case 8:
-#line 85 "wikitext_ragel.rl"
-	{act = 3;}
+#line 148 "wikitext_ragel.rl"
+	{act = 9;}
 	break;
 	case 9:
-#line 148 "wikitext_ragel.rl"
-	{act = 11;}
+#line 157 "wikitext_ragel.rl"
+	{act = 10;}
 	break;
 	case 10:
-#line 157 "wikitext_ragel.rl"
+#line 218 "wikitext_ragel.rl"
 	{act = 12;}
 	break;
 	case 11:
-#line 218 "wikitext_ragel.rl"
-	{act = 14;}
+#line 319 "wikitext_ragel.rl"
+	{act = 28;}
 	break;
 	case 12:
-#line 319 "wikitext_ragel.rl"
-	{act = 30;}
-	break;
-	case 13:
 #line 73 "wikitext_ragel.rl"
 	{te = p+1;{
             EMIT(NO_WIKI_START);
             {p++; goto _out; }
         }}
 	break;
-	case 14:
+	case 13:
 #line 79 "wikitext_ragel.rl"
 	{te = p+1;{
             EMIT(NO_WIKI_END);
+            {p++; goto _out; }
+        }}
+	break;
+	case 14:
+#line 85 "wikitext_ragel.rl"
+	{te = p+1;{
+            if (DISTANCE() == 5)
+                EMIT(STRONG_EM);
+            else if (DISTANCE() == 4)
+            {
+                p--;
+                EMIT(STRONG_EM);
+            }
+            else if (DISTANCE() == 3)
+                EMIT(STRONG);
+            else if (DISTANCE() == 2)
+                EMIT(EM);
+            else
+                EMIT(PRINTABLE);
             {p++; goto _out; }
         }}
 	break;
@@ -602,20 +606,25 @@ _eof_trans:
         }}
 	break;
 	case 30:
-#line 91 "wikitext_ragel.rl"
+#line 85 "wikitext_ragel.rl"
 	{te = p;p--;{
-            EMIT(STRONG);
+            if (DISTANCE() == 5)
+                EMIT(STRONG_EM);
+            else if (DISTANCE() == 4)
+            {
+                p--;
+                EMIT(STRONG_EM);
+            }
+            else if (DISTANCE() == 3)
+                EMIT(STRONG);
+            else if (DISTANCE() == 2)
+                EMIT(EM);
+            else
+                EMIT(PRINTABLE);
             {p++; goto _out; }
         }}
 	break;
 	case 31:
-#line 97 "wikitext_ragel.rl"
-	{te = p;p--;{
-            EMIT(EM);
-            {p++; goto _out; }
-        }}
-	break;
-	case 32:
 #line 122 "wikitext_ragel.rl"
 	{te = p;p--;{
             if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
@@ -628,7 +637,7 @@ _eof_trans:
             {p++; goto _out; }
         }}
 	break;
-	case 33:
+	case 32:
 #line 136 "wikitext_ragel.rl"
 	{te = p;p--;{
             if (out->column_start == 1)
@@ -641,7 +650,7 @@ _eof_trans:
             {p++; goto _out; }
         }}
 	break;
-	case 34:
+	case 33:
 #line 166 "wikitext_ragel.rl"
 	{te = p;p--;{
             if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
@@ -694,42 +703,42 @@ _eof_trans:
             {p++; goto _out; }
         }}
 	break;
-	case 35:
+	case 34:
 #line 218 "wikitext_ragel.rl"
 	{te = p;p--;{
             EMIT(URI);
             {p++; goto _out; }
         }}
 	break;
-	case 36:
+	case 35:
 #line 242 "wikitext_ragel.rl"
 	{te = p;p--;{
             EMIT(EXT_LINK_START);
             {p++; goto _out; }
         }}
 	break;
-	case 37:
+	case 36:
 #line 248 "wikitext_ragel.rl"
 	{te = p;p--;{
             EMIT(EXT_LINK_END);
             {p++; goto _out; }
         }}
 	break;
-	case 38:
+	case 37:
 #line 290 "wikitext_ragel.rl"
 	{te = p;p--;{
             EMIT(AMP);
             {p++; goto _out; }
         }}
 	break;
-	case 39:
+	case 38:
 #line 296 "wikitext_ragel.rl"
 	{te = p;p--;{
             EMIT(LESS);
             {p++; goto _out; }
         }}
 	break;
-	case 40:
+	case 39:
 #line 308 "wikitext_ragel.rl"
 	{te = p;p--;{
             EMIT(CRLF);
@@ -738,44 +747,38 @@ _eof_trans:
             {p++; goto _out; }
         }}
 	break;
-	case 41:
+	case 40:
 #line 319 "wikitext_ragel.rl"
 	{te = p;p--;{
             EMIT(PRINTABLE);
             {p++; goto _out; }
         }}
 	break;
-	case 42:
+	case 41:
 #line 218 "wikitext_ragel.rl"
 	{{p = ((te))-1;}{
             EMIT(URI);
             {p++; goto _out; }
         }}
 	break;
-	case 43:
+	case 42:
 #line 290 "wikitext_ragel.rl"
 	{{p = ((te))-1;}{
             EMIT(AMP);
             {p++; goto _out; }
         }}
 	break;
-	case 44:
+	case 43:
 #line 296 "wikitext_ragel.rl"
 	{{p = ((te))-1;}{
             EMIT(LESS);
             {p++; goto _out; }
         }}
 	break;
-	case 45:
+	case 44:
 #line 1 "wikitext_ragel.rl"
 	{	switch( act ) {
-	case 3:
-	{{p = ((te))-1;}
-            EMIT(STRONG_EM);
-            {p++; goto _out; }
-        }
-	break;
-	case 11:
+	case 9:
 	{{p = ((te))-1;}
             if (out->column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
                 EMIT(OL);
@@ -784,7 +787,7 @@ _eof_trans:
             {p++; goto _out; }
         }
 	break;
-	case 12:
+	case 10:
 	{{p = ((te))-1;}
             if (out->column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
                 EMIT(UL);
@@ -793,13 +796,13 @@ _eof_trans:
             {p++; goto _out; }
         }
 	break;
-	case 14:
+	case 12:
 	{{p = ((te))-1;}
             EMIT(URI);
             {p++; goto _out; }
         }
 	break;
-	case 30:
+	case 28:
 	{{p = ((te))-1;}
             EMIT(PRINTABLE);
             {p++; goto _out; }
@@ -809,7 +812,7 @@ _eof_trans:
 	}
 	}
 	break;
-#line 813 "wikitext_ragel.c"
+#line 816 "wikitext_ragel.c"
 		}
 	}
 
@@ -822,7 +825,7 @@ _again:
 #line 1 "wikitext_ragel.rl"
 	{ts = 0;}
 	break;
-#line 826 "wikitext_ragel.c"
+#line 829 "wikitext_ragel.c"
 		}
 	}
 
