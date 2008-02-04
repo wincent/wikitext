@@ -1033,7 +1033,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     long val = FIX2INT(rb_ary_entry(scope, j));
                     if (val == STRONG)
                     {
-                        rb_str_append(i, strong_em_start());
+                        rb_str_append(i, strong_end());
                         remove_strong = j;
                     }
                     else if (val == EM)
