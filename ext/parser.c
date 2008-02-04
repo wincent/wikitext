@@ -392,18 +392,6 @@ inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE lin
     return string;
 }
 
-// Returns a count indicating the number of times the token appears in the collection.
-inline long _Wikitext_count(VALUE token, VALUE collection)
-{
-    long count = 0;
-    for (long i = 0, max = RARRAY_LEN(collection); i < max; i++)
-    {
-        if (FIX2INT(ary_entry(collection, i)) == FIX2INT(token))
-            count++;
-    }
-    return count;
-}
-
 // Pops a single item off the stack.
 // A corresponding closing tag is written to the target string.
 void _Wikitext_pop_from_stack(VALUE stack, VALUE target, VALUE line_ending)
@@ -984,8 +972,8 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
                 // count number of BLOCKQUOTE tokens in line buffer and in scope stack
                 ary_push(line, INT2FIX(PRE));
-                i = _Wikitext_count(INT2FIX(BLOCKQUOTE), line);
-                j = _Wikitext_count(INT2FIX(BLOCKQUOTE), scope);
+                i = ary_count(line, BLOCKQUOTE);
+                j = ary_count(scope, BLOCKQUOTE);
 
                 if (i < j)
                 {
@@ -1011,8 +999,8 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     ary_push(line, INT2FIX(BLOCKQUOTE));
 
                     // count number of BLOCKQUOTE tokens in line buffer and in scope stack
-                    i = _Wikitext_count(INT2FIX(BLOCKQUOTE), line);
-                    j = _Wikitext_count(INT2FIX(BLOCKQUOTE), scope);
+                    i = ary_count(line, BLOCKQUOTE);
+                    j = ary_count(scope, BLOCKQUOTE);
 
                     // given that BLOCKQUOTE tokens can be nested, peek ahead and see if there are any more which might affect the decision to push or pop
                     while (NEXT_TOKEN(), (token->type == BLOCKQUOTE))
@@ -1375,8 +1363,8 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
                 // count number of BLOCKQUOTE tokens in line buffer and in scope stack
                 ary_push(line, INT2FIX(type));
-                i = _Wikitext_count(INT2FIX(BLOCKQUOTE), line);
-                j = _Wikitext_count(INT2FIX(BLOCKQUOTE), scope);
+                i = ary_count(line, BLOCKQUOTE);
+                j = ary_count(scope, BLOCKQUOTE);
 
                 // decide whether we need to pop off excess BLOCKQUOTE tokens (will never need to push; that is handled above in the BLOCKQUOTE case itself)
                 if (i < j)
@@ -1963,7 +1951,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
                     // count number of BLOCKQUOTE tokens in line buffer (can be zero) and pop back to that level
                     // as a side effect, this handles any open span-level elements and unclosed blocks (with special handling for P blocks and LI elements)
-                    i = _Wikitext_count(INT2FIX(BLOCKQUOTE), line);
+                    i = ary_count(line, BLOCKQUOTE);
                     for (j = RARRAY_LEN(scope); j > i; j--)
                     {
                         if (RARRAY_LEN(line) > 0 && FIX2INT(ary_entry(line, -1)) == LI)
