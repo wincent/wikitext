@@ -607,7 +607,7 @@ inline VALUE _Wikitext_sanitize_link_target(VALUE self, VALUE string)
     string              = StringValue(string);  // raises if string is nil or doesn't quack like a string
     char    *src        = RSTRING_PTR(string);
     long    len         = RSTRING_LEN(string);
-    char    *end        = src + (len / sizeof(uint16_t));
+    char    *end        = src + len;
 
     // start with a destination buffer twice the size of the source, will realloc if necessary
     // slop = (len / 8) * 8 (ie. one in every 8 characters can be converted into an entity, each entity requires 8 bytes)
