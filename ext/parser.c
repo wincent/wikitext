@@ -1910,7 +1910,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     i = _Wikitext_count(INT2FIX(BLOCKQUOTE), line);
                     for (j = RARRAY_LEN(scope); j > i; j--)
                     {
-                        if (FIX2INT(rb_ary_entry(line, -1)) == LI)
+                        if (RARRAY_LEN(line) > 0 && FIX2INT(rb_ary_entry(line, -1)) == LI)
                         {
                             pending_crlf = Qfalse;
                             break;
