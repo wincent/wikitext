@@ -533,7 +533,7 @@ inline void _Wikitext_start_para_if_necessary(VALUE capture, VALUE scope, VALUE 
 {
     if (!NIL_P(capture)) // we don't do anything if capturing mode
         return;
-    // if no block open yet, or top of stack is BLOCKQUOTE (w¡th nothing in it yet)
+    // if no block open yet, or top of stack is BLOCKQUOTE (with nothing in it yet)
     if ((RARRAY_LEN(scope) == 0) || (FIX2INT(rb_ary_entry(scope, -1)) == BLOCKQUOTE))
     {
         rb_str_append(output, p_start());
