@@ -18,38 +18,38 @@ require 'wikitext'
 
 describe Wikitext, 'sanitizing a link target' do
   it 'should complain if passed nil' do
-    lambda { Wikitext.sanitize_link_target(nil) }.should raise_error
+    lambda { Wikitext::Parser.sanitize_link_target(nil) }.should raise_error
   end
 
   it 'should complain if passed <' do
-    lambda { Wikitext.sanitize_link_target('<') }.should raise_error(RangeError, /</)
+    lambda { Wikitext::Parser.sanitize_link_target('<') }.should raise_error(RangeError, /</)
   end
 
   it 'should complain if passed >' do
-    lambda { Wikitext.sanitize_link_target('>') }.should raise_error(RangeError, />/)
+    lambda { Wikitext::Parser.sanitize_link_target('>') }.should raise_error(RangeError, />/)
   end
 
   it 'should do nothing on zero-length input' do
-    Wikitext.sanitize_link_target('').should == ''
+    Wikitext::Parser.sanitize_link_target('').should == ''
   end
 
   it 'should do nothing to spaces' do
-    Wikitext.sanitize_link_target('hello world').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('hello world').should == 'hello world'
   end
 
   it 'should convert double quotes into named entities' do
-    Wikitext.sanitize_link_target('hello "world"').should == 'hello &quot;world&quot;'
+    Wikitext::Parser.sanitize_link_target('hello "world"').should == 'hello &quot;world&quot;'
   end
 
   it 'should convert ampersands into named entities' do
-    Wikitext.sanitize_link_target('hello & goodbye').should == 'hello &amp; goodbye'
+    Wikitext::Parser.sanitize_link_target('hello & goodbye').should == 'hello &amp; goodbye'
   end
 
   it 'should convert non-ASCII hexadecimal entities' do
-    Wikitext.sanitize_link_target('cañon').should == 'ca&#x00f1;on'
+    Wikitext::Parser.sanitize_link_target('cañon').should == 'ca&#x00f1;on'
   end
 
   it 'should handle mixed scenarios (ampersands, double-quotes and non-ASCII)' do
-    Wikitext.sanitize_link_target('foo, "bar" & baz €').should == 'foo, &quot;bar&quot; &amp; baz &#x20ac;'
+    Wikitext::Parser.sanitize_link_target('foo, "bar" & baz €').should == 'foo, &quot;bar&quot; &amp; baz &#x20ac;'
   end
 end
