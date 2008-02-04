@@ -21,58 +21,71 @@ typedef struct
     int     *entries;
 } ary_t;
 
-inline VALUE ary_new(void)
+// in the test suite array count goes no higher than 25 or 26
+#define DEFAULT_ENTRY_COUNT 64
+
+inline ary_t *ary_new(void)
 {
-    return rb_ary_new();
+    ary_t *ary      = ALLOC_N(ary_t, 1);
+    ary->count      = 0;
+    ary->max        = DEFAULT_ENTRY_COUNT;
+    ary->entries    = ALLOC_N(int, DEFAULT_ENTRY_COUNT);
+    return ary;
 }
 
-inline VALUE ary_entry(VALUE ary, long idx)
+inline void ary_free(ary_t *ary)
 {
-    return rb_ary_entry(ary, idx);
+    free(ary->entries);
+    free(ary);
 }
 
-#ifdef DEBUG
-long deleted = 0;
-#endif
-
-// deleting from end: just adjust count
-// deleting from middle: insert marker
-inline VALUE ary_delete_at(VALUE ary, long idx)
+inline int ary_entry(ary_t *ary, long idx)
 {
-#ifdef DEBUG
-    // called 2086 times in all
-    // of these, only 18 calls have an idx parameter other than -1
-    // and in all 18 cases we're still only deleting the last item in the array
-    // so we only have to worry about optimizing for that case
-    // will support deletions prior to the end by inserting a special value rather than moving memory around
-    if (idx != -1)
+    return ary->count > idx ? ary->entries[idx] : INT_MAX;
+}
+
+inline int ary_delete_at(ary_t *ary, long idx)
+{
+    // dirty optimization: we know we'll only ever be called to delete the last element of the array
+    if (ary->count > 0)
     {
-        deleted++;
-        printf("deleting %d at idx %d (len is %d)\n", deleted, idx, RARRAY_LEN(ary));
+        ary->count--;
+        return 1;
     }
-#endif /* DEBUG */
-    return rb_ary_delete_at(ary, idx);
+    return 0;
 }
 
-#ifdef DEBUG
-long max_len = 0;
-#endif
-
-inline VALUE ary_push(VALUE ary, VALUE obj)
+inline void ary_push(ary_t *ary, int val)
 {
-    VALUE ret = rb_ary_push(ary, obj);
-#ifdef DEBUG
-    if (RARRAY_LEN(ary) > max_len)
+    if (ary->count == ary->max)
     {
-        // in typical work loads the array length goes no higher than 25 or 26
-        max_len++;
-        printf("max len %d\n", max_len);
+        ary->max += DEFAULT_ENTRY_COUNT;
+        REALLOC_N(ary->entries, int, ary->max);
     }
-#endif /* DEBUG */
-    return ret;
+    ary->entries[ary->count] = val;
+    ary->count++;
 }
 
-inline VALUE ary_includes(VALUE ary, VALUE obj)
+inline int ary_includes(ary_t *ary, int val)
 {
-    return rb_ary_includes(ary, obj);
+    for (int i = 0, max = ary->count; i < max; i++)
+    {
+        if (ary->entries[i] == val)
+            return 1;
+    }
+    return 0;
 }
+
+// returns a count indicating the number of times the value appears in the collection
+// refactored from _Wikitext_count()
+inline int ary_count(ary_t *ary, int item)
+{
+    int count = 0;
+    for (int i = 0, max = ary->count; i < max; i++)
+    {
+        if (ary->entries[i] == item)
+            count++;
+    }
+    return count;
+}
+
