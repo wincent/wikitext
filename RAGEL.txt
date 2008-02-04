@@ -1,32 +1,17 @@
-The "ragel" branch is an experimental branch in which I'll be exploring
+The "ragel" branch was an experimental branch in which I explored
 the feasibility of replacing the existing ANTLR lexer with a
 Ragel-based scanner.
 
-I suspect that Ragel may be faster, but a mere suspicion isn't really
-very helpful: the difference between the two engines needs to be
-profiled. To that end I am going to try making a Ragel-based scanner
-which can effectively spit out a series of tokens (akin to the ANTLR
-lexer's "nextToken" function), and just drop that in and measure the
-performance.
+My suspicion was that the Ragel scanner might be faster and in the
+end benchmarking showed that it was nearly 10 times faster. Other
+benefits of switching to Ragel included: liberation from ANTLR's
+Java-based toolchain, scanner code with zero runtime dependencies
+(no libraries), avoid unnecessary conversions back and forth
+between UTF-8 and UCS-2 encoded strings, and the simpler,
+easier-to-understand nature of Ragel's state machines (no "black
+magic").
 
-One reason why I suspect the Ragel-based solution might be superior is
-that it is relatively straightforward to do everything in UTF-8 instead
-of the UCS-2 that the ANTLR C runtime defaults to. Doing everything in
-UTF-8 should remove a lot of clutter from the code because it will no
-longer be necessary to perform all those cumbersome conversions to and
-from UCS-2, nor shadow the instance variables and maintain arrays of
-16-bit chars. For 99% of expected input the UTF-8 solution will be
-faster and less memory intensive (because 99% of input will be subset
-of 7-bit ASCII). Additionally it will mean that we can support the
-entire range of Unicode codepoints rather than the subset that can be
-expressed in UCS-2.
+To that end the "ragel" branch was merged into "master" on 4 February
+2008, replacing the existing ANTLR-based code which itself was forked
+off into an "antlr" branch for historical archiving.
 
-Having said all that, you in theory can add support for UTF-8 input
-streams to the ANTLR runtime, but my personally assessment of the
-difficulty level of this is that it is a non-trivial task.
-
-Other reasons why I'd like to move away from ANTLR if I can include:
-
-  - break away from dependency on Java-based toolchain
-  - generate code with zero runtime dependencies (no libraries)
-  - pure state machines are easy to understand (no "black magic")
