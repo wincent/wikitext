@@ -52,4 +52,137 @@ describe Wikitext, 'sanitizing a link target' do
   it 'should handle mixed scenarios (ampersands, double-quotes and non-ASCII)' do
     Wikitext::Parser.sanitize_link_target('foo, "bar" & baz €').should == 'foo, &quot;bar&quot; &amp; baz &#x20ac;'
   end
+
+  # here we're exercising the _Wikitext_utf8_to_utf32 function
+  describe 'with invalidly encoded input' do
+    it 'should raise an exception for missing second byte' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::TWO_BYTES_MISSING_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::TWO_BYTES_MISSING_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+    end
+
+    it 'should raise an exception for malformed second byte' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::TWO_BYTES_MALFORMED_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /malformed/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::TWO_BYTES_MALFORMED_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /malformed/)
+    end
+
+    it 'should raise an exception for overlong sequence' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::OVERLONG)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::OVERLONG)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+
+      # alternate
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::OVERLONG_ALT)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::OVERLONG_ALT)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+    end
+
+    it 'should raise an exception for missing second byte in three-byte sequence' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::THREE_BYTES_MISSING_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::THREE_BYTES_MISSING_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+    end
+
+    it 'should raise an exception for missing third byte in three-byte sequence' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::THREE_BYTES_MISSING_THIRD_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::THREE_BYTES_MISSING_THIRD_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+    end
+
+    it 'should raise an exception for malformed second byte in three-byte sequence' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::THREE_BYTES_MALFORMED_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /malformed/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::THREE_BYTES_MALFORMED_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /malformed/)
+    end
+
+    it 'should raise an exception for malformed third byte in three-byte sequence' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::THREE_BYTES_MALFORMED_THIRD_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /malformed/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::THREE_BYTES_MALFORMED_THIRD_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /malformed/)
+    end
+
+    it 'should raise an exception for missing second byte in four-byte sequence' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::FOUR_BYTES_MISSING_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::FOUR_BYTES_MISSING_SECOND_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+    end
+
+    it 'should raise an exception for missing third byte in four-byte sequence' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::FOUR_BYTES_MISSING_THIRD_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::FOUR_BYTES_MISSING_THIRD_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+    end
+
+    it 'should raise an exception for missing fourth byte in four-byte sequence' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::FOUR_BYTES_MISSING_FOURTH_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::FOUR_BYTES_MISSING_FOURTH_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /truncated/)
+    end
+
+    it 'should raise an exception for illegal first byte in four-byte sequence' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT2)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT2)
+      }.should raise_error(Wikitext::Parser::Error, /overlong/)
+    end
+
+    it 'should raise an exception for unexpected bytes' do
+      lambda {
+        Wikitext::Parser.sanitize_link_target(UTF8::Invalid::UNEXPECTED_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /unexpected/)
+      lambda {
+        Wikitext::Parser.sanitize_link_target('good text' + UTF8::Invalid::UNEXPECTED_BYTE)
+      }.should raise_error(Wikitext::Parser::Error, /unexpected/)
+    end
+  end
 end
