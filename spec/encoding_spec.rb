@@ -19,16 +19,21 @@ require 'iconv'
 
 module UTF8
   module Invalid
-    TWO_BYTES_MISSING_SECOND_BYTE     = [0b11011111].pack('C*')
-    TWO_BYTES_MALFORMED_SECOND_BYTE   = [0b11011111, 0b00001111].pack('C*') # should be 10......
-    OVERLONG                          = [0b11000000, 0b10000000].pack('C*') # lead byte is 110..... but code point is <= 127
-    OVERLONG_ALT                      = [0b11000001, 0b10000000].pack('C*') # lead byte is 110..... but code point is <= 127
-    THREE_BYTES_MISSING_SECOND_BYTE   = [0b11100000].pack('C*')
-    THREE_BYTES_MISSING_THIRD_BYTE    = [0b11100000, 0b10000000].pack('C*')
-    THREE_BYTES_MALFORMED_SECOND_BYTE = [0b11100000, 0b00001111, 0b10000000].pack('C*') # should be 10......
-    THREE_BYTES_MALFORMED_THIRD_BYTE  = [0b11100000, 0b10000000, 0b00001111].pack('C*') # should be 10......
-    EXCEEDS_ENCODABLE_RANGE_FOR_UCS2  = [0b11110000].pack('C*')
-    UNEXPECTED_BYTE                   = [0b11111000].pack('C*')
+    TWO_BYTES_MISSING_SECOND_BYTE       = [0b11011111].pack('C*')
+    TWO_BYTES_MALFORMED_SECOND_BYTE     = [0b11011111, 0b00001111].pack('C*') # should be 10......
+    OVERLONG                            = [0b11000000, 0b10000000].pack('C*') # lead byte is 110..... but code point is <= 127
+    OVERLONG_ALT                        = [0b11000001, 0b10000000].pack('C*') # lead byte is 110..... but code point is <= 127
+    THREE_BYTES_MISSING_SECOND_BYTE     = [0b11100000].pack('C*')
+    THREE_BYTES_MISSING_THIRD_BYTE      = [0b11100000, 0b10000000].pack('C*')
+    THREE_BYTES_MALFORMED_SECOND_BYTE   = [0b11100000, 0b00001111, 0b10000000].pack('C*') # should be 10......
+    THREE_BYTES_MALFORMED_THIRD_BYTE    = [0b11100000, 0b10000000, 0b00001111].pack('C*') # should be 10......
+    FOUR_BYTES_MISSING_SECOND_BYTE      = [0b11110000].pack('C*')
+    FOUR_BYTES_MISSING_THIRD_BYTE       = [0b11110000, 0x10111111].pack('C*')
+    FOUR_BYTES_MISSING_FOURTH_BYTE      = [0b11110000, 0x10111111, 0x10111111].pack('C*')
+    FOUR_BYTES_ILLEGAL_FIRST_BYTE       = [0b11110101, 0x10111111, 0x10111111, 0x10111111].pack('C*')
+    FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT   = [0b11110101, 0x10111111, 0x10111111, 0x10111111].pack('C*')
+    FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT2  = [0b11110101, 0x10111111, 0x10111111, 0x10111111].pack('C*')
+    UNEXPECTED_BYTE                     = [0b11111000].pack('C*')
   end # module Invalid
 end # module UTF8
 
@@ -92,10 +97,41 @@ describe Wikitext, 'with invalidly encoded input' do
     }.should raise_error(Wikitext::Parser::Error)
   end
 
-  it 'should raise an exception for characters outside of the encodable range of UCS-2' do
-    lambda { @parser.parse(UTF8::Invalid::EXCEEDS_ENCODABLE_RANGE_FOR_UCS2) }.should raise_error(Wikitext::Parser::Error)
+  it 'should raise an exception for missing second byte in four-byte sequence' do
+    lambda { @parser.parse(UTF8::Invalid::FOUR_BYTES_MISSING_SECOND_BYTE) }.should raise_error(Wikitext::Parser::Error)
     lambda {
-      @parser.parse('good text' + UTF8::Invalid::EXCEEDS_ENCODABLE_RANGE_FOR_UCS2)
+      @parser.parse('good text' + UTF8::Invalid::FOUR_BYTES_MISSING_SECOND_BYTE)
+    }.should raise_error(Wikitext::Parser::Error)
+  end
+
+  it 'should raise an exception for missing third byte in four-byte sequence' do
+    lambda { @parser.parse(UTF8::Invalid::FOUR_BYTES_MISSING_THIRD_BYTE) }.should raise_error(Wikitext::Parser::Error)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::FOUR_BYTES_MISSING_THIRD_BYTE)
+    }.should raise_error(Wikitext::Parser::Error)
+  end
+
+  it 'should raise an exception for missing fourth byte in four-byte sequence' do
+    lambda { @parser.parse(UTF8::Invalid::FOUR_BYTES_MISSING_FOURTH_BYTE) }.should raise_error(Wikitext::Parser::Error)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::FOUR_BYTES_MISSING_FOURTH_BYTE)
+    }.should raise_error(Wikitext::Parser::Error)
+  end
+
+  it 'should raise an exception for illegal first byte in four-byte sequence' do
+    lambda { @parser.parse(UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE) }.should raise_error(Wikitext::Parser::Error)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE)
+    }.should raise_error(Wikitext::Parser::Error)
+
+    lambda { @parser.parse(UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT) }.should raise_error(Wikitext::Parser::Error)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT)
+    }.should raise_error(Wikitext::Parser::Error)
+
+    lambda { @parser.parse(UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT2) }.should raise_error(Wikitext::Parser::Error)
+    lambda {
+      @parser.parse('good text' + UTF8::Invalid::FOUR_BYTES_ILLEGAL_FIRST_BYTE_ALT2)
     }.should raise_error(Wikitext::Parser::Error)
   end
 
