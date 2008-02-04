@@ -585,6 +585,58 @@ void inline _Wikitext_pop_excess_elements(VALUE capture, VALUE scope, VALUE line
     }
 }
 
+#define INVALID_ENCODING(msg)  do { if (dest_ptr) free(dest_ptr); rb_raise(rb_eRangeError, "invalid encoding: " msg); } while(0)
+
+// convert a single UTF-8 codepoint to UTF-32
+// expects an input buffer, src, containing a UTF-8 encoded character (which may be multi-byte)
+// the end of the input buffer, end, is also passed in to allow the detection of invalidly truncated codepoints
+// the number of bytes in the UTF-8 character (between 1 and 4) is returned by reference in width_out
+// raises a RangeError if the supplied character is invalid UTF-8
+// (in which case it also frees the block of memory indicated by dest_ptr if it is non-NULL)
+inline uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out, void *dest_ptr)
+{
+    uint32_t dest;
+    if ((unsigned char)src[0] <= 0x7f)                      // ASCII
+    {
+        dest = src[0];
+        *width_out = 1;
+    }
+    else if ((src[0] & 0xe0) == 0xc0)                       // byte starts with 110..... : this should be a two-byte sequence
+    {
+        if (src + 1 >= end)
+            INVALID_ENCODING("truncated byte sequence");    // no second byte
+        else if (((unsigned char)src[0] == 0xc0) || ((unsigned char)src[0] == 0xc1))
+            INVALID_ENCODING("overlong encoding");          // overlong encoding: lead byte of 110..... but code point <= 127
+        else if ((src[1] & 0xc0) != 0x80 )
+            INVALID_ENCODING("malformed byte sequence");    // should have second byte starting with 10......
+        dest = ((uint32_t)(src[0] & 0x1f)) << 6 | (src[1] & 0x3f);
+        *width_out = 2;
+    }
+    else if ((src[0] & 0xf0) == 0xe0)                       // byte starts with 1110.... : this should be a three-byte sequence
+    {
+        if (src + 2 >= end)
+            INVALID_ENCODING("truncated byte sequence");    // missing second or third byte
+        else if (((src[1] & 0xc0) != 0x80 ) || ((src[2] & 0xc0) != 0x80 ))
+            INVALID_ENCODING("malformed byte sequence");    // should have second and third bytes starting with 10......
+        dest = ((uint32_t)(src[0] & 0x0f)) << 12 | ((uint32_t)(src[1] & 0x3f)) << 6 | (src[2] & 0x3f);
+        *width_out = 3;
+    }
+    else if ((src[0] & 0xf8) == 0xf0)                       // bytes starts with 11110... : this should be a four-byte sequence
+    {
+        if (src + 3 >= end)
+            INVALID_ENCODING("truncated byte sequence");    // missing second, third, or fourth byte
+        else if ((unsigned char)src[0] >= 0xf5 && (unsigned char)src[0] <= 0xf7)
+            INVALID_ENCODING("overlong encoding");          // disallowed by RFC 3629 (codepoints above 0x10ffff)
+        else if (((src[1] & 0xc0) != 0x80 ) || ((src[2] & 0xc0) != 0x80 ) || ((src[3] & 0xc0) != 0x80 ))
+            INVALID_ENCODING("malformed byte sequence");    // should have second and third bytes starting with 10......
+        dest = ((uint32_t)(src[0] & 0x07)) << 18 | ((uint32_t)(src[1] & 0x3f)) << 12 | ((uint32_t)(src[1] & 0x3f)) << 6 | (src[2] & 0x3f);
+        *width_out = 4;
+    }
+    else                                                    // invalid input
+        INVALID_ENCODING("unexpected byte");
+    return dest;
+}
+
 inline VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
 {
     // TODO: consider special casing some entities (ie. quot, amp, lt, gt etc)?
@@ -663,11 +715,14 @@ inline VALUE _Wikitext_sanitize_link_target(VALUE self, VALUE string)
         }
         else    // all others: must convert to entities
         {
-            VALUE       entity      = _Wikitext_utf32_char_to_entity(*src);
+            long        width;
+            VALUE       entity      = _Wikitext_utf32_char_to_entity(_Wikitext_utf8_to_utf32(src, end, &width, dest_ptr));
             char        *entity_src = RSTRING_PTR(entity);
             long        entity_len  = RSTRING_LEN(entity); // should always be 8 characters (8 bytes)
             memcpy(dest, entity_src, entity_len);
-            dest += entity_len;
+            dest        += entity_len;
+            src         += width;
+            continue;
         }
         src++;
     }
