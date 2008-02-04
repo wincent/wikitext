@@ -747,20 +747,21 @@ VALUE Wikitext_sanitize_link_target(VALUE self, VALUE string)
 // TODO: this is probably the right place to check if treat_slash_as_special is true and act accordingly
 inline static VALUE _Wikitext_encode_link_target(VALUE self, VALUE in)
 {
-    in                  = StringValue(in);
-    char        *input  = RSTRING_PTR(in);
-    long        len     = RSTRING_LEN(in);
-    static char hex[]   = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    in                      = StringValue(in);
+    char        *input      = RSTRING_PTR(in);
+    long        len         = RSTRING_LEN(in);
+    char        *end        = input + len;
+    static char hex[]       = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
     // to avoid most reallocations start with a destination buffer twice the size of the source
     // this handles the most common case (where most chars are in the ASCII range and don't require more storage, but there are
     // often quite a few spaces, which are encoded as "%20" and occupy 3 bytes)
     // the worst case is where _every_ byte must be written out using 3 bytes
-    long dest_len   = len * 2;
-    char *dest      = ALLOC_N(char, dest_len);
-    char *dest_ptr  = dest; // hang on to this so we can pass it to free() later
+    long        dest_len    = len * 2;
+    char        *dest       = malloc(dest_len);
+    char        *dest_ptr   = dest; // hang on to this so we can pass it to free() later
 
-    for (long i = 0; i < len; input++)
+    for (; input < end; input++)
     {
         if ((dest + 3) > (dest_ptr + dest_len))     // worst case: a single character may grow to 3 characters once encoded
         {
