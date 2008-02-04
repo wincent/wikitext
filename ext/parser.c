@@ -747,6 +747,7 @@ VALUE Wikitext_sanitize_link_target(VALUE self, VALUE string)
 // TODO: this is probably the right place to check if treat_slash_as_special is true and act accordingly
 inline static VALUE _Wikitext_encode_link_target(VALUE self, VALUE in)
 {
+    in                  = StringValue(in);
     char        *input  = RSTRING_PTR(in);
     long        len     = RSTRING_LEN(in);
     static char hex[]   = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
