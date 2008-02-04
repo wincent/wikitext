@@ -636,13 +636,13 @@ inline VALUE _Wikitext_sanitize_link_target(VALUE self, VALUE string)
 
         if (*src == '"')                 // QUOT
         {
-            char *quot_entity_literal = "&quot;";
+            char quot_entity_literal[] = { '&', 'q', 'u', 'o', 't', ';' };  // no trailing NUL
             memcpy(dest, quot_entity_literal, sizeof(quot_entity_literal));
             dest += sizeof(quot_entity_literal);
         }
         else if (*src == '&')            // AMP
         {
-            char *amp_entity_literal = "&amp;";
+            char amp_entity_literal[] = { '&', 'a', 'm', 'p', ';' };    // no trailing NUL
             memcpy(dest, amp_entity_literal, sizeof(amp_entity_literal));
             dest += sizeof(amp_entity_literal);
         }
