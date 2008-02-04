@@ -13,6 +13,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "parser.h"
+#include "wikitext.h"
 #include "wikitext_ragel.h"
 
 // inline functions for inserting literals
