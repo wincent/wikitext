@@ -105,7 +105,7 @@ void Init_wikitext()
 
     // Wikitext::Parser::Token
     cWikitextParserToken = rb_define_class_under(cWikitextParser, "Token", rb_cObject);
-    rb_define_singleton_method(cWikitextParserToken, "token_types", Wikitext_parser_token_types, 0);
+    rb_define_singleton_method(cWikitextParserToken, "types", Wikitext_parser_token_types, 0);
     rb_define_attr(cWikitextParserToken, "start", Qtrue, Qfalse);
     rb_define_attr(cWikitextParserToken, "stop", Qtrue, Qfalse);
     rb_define_attr(cWikitextParserToken, "line_start", Qtrue, Qfalse);
