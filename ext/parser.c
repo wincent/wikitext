@@ -925,13 +925,15 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
         // check to see if we have a token hanging around from a previous iteration of this loop
         if (token == NULL)
         {
-            token = &_token;
             if (_token.type == NO_TOKEN)
+            {
                 // first time here (haven't started scanning yet)
+                token = &_token;
                 next_token(token, NULL, p, pe);
+            }
             else
                 // already scanning
-#define NEXT_TOKEN()    next_token(token, token, NULL, pe)
+#define NEXT_TOKEN()    token = &_token, next_token(token, token, NULL, pe)
                 NEXT_TOKEN();
         }
         int type = token->type;
@@ -1334,16 +1336,15 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (type == OL || type == UL)
                 {
                     k = 0;
-                    while (NEXT_TOKEN(), (type = token->type))
+                    while (k++, NEXT_TOKEN(), (type = token->type))
                     {
-                        if (k == 0 && type == SPACE)
+                        if (type == OL || type == UL)
+                            rb_str_append(output, TOKEN_TEXT(token));
+                        else if (type == SPACE && k == 1)
+                        {
                             // silently throw away the optional SPACE token after final list marker
                             token = NULL;
-                        k++;
-                        if (type == OL || type == UL)
-                        {
-                            rb_str_append(output, TOKEN_TEXT(token));
-                            token = NULL;
+                            break;
                         }
                         else
                             break;
