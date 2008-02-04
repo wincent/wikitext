@@ -29,9 +29,22 @@ inline VALUE ary_delete_at(VALUE ary, long idx)
     return rb_ary_delete_at(ary, idx);
 }
 
+#ifdef DEBUG
+long max_len = 0;
+#endif
+
 inline VALUE ary_push(VALUE ary, VALUE obj)
 {
-    return rb_ary_push(ary, obj);
+    VALUE ret = rb_ary_push(ary, obj);
+#ifdef DEBUG
+    if (RARRAY_LEN(ary) > max_len)
+    {
+        // in typical work loads the array length goes no higher than 25 or 26
+        max_len++;
+        printf("max len %d\n", max_len);
+    }
+#endif /* DEBUG */
+    return ret;
 }
 
 inline VALUE ary_includes(VALUE ary, VALUE obj)
