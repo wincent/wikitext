@@ -1,0 +1,11 @@
+The "antlr" branch corresponds to the original line of development of
+the wikitext parser.
+
+I originally tried doing the entire thing in ANTLR but as a newcomer
+wasn't ever able to get a working parser up and running. In the end I
+settled for an ANTLR-generated lexer and a hand-coded parser.
+
+I later investigated replacing the ANTLR lexer with a Ragel-generated
+scanner on the suspicion that it might be faster, and when it turned
+out to be so (on the order of ten times faster) I relegated the old
+ANTLR code into a branch and merged the Ragel code into "master".
