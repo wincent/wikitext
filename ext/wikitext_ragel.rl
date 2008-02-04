@@ -134,7 +134,7 @@
         # consider adding real <pre> and </pre> HTML tags later on
         ' ' @mark ' '*
         {
-            if (out->column_start == 1)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(PRE);

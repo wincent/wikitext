@@ -640,7 +640,7 @@ _eof_trans:
 	case 32:
 #line 136 "wikitext_ragel.rl"
 	{te = p;p--;{
-            if (out->column_start == 1)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
             {
                 REWIND();
                 EMIT(PRE);
