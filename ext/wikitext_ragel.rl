@@ -332,10 +332,10 @@
         #       1100000x (c0 c1)    overlong encoding, lead byte of 2 byte seq but code point <= 127
         #       11110101 (f5)       restricted by RFC 3629 lead byte of 4-byte sequence for codepoint above 10ffff
         #       1111011x (f6, f7)   restricted by RFC 3629 lead byte of 4-byte sequence for codepoint above 10ffff
-        (0x01..0x1f | 0x7f)                             %non_printable_ascii        |
-        (0xc2..0xdf 0x80..0xbf)                         %two_byte_utf8_sequence     |
-        (0xe0..0xef 0x80..0xbf 0x80..0xbf)              %three_byte_utf8_sequence   |
-        (0xf0..0xf4 0x80..0xbf 0x80..0xbf 0x80..0xbf)   %four_byte_utf8_sequence
+        (0x01..0x1f | 0x7f)                             @non_printable_ascii        |
+        (0xc2..0xdf 0x80..0xbf)                         @two_byte_utf8_sequence     |
+        (0xe0..0xef 0x80..0xbf 0x80..0xbf)              @three_byte_utf8_sequence   |
+        (0xf0..0xf4 0x80..0xbf 0x80..0xbf 0x80..0xbf)   @four_byte_utf8_sequence
         {
             EMIT(DEFAULT);
             out->column_stop = out->column_start + 1;
