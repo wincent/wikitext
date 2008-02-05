@@ -19,3 +19,8 @@ After adding custom C replacement for Ruby Array class:
   Biggest drain is st_init_strtable (42%), something to do with string
   followed by 14% for rb_str_append
   (next_token function now up to 22%)
+
+After speeding up Ragel scanner with -G2 switch:
+
+  short slab of ASCII text    2.870000   0.000000   2.870000 (  2.929794)
+  short slab of UTF-8 text    5.390000   0.010000   5.400000 (  5.399399)

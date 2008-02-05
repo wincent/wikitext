@@ -49,7 +49,7 @@ file ragel => ['ext/wikitext_ragel.rl'] do
   Dir.chdir('ext') do
     # pass the -s switch here because otherwise Ragel is totally silent
     # I like to have visual confirmation that it's actually run
-    sh 'ragel -s wikitext_ragel.rl'
+    sh 'ragel -G2 -s wikitext_ragel.rl'
   end
 end
 
