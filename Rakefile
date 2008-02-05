@@ -15,6 +15,7 @@
 require 'rake'
 require 'rake/clean'
 require 'rake/gempackagetask'
+require 'rake/rdoctask'
 require 'rubygems'
 require 'spec/rake/spectask'
 
@@ -75,6 +76,12 @@ Spec::Rake::SpecTask.new('spec') do |t|
   t.spec_opts   = ['--color']
 end
 
+Rake::RDocTask.new do |t|
+  t.rdoc_files.include 'README', 'ext/wikitext.c'
+  t.main              = 'README'
+  t.title             = 'Wikitext documentation'
+end
+
 SPEC = Gem::Specification.new do |s|
   s.name              = 'wikitext'
   s.version           = '0.1'
@@ -89,7 +96,7 @@ SPEC = Gem::Specification.new do |s|
   ENDDESC
   s.require_paths     = ['ext']
   s.has_rdoc          = true
-  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}', 'ext/depend'].to_a # TODO: add 'docs' subdirectory, 'README.txt' when they're done
+  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}', 'ext/depend'].to_a
   s.extensions        = ['ext/extconf.rb']
 end
 
