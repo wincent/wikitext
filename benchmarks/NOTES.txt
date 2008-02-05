@@ -16,7 +16,7 @@ After adding custom C replacement for Ruby Array class:
   short slab of ASCII text    3.400000   0.000000   3.400000 (  3.417410)
   short slab of UTF-8 text    6.290000   0.010000   6.300000 (  6.314861)
 
-  Biggest drain is st_init_strtable (42%), something to do with string
+  Biggest drain is st_init_strtable (42%), something to do with strings
   followed by 14% for rb_str_append
   (next_token function now up to 22%)
 
@@ -35,3 +35,15 @@ More rb_str_append calls replaced with rb_str_cat (token text):
 
   short slab of ASCII text    1.570000   0.010000   1.580000 (  1.705596)
   short slab of UTF-8 text    3.280000   0.020000   3.300000 (  3.353919)
+
+After implementing profiling_parse method
+(to minimize noise in profile from "times" method):
+
+  short slab of ASCII text    1.490000   0.000000   1.490000 (  1.498188)
+  short slab of UTF-8 text    3.150000   0.010000   3.160000 (  3.266873)
+
+  Biggest drain still st_init_strtable (34.1%),
+  followed by rb_str_append (12.3%),
+  and rb_str_buf_cat (11.2%)
+  not clear whether a custom string implementation would help here
+  (next_token function currently accounts for 13.3%)

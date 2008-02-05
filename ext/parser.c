@@ -630,6 +630,12 @@ VALUE Wikitext_parser_initialize(VALUE self)
     return self;
 }
 
+VALUE Wikitext_parser_profiling_parse(VALUE self, VALUE string)
+{
+    for (int i = 0; i < 100000; i++)
+        Wikitext_parser_parse(self, string);
+}
+
 VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 {
     // process arguments
