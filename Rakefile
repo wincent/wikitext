@@ -89,7 +89,7 @@ SPEC = Gem::Specification.new do |s|
   ENDDESC
   s.require_paths     = ['ext']
   s.has_rdoc          = true
-  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}'].to_a # TODO: add 'docs' subdirectory, 'README.txt' when they're done
+  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}', 'ext/depend'].to_a # TODO: add 'docs' subdirectory, 'README.txt' when they're done
   s.extensions        = ['ext/extconf.rb']
 end
 
