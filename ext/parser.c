@@ -17,313 +17,67 @@
 #include "wikitext.h"
 #include "wikitext_ragel.h"
 
-// inline functions for inserting literals
-// have the option here of caching these in global variables, rb_obj_freeze
-
-inline VALUE escaped_no_wiki_start(void)
-{
-    return rb_str_new2("&lt;nowiki&gt;");
-}
-
-inline VALUE escaped_no_wiki_end(void)
-{
-    return rb_str_new2("&lt;/nowiki&gt;");
-}
-
-inline VALUE literal_strong_em(void)
-{
-    return rb_str_new2("'''''");
-}
-
-inline VALUE literal_strong(void)
-{
-    return rb_str_new2("'''");
-}
-
-inline VALUE literal_em(void)
-{
-    return rb_str_new2("''");
-}
-
-inline VALUE escaped_tt_start(void)
-{
-    return rb_str_new2("&lt;tt&gt;");
-}
-
-inline VALUE escaped_tt_end(void)
-{
-    return rb_str_new2("&lt;/tt&gt;");
-}
-
-inline VALUE literal_h6(void)
-{
-    return rb_str_new2("======");
-}
-
-inline VALUE literal_h5(void)
-{
-    return rb_str_new2("=====");
-}
-
-inline VALUE literal_h4(void)
-{
-    return rb_str_new2("====");
-}
-
-inline VALUE literal_h3(void)
-{
-    return rb_str_new2("===");
-}
-
-inline VALUE literal_h2(void)
-{
-    return rb_str_new2("==");
-}
-
-inline VALUE literal_h1(void)
-{
-    return rb_str_new2("=");
-}
-
-inline VALUE pre_start(void)
-{
-    return rb_str_new2("<pre>");
-}
-
-inline VALUE pre_end(void)
-{
-    return rb_str_new2("</pre>");
-}
-
-inline VALUE blockquote_start(void)
-{
-    return rb_str_new2("<blockquote>");
-}
-
-inline VALUE blockquote_end(void)
-{
-    return rb_str_new2("</blockquote>");
-}
-
-inline VALUE strong_em_start(void)
-{
-    return rb_str_new2("<strong><em>");
-}
-
-inline VALUE strong_start(void)
-{
-    return rb_str_new2("<strong>");
-}
-
-inline VALUE strong_end(void)
-{
-    return rb_str_new2("</strong>");
-}
-
-inline VALUE em_start(void)
-{
-    return rb_str_new2("<em>");
-}
-
-inline VALUE em_end(void)
-{
-    return rb_str_new2("</em>");
-}
-
-inline VALUE tt_start(void)
-{
-    return rb_str_new2("<tt>");
-}
-
-inline VALUE tt_end(void)
-{
-    return rb_str_new2("</tt>");
-}
-
-inline VALUE ol_start(void)
-{
-    return rb_str_new2("<ol>");
-}
-
-inline VALUE ol_end(void)
-{
-    return rb_str_new2("</ol>");
-}
-
-inline VALUE ul_start(void)
-{
-    return rb_str_new2("<ul>");
-}
-
-inline VALUE ul_end(void)
-{
-    return rb_str_new2("</ul>");
-}
-
-inline VALUE li_start(void)
-{
-    return rb_str_new2("<li>");
-}
-
-inline VALUE li_end(void)
-{
-    return rb_str_new2("</li>");
-}
-
-inline VALUE h6_start(void)
-{
-    return rb_str_new2("<h6>");
-}
-
-inline VALUE h6_end(void)
-{
-    return rb_str_new2("</h6>");
-}
-
-inline VALUE h5_start(void)
-{
-    return rb_str_new2("<h5>");
-}
-
-inline VALUE h5_end(void)
-{
-    return rb_str_new2("</h5>");
-}
-
-inline VALUE h4_start(void)
-{
-    return rb_str_new2("<h4>");
-}
-
-inline VALUE h4_end(void)
-{
-    return rb_str_new2("</h4>");
-}
-
-inline VALUE h3_start(void)
-{
-    return rb_str_new2("<h3>");
-}
-
-inline VALUE h3_end(void)
-{
-    return rb_str_new2("</h3>");
-}
-
-inline VALUE h2_start(void)
-{
-    return rb_str_new2("<h2>");
-}
-
-inline VALUE h2_end(void)
-{
-    return rb_str_new2("</h2>");
-}
-
-inline VALUE h1_start(void)
-{
-    return rb_str_new2("<h1>");
-}
-
-inline VALUE h1_end(void)
-{
-    return rb_str_new2("</h1>");
-}
-
-inline VALUE p_start(void)
-{
-    return rb_str_new2("<p>");
-}
-
-inline VALUE p_end(void)
-{
-    return rb_str_new2("</p>");
-}
-
-inline VALUE space(void)
-{
-    return rb_str_new2(" ");
-}
-
-inline VALUE a_start(void)
-{
-    return rb_str_new2("<a href=\"");
-}
-
-inline VALUE a_class(void)
-{
-    return rb_str_new2("\" class=\"");
-}
-
-inline VALUE a_start_close(void)
-{
-    return rb_str_new2("\">");
-}
-
-inline VALUE a_end(void)
-{
-    return rb_str_new2("</a>");
-}
-
-inline VALUE link_start(void)
-{
-    return rb_str_new2("[[");
-}
-
-inline VALUE link_end(void)
-{
-    return rb_str_new2("]]");
-}
-
-inline VALUE separator(void)
-{
-    return rb_str_new2("|");
-}
-
-inline VALUE ext_link_start(void)
-{
-    return rb_str_new2("[");
-}
-
-inline VALUE backtick(void)
-{
-    return rb_str_new2("`");
-}
-
-inline VALUE quote(void)
-{
-    return rb_str_new2("\"");
-}
-
-inline VALUE ampersand(void)
-{
-    return rb_str_new2("&");
-}
-
-inline VALUE quot_entity(void)
-{
-    return rb_str_new2("&quot;");
-}
-
-inline VALUE amp_entity(void)
-{
-    return rb_str_new2("&amp;");
-}
-
-inline VALUE lt_entity(void)
-{
-    return rb_str_new2("&lt;");
-}
-
-inline VALUE gt_entity(void)
-{
-    return rb_str_new2("&gt;");
-}
-
-inline VALUE ext_link_end(void)
-{
-    return rb_str_new2("]");
-}
+const char escaped_no_wiki_start[]  = "&lt;nowiki&gt;";
+const char escaped_no_wiki_end[]    = "&lt;/nowiki&gt;";
+const char literal_strong_em[]      = "'''''";
+const char literal_strong[]         = "'''";
+const char literal_em[]             = "''";
+const char escaped_tt_start[]       = "&lt;tt&gt;";
+const char escaped_tt_end[]         = "&lt;/tt&gt;";
+const char literal_h6[]             = "======";
+const char literal_h5[]             = "=====";
+const char literal_h4[]             = "====";
+const char literal_h3[]             = "===";
+const char literal_h2[]             = "==";
+const char literal_h1[]             = "=";
+const char pre_start[]              = "<pre>";
+const char pre_end[]                = "</pre>";
+const char blockquote_start[]       = "<blockquote>";
+const char blockquote_end[]         = "</blockquote>";
+const char strong_em_start[]        = "<strong><em>";
+const char strong_start[]           = "<strong>";
+const char strong_end[]             = "</strong>";
+const char em_start[]               = "<em>";
+const char em_end[]                 = "</em>";
+const char tt_start[]               = "<tt>";
+const char tt_end[]                 = "</tt>";
+const char ol_start[]               = "<ol>";
+const char ol_end[]                 = "</ol>";
+const char ul_start[]               = "<ul>";
+const char ul_end[]                 = "</ul>";
+const char li_start[]               = "<li>";
+const char li_end[]                 = "</li>";
+const char h6_start[]               = "<h6>";
+const char h6_end[]                 = "</h6>";
+const char h5_start[]               = "<h5>";
+const char h5_end[]                 = "</h5>";
+const char h4_start[]               = "<h4>";
+const char h4_end[]                 = "</h4>";
+const char h3_start[]               = "<h3>";
+const char h3_end[]                 = "</h3>";
+const char h2_start[]               = "<h2>";
+const char h2_end[]                 = "</h2>";
+const char h1_start[]               = "<h1>";
+const char h1_end[]                 = "</h1>";
+const char p_start[]                = "<p>";
+const char p_end[]                  = "</p>";
+const char space[]                  = " ";
+const char a_start[]                = "<a href=\"";
+const char a_class[]                = "\" class=\"";
+const char a_start_close[]          = "\">";
+const char a_end[]                  = "</a>";
+const char link_start[]             = "[[";
+const char link_end[]               = "]]";
+const char separator[]              = "|";
+const char ext_link_start[]         = "[";
+const char backtick[]               = "`";
+const char quote[]                  = "\"";
+const char ampersand[]              = "&";
+const char quot_entity[]            = "&quot;";
+const char amp_entity[]             = "&amp;";
+const char lt_entity[]              = "&lt;";
+const char gt_entity[]              = "&gt;";
+const char ext_link_end[]           = "]";
 
 // for testing and debugging only
 VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
@@ -377,18 +131,18 @@ inline VALUE _Wikitext_downcase(VALUE string)
 
 inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE link_text, VALUE link_class)
 {
-    VALUE string = a_start();               // <a href="
+    VALUE string = rb_str_new(a_start, sizeof(a_start) - 1);        // <a href="
     if (!NIL_P(link_prefix))
         rb_str_append(string, link_prefix);
     rb_str_append(string, link_target);
     if (link_class != Qnil)
     {
-        rb_str_append(string, a_class());   // " class="
+        rb_str_cat(string, a_class, sizeof(a_class) - 1);           // " class="
         rb_str_append(string, link_class);
     }
-    rb_str_append(string, a_start_close()); // ">
+    rb_str_cat(string, a_start_close, sizeof(a_start_close) - 1);   // ">
     rb_str_append(string, link_text);
-    rb_str_append(string, a_end());
+    rb_str_cat(string, a_end, sizeof(a_end) - 1);
     return string;
 }
 
@@ -402,12 +156,12 @@ void _Wikitext_pop_from_stack(ary_t *stack, VALUE target, VALUE line_ending)
     switch (top)
     {
         case PRE:
-            rb_str_append(target, pre_end());
+            rb_str_cat(target, pre_end, sizeof(pre_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
         case BLOCKQUOTE:
-            rb_str_append(target, blockquote_end());
+            rb_str_cat(target, blockquote_end, sizeof(blockquote_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
@@ -416,60 +170,60 @@ void _Wikitext_pop_from_stack(ary_t *stack, VALUE target, VALUE line_ending)
             break;
 
         case STRONG:
-            rb_str_append(target, strong_end());
+            rb_str_cat(target, strong_end, sizeof(strong_end) - 1);
             break;
 
         case EM:
-            rb_str_append(target, em_end());
+            rb_str_cat(target, em_end, sizeof(em_end) - 1);
             break;
 
         case TT:
         case TT_START:
-            rb_str_append(target, tt_end());
+            rb_str_cat(target, tt_end, sizeof(tt_end) - 1);
             break;
 
         case OL:
-            rb_str_append(target, ol_end());
+            rb_str_cat(target, ol_end, sizeof(ol_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
         case UL:
-            rb_str_append(target, ul_end());
+            rb_str_cat(target, ul_end, sizeof(ul_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
         case LI:
-            rb_str_append(target, li_end());
+            rb_str_cat(target, li_end, sizeof(li_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
         case H6_START:
-            rb_str_append(target, h6_end());
+            rb_str_cat(target, h6_end, sizeof(h6_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
         case H5_START:
-            rb_str_append(target, h5_end());
+            rb_str_cat(target, h5_end, sizeof(h5_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
         case H4_START:
-            rb_str_append(target, h4_end());
+            rb_str_cat(target, h4_end, sizeof(h4_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
         case H3_START:
-            rb_str_append(target, h3_end());
+            rb_str_cat(target, h3_end, sizeof(h3_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
         case H2_START:
-            rb_str_append(target, h2_end());
+            rb_str_cat(target, h2_end, sizeof(h2_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
         case H1_START:
-            rb_str_append(target, h1_end());
+            rb_str_cat(target, h1_end, sizeof(h1_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
@@ -486,7 +240,7 @@ void _Wikitext_pop_from_stack(ary_t *stack, VALUE target, VALUE line_ending)
             break;
 
         case P:
-            rb_str_append(target, p_end());
+            rb_str_cat(target, p_end, sizeof(p_end) - 1);
             rb_str_append(target, line_ending);
             break;
 
@@ -529,13 +283,13 @@ inline void _Wikitext_start_para_if_necessary(VALUE capture, ary_t *scope, ary_t
     // if no block open yet, or top of stack is BLOCKQUOTE (with nothing in it yet)
     if (scope->count == 0 || ary_entry(scope, -1) == BLOCKQUOTE)
     {
-        rb_str_append(output, p_start());
+        rb_str_cat(output, p_start, sizeof(p_start) - 1);
         ary_push(scope, P);
         ary_push(line, P);
     }
     else if (ary_includes(scope, P) && *pending_crlf == Qtrue)
         // already in a paragraph block; convert pending CRLF into a space
-        rb_str_append(output, space());
+        rb_str_cat(output, space, sizeof(space) - 1);
     *pending_crlf = Qfalse;
 }
 
@@ -814,18 +568,18 @@ inline void _Wikitext_rollback_failed_link(VALUE output, ary_t *scope, ary_t *li
         !ary_includes(scope, H1_START))
     {
         // create a paragraph if necessary
-        rb_str_append(output, p_start());
+        rb_str_cat(output, p_start, sizeof(p_start) - 1);
         ary_push(scope, P);
         ary_push(line, P);
     }
-    rb_str_append(output, link_start());
+    rb_str_cat(output, link_start, sizeof(link_start) - 1);
     if (!NIL_P(link_target))
     {
         VALUE sanitized = Wikitext_sanitize_link_target(Qnil, link_target);
         rb_str_append(output, sanitized);
         if (scope_includes_separator)
         {
-            rb_str_append(output, separator());
+            rb_str_cat(output, separator, sizeof(separator) - 1);
             if (!NIL_P(link_text))
                 rb_str_append(output, link_text);
         }
@@ -846,11 +600,11 @@ inline void _Wikitext_rollback_failed_external_link(VALUE output, ary_t *scope, 
         !ary_includes(scope, H1_START))
     {
         // create a paragraph if necessary
-        rb_str_append(output, p_start());
+        rb_str_cat(output, p_start, sizeof(p_start) - 1);
         ary_push(scope, P);
         ary_push(line, P);
     }
-    rb_str_append(output, ext_link_start());
+    rb_str_cat(output, ext_link_start, sizeof(ext_link_start) - 1);
     if (!NIL_P(link_target))
     {
         if (autolink == Qtrue)
@@ -858,7 +612,7 @@ inline void _Wikitext_rollback_failed_external_link(VALUE output, ary_t *scope, 
         rb_str_append(output, link_target);
         if (scope_includes_space)
         {
-            rb_str_append(output, space());
+            rb_str_cat(output, space, sizeof(space) - 1);
             if (!NIL_P(link_text))
                 rb_str_append(output, link_text);
         }
@@ -966,7 +720,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (ary_includes(scope, NO_WIKI_START))
                 {
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
-                    rb_str_append(output, space());
+                    rb_str_cat(output, space, sizeof(space) - 1);
                     break;
                 }
 
@@ -985,7 +739,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (!ary_includes(scope, PRE))
                 {
                     _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
-                    rb_str_append(output, pre_start());
+                    rb_str_cat(output, pre_start, sizeof(pre_start) - 1);
                     ary_push(scope, PRE);
                 }
                 break;
@@ -1016,7 +770,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         _Wikitext_pop_from_stack_up_to(scope, output, BLOCKQUOTE, Qfalse, line_ending);
                         for (i = i - j; i > 0; i--)
                         {
-                            rb_str_append(output, blockquote_start());
+                            rb_str_cat(output, blockquote_start, sizeof(blockquote_start) - 1);
                             ary_push(scope, BLOCKQUOTE);
                         }
                     }
@@ -1035,7 +789,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case NO_WIKI_START:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_no_wiki_start());
+                    rb_str_cat(output, escaped_no_wiki_start, sizeof(escaped_no_wiki_start) - 1);
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
@@ -1055,7 +809,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     i = NIL_P(capture) ? output : capture;
                     _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                     _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                    rb_str_append(output, escaped_no_wiki_end());
+                    rb_str_cat(output, escaped_no_wiki_end, sizeof(escaped_no_wiki_end) - 1);
                 }
                 break;
 
@@ -1063,7 +817,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                 {
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, literal_strong_em());
+                    rb_str_cat(output, literal_strong_em, sizeof(literal_strong_em) - 1);
                     break;
                 }
 
@@ -1079,12 +833,12 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     int val = ary_entry(scope, j);
                     if (val == STRONG)
                     {
-                        rb_str_append(i, strong_end());
+                        rb_str_cat(i, strong_end, sizeof(strong_end) - 1);
                         remove_strong = j;
                     }
                     else if (val == EM)
                     {
-                        rb_str_append(i, em_end());
+                        rb_str_cat(i, em_end, sizeof(em_end) - 1);
                         remove_em = j;
                     }
                 }
@@ -1096,7 +850,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         ary_pop(scope);
                     else    // there was no em to remove!, so consider this an opening em tag
                     {
-                        rb_str_append(i, em_start());
+                        rb_str_cat(i, em_start, sizeof(em_start) - 1);
                         ary_push(scope, EM);
                         ary_push(line, EM);
                     }
@@ -1108,7 +862,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         ary_pop(scope);
                     else    // there was no strong to remove!, so consider this an opening strong tag
                     {
-                        rb_str_append(i, strong_start());
+                        rb_str_cat(i, strong_start, sizeof(strong_start) - 1);
                         ary_push(scope, STRONG);
                         ary_push(line, STRONG);
                     }
@@ -1116,7 +870,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 else    // no strong or em to remove, so this must be a new opening of both
                 {
                     _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                    rb_str_append(i, strong_em_start());
+                    rb_str_cat(i, strong_em_start, sizeof(strong_em_start) - 1);
                     ary_push(scope, STRONG);
                     ary_push(line, STRONG);
                     ary_push(scope, EM);
@@ -1127,7 +881,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case STRONG:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, literal_strong());
+                    rb_str_cat(output, literal_strong, sizeof(literal_strong) - 1);
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
@@ -1139,7 +893,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         // this is a new opening
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                        rb_str_append(i, strong_start());
+                        rb_str_cat(i, strong_start, sizeof(strong_start) - 1);
                         ary_push(scope, STRONG);
                         ary_push(line, STRONG);
                     }
@@ -1149,7 +903,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case EM:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, literal_em());
+                    rb_str_cat(output, literal_em, sizeof(literal_em) - 1);
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
@@ -1161,7 +915,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         // this is a new opening
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                        rb_str_append(i, em_start());
+                        rb_str_cat(i, em_start, sizeof(em_start) - 1);
                         ary_push(scope, EM);
                         ary_push(line, EM);
                     }
@@ -1171,13 +925,13 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case TT:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, backtick());
+                    rb_str_cat(output, backtick, sizeof(backtick) - 1);
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
                     if (ary_includes(scope, TT_START))
                         // already in span started with <tt>, no choice but to emit this literally
-                        rb_str_append(output, backtick());
+                        rb_str_cat(output, backtick, sizeof(backtick) - 1);
                     else if (ary_includes(scope, TT))
                         // TT (`) already seen, this is a closing tag
                         _Wikitext_pop_from_stack_up_to(scope, i, TT, Qtrue, line_ending);
@@ -1186,7 +940,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         // this is a new opening
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                        rb_str_append(i, tt_start());
+                        rb_str_cat(i, tt_start, sizeof(tt_start) - 1);
                         ary_push(scope, TT);
                         ary_push(line, TT);
                     }
@@ -1196,18 +950,18 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case TT_START:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span, <pre> block
-                    rb_str_append(output, escaped_tt_start());
+                    rb_str_cat(output, escaped_tt_start, sizeof(escaped_tt_start) - 1);
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
                     if (ary_includes(scope, TT_START) || ary_includes(scope, TT))
                         // already in TT_START (<tt>) or TT (`) span)
-                        rb_str_append(output, escaped_tt_start());
+                        rb_str_cat(output, escaped_tt_start, sizeof(escaped_tt_start) - 1);
                     else
                     {
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                        rb_str_append(i, tt_start());
+                        rb_str_cat(i, tt_start, sizeof(tt_start) - 1);
                         ary_push(scope, TT_START);
                         ary_push(line, TT_START);
                     }
@@ -1217,7 +971,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case TT_END:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, escaped_tt_end());
+                    rb_str_cat(output, escaped_tt_end, sizeof(escaped_tt_end) - 1);
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
@@ -1228,7 +982,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         // no TT_START in scope, so must interpret the TT_END without any special meaning
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                        rb_str_append(i, escaped_tt_end());
+                        rb_str_cat(i, escaped_tt_end, sizeof(escaped_tt_end) - 1);
                     }
                 }
                 break;
@@ -1307,9 +1061,9 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
                 // emit
                 if (type == OL)
-                    rb_str_append(output, ol_start());
+                    rb_str_cat(output, ol_start, sizeof(ol_start) - 1);
                 else if (type == UL)
-                    rb_str_append(output, ul_start());
+                    rb_str_cat(output, ul_start, sizeof(ul_start) - 1);
 
                 if (type == OL || type == UL)
                 {
@@ -1320,7 +1074,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     // silently throw away the optional SPACE token after final list marker
                     token = NULL;
 
-                rb_str_append(output, li_start());
+                rb_str_cat(output, li_start, sizeof(li_start) - 1);
                 ary_push(scope, LI);
 
                 // any subsequent UL or OL tokens on this line are syntax errors and must be emitted literally
@@ -1382,17 +1136,17 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
                 // rather than repeat all that code for each kind of heading, share it and use a conditional here
                 if (type == H6_START)
-                    rb_str_append(output, h6_start());
+                    rb_str_cat(output, h6_start, sizeof(h6_start) - 1);
                 else if (type == H5_START)
-                    rb_str_append(output, h5_start());
+                    rb_str_cat(output, h5_start, sizeof(h5_start) - 1);
                 else if (type == H4_START)
-                    rb_str_append(output, h4_start());
+                    rb_str_cat(output, h4_start, sizeof(h4_start) - 1);
                 else if (type == H3_START)
-                    rb_str_append(output, h3_start());
+                    rb_str_cat(output, h3_start, sizeof(h3_start) - 1);
                 else if (type == H2_START)
-                    rb_str_append(output, h2_start());
+                    rb_str_cat(output, h2_start, sizeof(h2_start) - 1);
                 else if (type == H1_START)
-                    rb_str_append(output, h1_start());
+                    rb_str_cat(output, h1_start, sizeof(h1_start) - 1);
 
                 // jump to top of the loop to process token we scanned during lookahead
                 continue;
@@ -1400,7 +1154,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H6_END:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, literal_h6());
+                    rb_str_cat(output, literal_h6, sizeof(literal_h6) - 1);
                 else
                 {
                     if (ary_includes(scope, EXT_LINK_START))
@@ -1417,7 +1171,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h6 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, literal_h6());
+                        rb_str_cat(output, literal_h6, sizeof(literal_h6) - 1);
                     }
                 }
                 break;
@@ -1425,7 +1179,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H5_END:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, literal_h5());
+                    rb_str_cat(output, literal_h5, sizeof(literal_h5) - 1);
                 else
                 {
                     if (ary_includes(scope, EXT_LINK_START))
@@ -1442,7 +1196,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h5 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, literal_h5());
+                        rb_str_cat(output, literal_h5, sizeof(literal_h5) - 1);
                     }
                 }
                 break;
@@ -1450,7 +1204,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H4_END:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, literal_h4());
+                    rb_str_cat(output, literal_h4, sizeof(literal_h4) - 1);
                 else
                 {
                     if (ary_includes(scope, EXT_LINK_START))
@@ -1467,7 +1221,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h4 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, literal_h4());
+                        rb_str_cat(output, literal_h4, sizeof(literal_h4) - 1);
                     }
                 }
                 break;
@@ -1475,7 +1229,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H3_END:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, literal_h3());
+                    rb_str_cat(output, literal_h3, sizeof(literal_h3) - 1);
                 else
                 {
                     if (ary_includes(scope, EXT_LINK_START))
@@ -1492,7 +1246,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h3 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, literal_h3());
+                        rb_str_cat(output, literal_h3, sizeof(literal_h3) - 1);
                     }
                 }
                 break;
@@ -1500,7 +1254,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H2_END:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, literal_h2());
+                    rb_str_cat(output, literal_h2, sizeof(literal_h2) - 1);
                 else
                 {
                     if (ary_includes(scope, EXT_LINK_START))
@@ -1517,7 +1271,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h2 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, literal_h2());
+                        rb_str_cat(output, literal_h2, sizeof(literal_h2) - 1);
                     }
                 }
                 break;
@@ -1525,7 +1279,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H1_END:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(output, literal_h1());
+                    rb_str_cat(output, literal_h1, sizeof(literal_h1) - 1);
                 else
                 {
                     if (ary_includes(scope, EXT_LINK_START))
@@ -1542,7 +1296,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         // literal output only if not in h1 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, literal_h1());
+                        rb_str_cat(output, literal_h1, sizeof(literal_h1) - 1);
                     }
                 }
                 break;
@@ -1578,7 +1332,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                             _Wikitext_pop_from_stack(scope, output, line_ending);
                             _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                             _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
-                            rb_str_append(output, ext_link_start());
+                            rb_str_cat(output, ext_link_start, sizeof(ext_link_start) - 1);
                             if (autolink == Qtrue)
                                 i = _Wikitext_hyperlink(Qnil, i, i, link_class); // link target, link text, link class
                             rb_str_append(output, i);
@@ -1634,10 +1388,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 i = NIL_P(capture) ? output : capture;
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(i, link_start());
+                    rb_str_cat(i, link_start, sizeof(link_start) - 1);
                 else if (ary_includes(scope, EXT_LINK_START))
                     // already in external link scope! (and in fact, must be capturing link_text right now)
-                    rb_str_append(i, link_start());
+                    rb_str_cat(i, link_start, sizeof(link_start) - 1);
                 else if (ary_includes(scope, LINK_START))
                 {
                     // already in internal link scope! this is a syntax error
@@ -1645,7 +1399,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     link_target = Qnil;
                     link_text   = Qnil;
                     capture     = Qnil;
-                    rb_str_append(output, link_start());
+                    rb_str_cat(output, link_start, sizeof(link_start) - 1);
                 }
                 else if (ary_includes(scope, SEPARATOR))
                 {
@@ -1674,10 +1428,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                             }
                             if (type == QUOT_ENTITY)
                                 // don't insert the entity, insert the literal quote
-                                rb_str_append(link_target, quote());
+                                rb_str_cat(link_target, quote, sizeof(quote) - 1);
                             else if (type == AMP_ENTITY)
                                 // don't insert the entity, insert the literal ampersand
-                                rb_str_append(link_target, ampersand());
+                                rb_str_cat(link_target, ampersand, sizeof(ampersand) - 1);
                             else
                                 rb_str_append(link_target, TOKEN_TEXT(token));
                         }
@@ -1710,10 +1464,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 i = NIL_P(capture) ? output : capture;
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(i, link_end());
+                    rb_str_cat(i, link_end, sizeof(link_end) - 1);
                 else if (ary_includes(scope, EXT_LINK_START))
                     // already in external link scope! (and in fact, must be capturing link_text right now)
-                    rb_str_append(i, link_end());
+                    rb_str_cat(i, link_end, sizeof(link_end) - 1);
                 else if (ary_includes(scope, LINK_START))
                 {
                     // in internal link scope!
@@ -1734,7 +1488,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 {
                     _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                    rb_str_append(i, link_end());
+                    rb_str_cat(i, link_end, sizeof(link_end) - 1);
                 }
                 break;
 
@@ -1746,14 +1500,14 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 i = NIL_P(capture) ? output : capture;
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(i, ext_link_start());
+                    rb_str_cat(i, ext_link_start, sizeof(ext_link_start) - 1);
                 else if (ary_includes(scope, EXT_LINK_START))
                     // already in external link scope! (and in fact, must be capturing link_text right now)
-                    rb_str_append(i, ext_link_start());
+                    rb_str_cat(i, ext_link_start, sizeof(ext_link_start) - 1);
                 else if (ary_includes(scope, LINK_START))
                 {
                     // already in internal link scope!
-                    i = ext_link_start();
+                    i = rb_str_new(ext_link_start, sizeof(ext_link_start) - 1);
                     if (NIL_P(link_target))
                         // this must be the first character of our link target
                         link_target = i;
@@ -1782,7 +1536,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         // only get here if there was a syntax error (missing URI)
                         _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
-                        rb_str_append(output, ext_link_start());
+                        rb_str_cat(output, ext_link_start, sizeof(ext_link_start) - 1);
                     }
                     continue; // jump back to top of loop to handle token (either URI or whatever it is)
                 }
@@ -1792,7 +1546,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 i = NIL_P(capture) ? output : capture;
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(i, ext_link_end());
+                    rb_str_cat(i, ext_link_end, sizeof(ext_link_end) - 1);
                 else if (ary_includes(scope, EXT_LINK_START))
                 {
                     if (NIL_P(link_text))
@@ -1816,7 +1570,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 {
                     _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
-                    rb_str_append(output, ext_link_end());
+                    rb_str_cat(output, ext_link_end, sizeof(ext_link_end) - 1);
                 }
                 break;
 
@@ -1824,7 +1578,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                 _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                rb_str_append(i, separator());
+                rb_str_cat(i, separator, sizeof(separator) - 1);
                 break;
 
             case SPACE:
@@ -1883,28 +1637,28 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                 _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                rb_str_append(i, quot_entity());
+                rb_str_cat(i, quot_entity, sizeof(quot_entity) - 1);
                 break;
 
             case AMP:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                 _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                rb_str_append(i, amp_entity());
+                rb_str_cat(i, amp_entity, sizeof(amp_entity) - 1);
                 break;
 
             case LESS:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                 _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                rb_str_append(i, lt_entity());
+                rb_str_cat(i, lt_entity, sizeof(lt_entity) - 1);
                 break;
 
             case GREATER:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                 _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                rb_str_append(i, gt_entity());
+                rb_str_cat(i, gt_entity, sizeof(gt_entity) - 1);
                 break;
 
             case CRLF:
