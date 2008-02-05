@@ -1929,7 +1929,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (ary_includes(scope, NO_WIKI_START))
                 {
                     // <nowiki> spans are unique; CRLFs are blindly echoed
-                    while (!NIL_P(ary_delete_at(line_buffer, -1)));
+                    while (ary_delete_at(line_buffer, -1));
                     rb_str_append(output, line_ending);
                     pending_crlf = Qfalse;
                     break;
@@ -1976,8 +1976,8 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 }
 
                 // delete the entire contents of the line scope stack and buffer
-                while (!NIL_P(ary_delete_at(line, -1)));
-                while (!NIL_P(ary_delete_at(line_buffer, -1)));
+                while (ary_delete_at(line, -1));
+                while (ary_delete_at(line_buffer, -1));
                 break;
 
             case PRINTABLE:
