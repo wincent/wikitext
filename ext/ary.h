@@ -41,14 +41,14 @@ inline void ary_free(ary_t *ary)
     free(ary);
 }
 
-inline int ary_entry(ary_t *ary, long idx)
+inline int ary_entry(ary_t *ary, int idx)
 {
     if (idx < 0)
         idx = ary->count + idx;
     return (idx > 0 && ary->count > idx) ? ary->entries[idx] : INT_MAX;
 }
 
-inline int ary_delete_at(ary_t *ary, long idx)
+inline int ary_delete_at(ary_t *ary, int idx)
 {
     // dirty optimization: we know we'll only ever be called to delete the last element of the array
     if (ary->count > 0)
