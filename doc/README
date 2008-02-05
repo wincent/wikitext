@@ -1,0 +1,211 @@
+The wikitext extension is a fast wikitext-to-HTML translator written
+in C and packaged as a Ruby extension.
+
+Usage is straightforward:
+
+ $ irb -r wikitext
+ >> Wikitext::Parser.new.parse("hello world!")
+ => "<p>hello world!</p>\n"
+
+= Design goals
+
+I needed a wikitext-to-HTML translator for a Rails application; a number
+of design goals flowed on from this:
+
+* _fast_: Rails has a reputation for being slow, so the translator had
+  to be part of the solution, not part of the problem
+* _efficient_: again, given how much memory Rails likes to use, the
+  translator had to be very memory-efficient
+* _robust_: on a public-facing web application that had to be up for long
+  periods, the translator had to be stable (no crashes, no resource leaks)
+* _secure_: again, accepting input from untrusted sources meant that the
+  translator had to sanitize or reject unsafe input
+* <em>easy to use</em>: for end users, the translator should provide a
+  simple, familiar markup as close as possible to what they already know
+  from other applications
+* _forgiving_: wikitext is presentation markup, not source code, so the
+  translator should do a reasonable job of formatting even the most
+  invalid markup rather than giving up
+* _informative_: when provided invalid markup the translator should
+  fail gracefully and emit HTML that provides useful visual feedback
+  about where the errors are in the input
+* <em>multilingual-friendly</em>: the translator should handle input beyond
+  printable ASCII in a compatible fashion
+* _attractive_: the emitted HTML source should be consistent and attractively
+* <em>valid output</em>: regardless of the input, the translator should
+  always produce valid XHTML output
+
+= Markup
+
+The markup is very close to that used by MediaWiki, the most popular wiki
+software and the one that powers Wikipedia.
+
+== Headings
+
+ = Heading 1 =
+ == Heading 2 ==
+ === Heading 3 ===
+ ==== Heading 4 ====
+ ===== Heading 5 =====
+ ====== Heading 6 ======
+
+Are marked up as:
+
+ <h1>Heading 1</h1>
+ <h2>Heading 2</h2>
+ <h3>Heading 3</h3>
+ <h4>Heading 4</h4>
+ <h5>Heading 5</h5>
+ <h6>Heading 6</h6>
+
+== Paragraphs
+
+Consecutive linebreaks are converted into paragraph breaks.
+
+ This is one paragraph.
+ Another line.
+ 
+ And this is another.
+
+Would be marked up as:
+
+ <p>This is one paragraph. Another line.</p>
+ <p>And this is another.</p>
+
+== Emphasis, Strong
+
+Emphasis is marked up as follows:
+
+  ''emphasized''
+
+Which gets translated into:
+
+  <em>emphasized</em>
+
+Strong is marked up like this:
+
+  '''strong text'''
+
+And transformed into:
+
+  <strong>strong text</strong>
+
+You can nest spans inside one another, provided you don't try to produce
+invalid HTML (for example, nesting strong inside strong). Here is a valid
+example:
+
+  '''''foo'' bar''' baz
+
+This would become:
+
+  <strong><em>foo</em> bar</strong> baz
+
+Note that the translator emits HTML on the fly, so when it sees the
+first run of five apostrophes it has no way of knowing what will come
+afterwards and so doesn't know whether you mean to say "strong em" or
+"em strong"; it therefore always assumes "strong em". If you wish to
+force the alternative interpretation you can do one of the following:
+
+ '' '''foo''' bar'' baz (ie. use whitespace)
+ ''<nowiki></nowiki>'''foo''' bar'' baz (ie. insert an empty nowiki span)
+ <em>'''foo''' bar</em> baz (ie. use explicit HTML tags instead)
+
+== Teletype
+
+The translator recognizes both standard HTML +tt+ tags and the
+backtick (`) as a shorthand. These two are equivalent:
+
+  <tt>fixed</tt>
+  `fixed`
+
+If you need to insert a literal backtick in your text you use a +nowiki+
+span:
+
+  here follows a literal <nowiki>`</nowiki> backtick
+
+== +nowiki+ spans
+
+Already mentioned above, you can use +nowiki+ tags to temporarily disable
+wikitext markup. As soon as the translator sees the opening +nowiki+ tag
+it starts emitting a literal copy of everything it sees up until the
+closing +nowiki+ tag:
+
+  Hello <nowiki>''world''</nowiki>
+
+Would be emitted as:
+
+  Hello ''world''
+
+== Blockquotes
+
+  > Hello world!
+  > Bye for now.
+
+Would be emitted as:
+
+  <blockquote><p>Hellow world! Bye for now.</blockquote>
+
+You can nest blockquotes or any other kind of block or span inside
+blockquotes. For example:
+
+  > first quote
+  >> quote inside a quote
+
+== Preformatted text
+
+Any line indented with whitespace will be interpreted as part of a +pre+
+block. Wikitext markup inside +pre+ blocks has no special meaning. For
+example, consider the following block indented by a single space:
+
+   // source code listing
+   void foo(void)
+   {
+      x++;
+   }
+
+Would be translated into:
+
+  <pre>// source code listing
+  void foo(void)
+  {
+    x++;
+  }</pre>
+
++pre+ blocks may be nested inside +blockquote+ blocks.
+
+== Internal links
+
+  [[article title]]
+
+Would become:
+
+  <a href="/wiki/article%20title">article title</a>
+
+And:
+
+  [[title|link text]]
+
+Would become:
+
+  <a href="/wiki/article">link text</a>
+
+See the Parser attributes documentation for how you can override the
+default link prefix (<em>/wiki/</em> as shown in the example).
+
+== External links
+
+  [http://example.com/ this site]
+
+Would become:
+
+  <a href="http://example.com/" class="external">this site</a>
+
+See the Parser attributes documentation for information on overriding
+the default external link class (+external+ in this example).
+
+= Author
+
+The wikitext extension was written and is maintained by Wincent Colaiuta.
+
+* http://wincent.com
+* win@wincent.com
