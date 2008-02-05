@@ -1,0 +1,21 @@
+Initial performance under ANTLR:
+
+  short slab of ASCII text   14.380000   2.240000  16.620000 ( 16.685454)
+  short slab of UTF-8 text   18.080000   2.420000  20.500000 ( 21.965856)
+
+After move to Ragel scanner:
+
+  short slab of ASCII text    5.010000   0.010000   5.020000 (  5.033520)
+  short slab of UTF-8 text    9.130000   0.010000   9.140000 (  9.158980)
+
+  About 28% of time is being spent inside rb_ary_includes
+  (compared with only 14% in the next_token function)
+
+After adding custom C replacement for Ruby Array class:
+
+  short slab of ASCII text    3.400000   0.000000   3.400000 (  3.417410)
+  short slab of UTF-8 text    6.290000   0.010000   6.300000 (  6.314861)
+
+  Biggest drain is st_init_strtable (42%), something to do with string
+  followed by 14% for rb_str_append
+  (next_token function now up to 22%)
