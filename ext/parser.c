@@ -498,7 +498,7 @@ void _Wikitext_pop_from_stack(ary_t *stack, VALUE target, VALUE line_ending)
             // should probably raise an exception here
             break;
     }
-    ary_delete_at(stack, -1);
+    ary_pop(stack);
 }
 
 // Pops items off top of stack, accumulating closing tags for them into the target string, until item is reached.
@@ -1091,9 +1091,9 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
                 if (remove_strong > remove_em)      // must remove strong first
                 {
-                    ary_delete_at(scope, remove_strong);
+                    ary_pop(scope);
                     if (remove_em > -1)
-                        ary_delete_at(scope, remove_em);
+                        ary_pop(scope);
                     else    // there was no em to remove!, so consider this an opening em tag
                     {
                         rb_str_append(i, em_start());
@@ -1103,9 +1103,9 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 }
                 else if (remove_em > remove_strong) // must remove em first
                 {
-                    ary_delete_at(scope, remove_em);
+                    ary_pop(scope);
                     if (remove_strong > -1)
-                        ary_delete_at(scope, remove_strong);
+                        ary_pop(scope);
                     else    // there was no strong to remove!, so consider this an opening strong tag
                     {
                         rb_str_append(i, strong_start());
@@ -1929,7 +1929,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (ary_includes(scope, NO_WIKI_START))
                 {
                     // <nowiki> spans are unique; CRLFs are blindly echoed
-                    while (ary_delete_at(line_buffer, -1));
+                    while (ary_pop(line_buffer));
                     rb_str_append(output, line_ending);
                     pending_crlf = Qfalse;
                     break;
@@ -1976,8 +1976,8 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 }
 
                 // delete the entire contents of the line scope stack and buffer
-                while (ary_delete_at(line, -1));
-                while (ary_delete_at(line_buffer, -1));
+                while (ary_pop(line));
+                while (ary_pop(line_buffer));
                 break;
 
             case PRINTABLE:

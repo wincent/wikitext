@@ -48,9 +48,8 @@ inline int ary_entry(ary_t *ary, int idx)
     return (idx >= 0 && ary->count > idx) ? ary->entries[idx] : INT_MAX;
 }
 
-inline int ary_delete_at(ary_t *ary, int idx)
+inline int ary_pop(ary_t *ary)
 {
-    // dirty optimization: we know we'll only ever be called to delete the last element of the array
     if (ary->count > 0)
     {
         ary->count--;
