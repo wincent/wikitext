@@ -394,12 +394,12 @@ inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE lin
 
 // Pops a single item off the stack.
 // A corresponding closing tag is written to the target string.
-void _Wikitext_pop_from_stack(VALUE stack, VALUE target, VALUE line_ending)
+void _Wikitext_pop_from_stack(ary_t *stack, VALUE target, VALUE line_ending)
 {
-    VALUE top = ary_entry(stack, -1);
-    if (NIL_P(top))
+    int top = ary_entry(stack, -1);
+    if (NO_ITEM(top))
         return;
-    switch (FIX2INT(top))
+    switch (top)
     {
         case PRE:
             rb_str_append(target, pre_end());
@@ -503,15 +503,15 @@ void _Wikitext_pop_from_stack(VALUE stack, VALUE target, VALUE line_ending)
 
 // Pops items off top of stack, accumulating closing tags for them into the target string, until item is reached.
 // If including is Qtrue then the item itself is also popped.
-void _Wikitext_pop_from_stack_up_to(VALUE stack, VALUE target, VALUE item, VALUE including, VALUE line_ending)
+void _Wikitext_pop_from_stack_up_to(ary_t *stack, VALUE target, int item, VALUE including, VALUE line_ending)
 {
     int continue_looping = 1;
     do
     {
-        VALUE top = ary_entry(stack, -1);
-        if (NIL_P(top))
+        int top = ary_entry(stack, -1);
+        if (NO_ITEM(top))
             return;
-        if (FIX2INT(top) == FIX2INT(item))
+        if (top == item)
         {
             if (including != Qtrue)
                 return;
@@ -521,19 +521,19 @@ void _Wikitext_pop_from_stack_up_to(VALUE stack, VALUE target, VALUE item, VALUE
     } while (continue_looping);
 }
 
-inline void _Wikitext_start_para_if_necessary(VALUE capture, VALUE scope, VALUE line, VALUE output,
+inline void _Wikitext_start_para_if_necessary(VALUE capture, ary_t *scope, ary_t *line, VALUE output,
     VALUE *pending_crlf)
 {
     if (!NIL_P(capture)) // we don't do anything if capturing mode
         return;
     // if no block open yet, or top of stack is BLOCKQUOTE (with nothing in it yet)
-    if ((RARRAY_LEN(scope) == 0) || (FIX2INT(ary_entry(scope, -1)) == BLOCKQUOTE))
+    if (scope->count == 0 || ary_entry(scope, -1) == BLOCKQUOTE)
     {
         rb_str_append(output, p_start());
-        ary_push(scope, INT2FIX(P));
-        ary_push(line, INT2FIX(P));
+        ary_push(scope, P);
+        ary_push(line, P);
     }
-    else if (ary_includes(scope, INT2FIX(P)) && *pending_crlf == Qtrue)
+    else if (ary_includes(scope, P) && *pending_crlf == Qtrue)
         // already in a paragraph block; convert pending CRLF into a space
         rb_str_append(output, space());
     *pending_crlf = Qfalse;
@@ -547,20 +547,20 @@ inline void _Wikitext_start_para_if_necessary(VALUE capture, VALUE scope, VALUE 
 // The reverse case (shown below) is handled from inside the BLOCKQUOTE rule itself:
 //      foo
 //      > > bar
-void inline _Wikitext_pop_excess_elements(VALUE capture, VALUE scope, VALUE line, VALUE output, VALUE line_ending)
+void inline _Wikitext_pop_excess_elements(VALUE capture, ary_t *scope, ary_t *line, VALUE output, VALUE line_ending)
 {
     if (!NIL_P(capture)) // we don't pop anything if capturing mode
         return;
-    for (long i = RARRAY_LEN(scope), j = RARRAY_LEN(line); i > j; i--)
+    for (int i = scope->count, j = line->count; i > j; i--)
     {
         // special case for last item on scope
         if (i - j == 1)
         {
             // don't auto-pop P if it is only item on scope
-            long k = FIX2INT(ary_entry(scope, -1));
+            int k = ary_entry(scope, -1);
             if (k == P)
                 continue;
-            else if (k != FIX2INT(ary_entry(line, -1)))
+            else if (k != ary_entry(line, -1))
             {
                 // pop off one more item in cases like this:
                 // * foo
@@ -796,27 +796,27 @@ VALUE Wikitext_encode_link_target(VALUE self, VALUE in)
 }
 
 // not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
-inline void _Wikitext_rollback_failed_link(VALUE output, VALUE scope, VALUE line, VALUE link_target, VALUE link_text,
+inline void _Wikitext_rollback_failed_link(VALUE output, ary_t *scope, ary_t *line, VALUE link_target, VALUE link_text,
     VALUE link_class, VALUE line_ending)
 {
     // I'd like to remove this paragraph creation from here and instead put it where the scope is first entered: would be cleaner
     // same for the method below
     // basically we can create a paragraph at that point because we know we'll either be emitting a valid link or the residue
     // left behind by an invalid one
-    int scope_includes_separator = ary_includes(scope, INT2FIX(SEPARATOR));
-    _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(LINK_START), Qtrue, line_ending);
-    if (!ary_includes(scope, INT2FIX(P)) &&
-        !ary_includes(scope, INT2FIX(H6_START)) &&
-        !ary_includes(scope, INT2FIX(H5_START)) &&
-        !ary_includes(scope, INT2FIX(H4_START)) &&
-        !ary_includes(scope, INT2FIX(H3_START)) &&
-        !ary_includes(scope, INT2FIX(H2_START)) &&
-        !ary_includes(scope, INT2FIX(H1_START)))
+    int scope_includes_separator = ary_includes(scope, SEPARATOR);
+    _Wikitext_pop_from_stack_up_to(scope, output, LINK_START, Qtrue, line_ending);
+    if (!ary_includes(scope, P) &&
+        !ary_includes(scope, H6_START) &&
+        !ary_includes(scope, H5_START) &&
+        !ary_includes(scope, H4_START) &&
+        !ary_includes(scope, H3_START) &&
+        !ary_includes(scope, H2_START) &&
+        !ary_includes(scope, H1_START))
     {
         // create a paragraph if necessary
         rb_str_append(output, p_start());
-        ary_push(scope, INT2FIX(P));
-        ary_push(line, INT2FIX(P));
+        ary_push(scope, P);
+        ary_push(line, P);
     }
     rb_str_append(output, link_start());
     if (!NIL_P(link_target))
@@ -832,23 +832,23 @@ inline void _Wikitext_rollback_failed_link(VALUE output, VALUE scope, VALUE line
     }
 }
 
-inline void _Wikitext_rollback_failed_external_link(VALUE output, VALUE scope, VALUE line, VALUE link_target,
+inline void _Wikitext_rollback_failed_external_link(VALUE output, ary_t *scope, ary_t *line, VALUE link_target,
     VALUE link_text, VALUE link_class, VALUE autolink, VALUE line_ending)
 {
-    int scope_includes_space = ary_includes(scope, INT2FIX(SPACE));
-    _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
-    if (!ary_includes(scope, INT2FIX(P)) &&
-        !ary_includes(scope, INT2FIX(H6_START)) &&
-        !ary_includes(scope, INT2FIX(H5_START)) &&
-        !ary_includes(scope, INT2FIX(H4_START)) &&
-        !ary_includes(scope, INT2FIX(H3_START)) &&
-        !ary_includes(scope, INT2FIX(H2_START)) &&
-        !ary_includes(scope, INT2FIX(H1_START)))
+    int scope_includes_space = ary_includes(scope, SPACE);
+    _Wikitext_pop_from_stack_up_to(scope, output, EXT_LINK_START, Qtrue, line_ending);
+    if (!ary_includes(scope, P) &&
+        !ary_includes(scope, H6_START) &&
+        !ary_includes(scope, H5_START) &&
+        !ary_includes(scope, H4_START) &&
+        !ary_includes(scope, H3_START) &&
+        !ary_includes(scope, H2_START) &&
+        !ary_includes(scope, H1_START))
     {
         // create a paragraph if necessary
         rb_str_append(output, p_start());
-        ary_push(scope, INT2FIX(P));
-        ary_push(line, INT2FIX(P));
+        ary_push(scope, P);
+        ary_push(line, P);
     }
     rb_str_append(output, ext_link_start());
     if (!NIL_P(link_target))
@@ -891,9 +891,9 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
     // house-keeping
     VALUE output        = rb_str_new2("");
     VALUE capture       = Qnil;             // sometimes we want to capture output rather than send it to the output variable
-    VALUE scope         = ary_new();     // stack for tracking scope
-    VALUE line          = ary_new();     // stack for tracking scope as implied by current line
-    VALUE line_buffer   = ary_new();     // stack for tracking raw tokens (not scope) on current line
+    ary_t *scope        = ary_new();        // stack for tracking scope
+    ary_t *line         = ary_new();        // stack for tracking scope as implied by current line
+    ary_t *line_buffer  = ary_new();        // stack for tracking raw tokens (not scope) on current line
     VALUE pending_crlf  = Qfalse;
     VALUE link_target   = Qnil;             // need some short term "memory" for parsing links
     VALUE link_text     = Qnil;             // need some short term "memory" for parsing links
@@ -930,11 +930,11 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
         int type = token->type;
 
         // many restrictions depend on what is at the top of the stack
-        VALUE top = ary_entry(scope, -1);
+        int top = ary_entry(scope, -1);
 
         // push current token into line buffer (but not EOF as it won't fit inside a Fixnum)
         // provides us with context-sensitive "memory" of what's been seen so far on this line
-        ary_push(line_buffer, INT2FIX(type));
+        ary_push(line_buffer, type);
 
         // can't declare new variables inside a switch statement, so predeclare them here
         long remove_strong          = -1;
@@ -963,7 +963,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
         switch (type)
         {
             case PRE:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)))
+                if (ary_includes(scope, NO_WIKI_START))
                 {
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
                     rb_str_append(output, space());
@@ -971,7 +971,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 }
 
                 // count number of BLOCKQUOTE tokens in line buffer and in scope stack
-                ary_push(line, INT2FIX(PRE));
+                ary_push(line, PRE);
                 i = ary_count(line, BLOCKQUOTE);
                 j = ary_count(scope, BLOCKQUOTE);
 
@@ -979,24 +979,24 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 {
                     // must pop (reduce nesting level)
                     for (i = j - i; i > 0; i--)
-                        _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(BLOCKQUOTE), Qtrue, line_ending);
+                        _Wikitext_pop_from_stack_up_to(scope, output, BLOCKQUOTE, Qtrue, line_ending);
                 }
 
-                if (!ary_includes(scope, INT2FIX(PRE)))
+                if (!ary_includes(scope, PRE))
                 {
                     _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
                     rb_str_append(output, pre_start());
-                    ary_push(scope, INT2FIX(PRE));
+                    ary_push(scope, PRE);
                 }
                 break;
 
             case BLOCKQUOTE:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)))
+                if (ary_includes(scope, NO_WIKI_START))
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
                     rb_str_append(output, TOKEN_TEXT(token));
                 else
                 {
-                    ary_push(line, INT2FIX(BLOCKQUOTE));
+                    ary_push(line, BLOCKQUOTE);
 
                     // count number of BLOCKQUOTE tokens in line buffer and in scope stack
                     i = ary_count(line, BLOCKQUOTE);
@@ -1005,7 +1005,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     // given that BLOCKQUOTE tokens can be nested, peek ahead and see if there are any more which might affect the decision to push or pop
                     while (NEXT_TOKEN(), (token->type == BLOCKQUOTE))
                     {
-                        ary_push(line, INT2FIX(BLOCKQUOTE));
+                        ary_push(line, BLOCKQUOTE);
                         i++;
                     }
 
@@ -1013,18 +1013,18 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     if (i > j)
                     {
                         // must push (increase nesting level)
-                        _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(BLOCKQUOTE), Qfalse, line_ending);
+                        _Wikitext_pop_from_stack_up_to(scope, output, BLOCKQUOTE, Qfalse, line_ending);
                         for (i = i - j; i > 0; i--)
                         {
                             rb_str_append(output, blockquote_start());
-                            ary_push(scope, INT2FIX(BLOCKQUOTE));
+                            ary_push(scope, BLOCKQUOTE);
                         }
                     }
                     else if (i < j)
                     {
                         // must pop (reduce nesting level)
                         for (i = j - i; i > 0; i--)
-                            _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(BLOCKQUOTE), Qtrue, line_ending);
+                            _Wikitext_pop_from_stack_up_to(scope, output, BLOCKQUOTE, Qtrue, line_ending);
                     }
 
                     // jump to top of the loop to process token we scanned during lookahead
@@ -1033,7 +1033,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 break;
 
             case NO_WIKI_START:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, escaped_no_wiki_start());
                 else
@@ -1041,15 +1041,15 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     i = NIL_P(capture) ? output : capture;
                     _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                     _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                    ary_push(scope, INT2FIX(NO_WIKI_START));
-                    ary_push(line, INT2FIX(NO_WIKI_START));
+                    ary_push(scope, NO_WIKI_START);
+                    ary_push(line, NO_WIKI_START);
                 }
                 break;
 
             case NO_WIKI_END:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)))
+                if (ary_includes(scope, NO_WIKI_START))
                     // <nowiki> should always only ever be the last item in the stack, but use the helper routine just in case
-                    _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(NO_WIKI_START), Qtrue, line_ending);
+                    _Wikitext_pop_from_stack_up_to(scope, output, NO_WIKI_START, Qtrue, line_ending);
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
@@ -1060,7 +1060,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 break;
 
             case STRONG_EM:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                 {
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, literal_strong_em());
@@ -1073,10 +1073,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 // if you've seen STRONG or EM, must close them in the reverse order that you saw them! otherwise, must open them
                 remove_strong  = -1;
                 remove_em      = -1;
-                j              = RARRAY_LEN(scope);
+                j              = scope->count;
                 for (j = j - 1; j >= 0; j--)
                 {
-                    long val = FIX2INT(ary_entry(scope, j));
+                    int val = ary_entry(scope, j);
                     if (val == STRONG)
                     {
                         rb_str_append(i, strong_end());
@@ -1097,8 +1097,8 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     else    // there was no em to remove!, so consider this an opening em tag
                     {
                         rb_str_append(i, em_start());
-                        ary_push(scope, INT2FIX(EM));
-                        ary_push(line, INT2FIX(EM));
+                        ary_push(scope, EM);
+                        ary_push(line, EM);
                     }
                 }
                 else if (remove_em > remove_strong) // must remove em first
@@ -1109,98 +1109,98 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     else    // there was no strong to remove!, so consider this an opening strong tag
                     {
                         rb_str_append(i, strong_start());
-                        ary_push(scope, INT2FIX(STRONG));
-                        ary_push(line, INT2FIX(STRONG));
+                        ary_push(scope, STRONG);
+                        ary_push(line, STRONG);
                     }
                 }
                 else    // no strong or em to remove, so this must be a new opening of both
                 {
                     _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
                     rb_str_append(i, strong_em_start());
-                    ary_push(scope, INT2FIX(STRONG));
-                    ary_push(line, INT2FIX(STRONG));
-                    ary_push(scope, INT2FIX(EM));
-                    ary_push(line, INT2FIX(EM));
+                    ary_push(scope, STRONG);
+                    ary_push(line, STRONG);
+                    ary_push(scope, EM);
+                    ary_push(line, EM);
                 }
                 break;
 
             case STRONG:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, literal_strong());
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
-                    if (ary_includes(scope, INT2FIX(STRONG)))
+                    if (ary_includes(scope, STRONG))
                         // STRONG already seen, this is a closing tag
-                        _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(STRONG), Qtrue, line_ending);
+                        _Wikitext_pop_from_stack_up_to(scope, i, STRONG, Qtrue, line_ending);
                     else
                     {
                         // this is a new opening
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
                         rb_str_append(i, strong_start());
-                        ary_push(scope, INT2FIX(STRONG));
-                        ary_push(line, INT2FIX(STRONG));
+                        ary_push(scope, STRONG);
+                        ary_push(line, STRONG);
                     }
                 }
                 break;
 
             case EM:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, literal_em());
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
-                    if (ary_includes(scope, INT2FIX(EM)))
+                    if (ary_includes(scope, EM))
                         // EM already seen, this is a closing tag
-                        _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EM), Qtrue, line_ending);
+                        _Wikitext_pop_from_stack_up_to(scope, i, EM, Qtrue, line_ending);
                     else
                     {
                         // this is a new opening
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
                         rb_str_append(i, em_start());
-                        ary_push(scope, INT2FIX(EM));
-                        ary_push(line, INT2FIX(EM));
+                        ary_push(scope, EM);
+                        ary_push(line, EM);
                     }
                 }
                 break;
 
             case TT:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, backtick());
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
-                    if (ary_includes(scope, INT2FIX(TT_START)))
+                    if (ary_includes(scope, TT_START))
                         // already in span started with <tt>, no choice but to emit this literally
                         rb_str_append(output, backtick());
-                    else if (ary_includes(scope, INT2FIX(TT)))
+                    else if (ary_includes(scope, TT))
                         // TT (`) already seen, this is a closing tag
-                        _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(TT), Qtrue, line_ending);
+                        _Wikitext_pop_from_stack_up_to(scope, i, TT, Qtrue, line_ending);
                     else
                     {
                         // this is a new opening
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
                         rb_str_append(i, tt_start());
-                        ary_push(scope, INT2FIX(TT));
-                        ary_push(line, INT2FIX(TT));
+                        ary_push(scope, TT);
+                        ary_push(line, TT);
                     }
                 }
                 break;
 
             case TT_START:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span, <pre> block
                     rb_str_append(output, escaped_tt_start());
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
-                    if (ary_includes(scope, INT2FIX(TT_START)) || ary_includes(scope, INT2FIX(TT)))
+                    if (ary_includes(scope, TT_START) || ary_includes(scope, TT))
                         // already in TT_START (<tt>) or TT (`) span)
                         rb_str_append(output, escaped_tt_start());
                     else
@@ -1208,21 +1208,21 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
                         rb_str_append(i, tt_start());
-                        ary_push(scope, INT2FIX(TT_START));
-                        ary_push(line, INT2FIX(TT_START));
+                        ary_push(scope, TT_START);
+                        ary_push(line, TT_START);
                     }
                 }
                 break;
 
             case TT_END:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, escaped_tt_end());
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
-                    if (ary_includes(scope, INT2FIX(TT_START)))
-                        _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(TT_START), Qtrue, line_ending);
+                    if (ary_includes(scope, TT_START))
+                        _Wikitext_pop_from_stack_up_to(scope, i, TT_START, Qtrue, line_ending);
                     else
                     {
                         // no TT_START in scope, so must interpret the TT_END without any special meaning
@@ -1235,7 +1235,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
             case OL:
             case UL:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)))
+                if (ary_includes(scope, NO_WIKI_START))
                 {
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
                     rb_str_append(output, TOKEN_TEXT(token));
@@ -1243,8 +1243,8 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 }
 
                 // count number of tokens in line and scope stacks
-                i = RARRAY_LEN(line);
-                j = RARRAY_LEN(scope);
+                i = line->count;
+                j = scope->count;
 
                 // list tokens can be nested so look ahead for any more which might affect the decision to push or pop
                 for (;;)
@@ -1253,14 +1253,14 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     if (type == OL || type == UL)
                     {
                         token = NULL;
-                        ary_push(line, INT2FIX(type));
-                        ary_push(line, INT2FIX(LI));
+                        ary_push(line, type);
+                        ary_push(line, LI);
                         i += 2;
 
                         // want to compare line with scope but can only do so if scope has enough items on it
                         if (j >= i)
                         {
-                            if ((FIX2INT(ary_entry(scope, i - 2)) == type) && (FIX2INT(ary_entry(scope, i - 1)) == LI))
+                            if (ary_entry(scope, i - 2) == type && ary_entry(scope, i - 1) == LI)
                             {
                                 // line and scope match at this point: do nothing yet
                             }
@@ -1300,7 +1300,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (type == OL || type == UL)
                 {
                     // if LI is at the top of a stack this is the start of a nested list
-                    if (j > 0 && FIX2INT(ary_entry(scope, -1)) == LI)
+                    if (j > 0 && ary_entry(scope, -1) == LI)
                         // so we should precede it with a CRLF
                         rb_str_append(output, line_ending);
                 }
@@ -1313,7 +1313,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
                 if (type == OL || type == UL)
                 {
-                    ary_push(scope, INT2FIX(type));
+                    ary_push(scope, type);
                     rb_str_append(output, line_ending);
                 }
                 else if (type == SPACE)
@@ -1321,7 +1321,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     token = NULL;
 
                 rb_str_append(output, li_start());
-                ary_push(scope, INT2FIX(LI));
+                ary_push(scope, LI);
 
                 // any subsequent UL or OL tokens on this line are syntax errors and must be emitted literally
                 if (type == OL || type == UL)
@@ -1351,7 +1351,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case H3_START:
             case H2_START:
             case H1_START:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)))
+                if (ary_includes(scope, NO_WIKI_START))
                 {
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
                     rb_str_append(output, TOKEN_TEXT(token));
@@ -1359,10 +1359,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 }
 
                 // pop up to but not including the last BLOCKQUOTE on the scope stack
-                _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(BLOCKQUOTE), Qfalse, line_ending);
+                _Wikitext_pop_from_stack_up_to(scope, output, BLOCKQUOTE, Qfalse, line_ending);
 
                 // count number of BLOCKQUOTE tokens in line buffer and in scope stack
-                ary_push(line, INT2FIX(type));
+                ary_push(line, type);
                 i = ary_count(line, BLOCKQUOTE);
                 j = ary_count(scope, BLOCKQUOTE);
 
@@ -1371,14 +1371,14 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 {
                     // must pop (reduce nesting level)
                     for (i = j - i; i > 0; i--)
-                        _Wikitext_pop_from_stack_up_to(scope, output, INT2FIX(BLOCKQUOTE), Qtrue, line_ending);
+                        _Wikitext_pop_from_stack_up_to(scope, output, BLOCKQUOTE, Qtrue, line_ending);
                 }
 
                 // discard any whitespace here (so that "== foo ==" will be translated to "<h2>foo</h2>" rather than "<h2> foo </h2")
                 while (NEXT_TOKEN(), (token->type == SPACE))
                     ; // discard
 
-                ary_push(scope, INT2FIX(type));
+                ary_push(scope, type);
 
                 // rather than repeat all that code for each kind of heading, share it and use a conditional here
                 if (type == H6_START)
@@ -1398,12 +1398,12 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 continue;
 
             case H6_END:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, literal_h6());
                 else
                 {
-                    if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                    if (ary_includes(scope, EXT_LINK_START))
                     {
                         // this is a syntax error; an unclosed external link
                         _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
@@ -1413,7 +1413,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         capture     = Qnil;
                     }
 
-                    if (!ary_includes(scope, INT2FIX(H6_START)))
+                    if (!ary_includes(scope, H6_START))
                     {
                         // literal output only if not in h6 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
@@ -1423,12 +1423,12 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 break;
 
             case H5_END:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, literal_h5());
                 else
                 {
-                    if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                    if (ary_includes(scope, EXT_LINK_START))
                     {
                         // this is a syntax error; an unclosed external link
                         _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
@@ -1438,7 +1438,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         capture     = Qnil;
                     }
 
-                    if (!ary_includes(scope, INT2FIX(H5_START)))
+                    if (!ary_includes(scope, H5_START))
                     {
                         // literal output only if not in h5 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
@@ -1448,12 +1448,12 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 break;
 
             case H4_END:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, literal_h4());
                 else
                 {
-                    if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                    if (ary_includes(scope, EXT_LINK_START))
                     {
                         // this is a syntax error; an unclosed external link
                         _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
@@ -1463,7 +1463,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         capture     = Qnil;
                     }
 
-                    if (!ary_includes(scope, INT2FIX(H4_START)))
+                    if (!ary_includes(scope, H4_START))
                     {
                         // literal output only if not in h4 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
@@ -1473,12 +1473,12 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 break;
 
             case H3_END:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, literal_h3());
                 else
                 {
-                    if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                    if (ary_includes(scope, EXT_LINK_START))
                     {
                         // this is a syntax error; an unclosed external link
                         _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
@@ -1488,7 +1488,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         capture     = Qnil;
                     }
 
-                    if (!ary_includes(scope, INT2FIX(H3_START)))
+                    if (!ary_includes(scope, H3_START))
                     {
                         // literal output only if not in h3 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
@@ -1498,12 +1498,12 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 break;
 
             case H2_END:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, literal_h2());
                 else
                 {
-                    if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                    if (ary_includes(scope, EXT_LINK_START))
                     {
                         // this is a syntax error; an unclosed external link
                         _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
@@ -1513,7 +1513,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         capture     = Qnil;
                     }
 
-                    if (!ary_includes(scope, INT2FIX(H2_START)))
+                    if (!ary_includes(scope, H2_START))
                     {
                         // literal output only if not in h2 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
@@ -1523,12 +1523,12 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 break;
 
             case H1_END:
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(output, literal_h1());
                 else
                 {
-                    if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                    if (ary_includes(scope, EXT_LINK_START))
                     {
                         // this is a syntax error; an unclosed external link
                         _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
@@ -1538,7 +1538,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         capture     = Qnil;
                     }
 
-                    if (!ary_includes(scope, INT2FIX(H1_START)))
+                    if (!ary_includes(scope, H1_START))
                     {
                         // literal output only if not in h1 scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
@@ -1549,16 +1549,16 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
             case URI:
                 i = TOKEN_TEXT(token); // the URI
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)))
+                if (ary_includes(scope, NO_WIKI_START))
                     // user can temporarily suppress autolinking by using <nowiki></nowiki>
                     // note that unlike MediaWiki, we do allow autolinking inside PRE blocks
                     rb_str_append(output, i);
-                else if (ary_includes(scope, INT2FIX(LINK_START)))
+                else if (ary_includes(scope, LINK_START))
                 {
                     // not yet implemented
                     // TODO: implement
                 }
-                else if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                else if (ary_includes(scope, EXT_LINK_START))
                 {
                     if (NIL_P(link_target))
                     {
@@ -1566,7 +1566,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         NEXT_TOKEN();
                         if (token->type == SPACE)
                         {
-                            ary_push(scope, INT2FIX(SPACE));
+                            ary_push(scope, SPACE);
                             link_target = i;
                             link_text   = rb_str_new2("");
                             capture     = link_text;
@@ -1632,13 +1632,13 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             // everything else will be rejected
             case LINK_START:
                 i = NIL_P(capture) ? output : capture;
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(i, link_start());
-                else if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                else if (ary_includes(scope, EXT_LINK_START))
                     // already in external link scope! (and in fact, must be capturing link_text right now)
                     rb_str_append(i, link_start());
-                else if (ary_includes(scope, INT2FIX(LINK_START)))
+                else if (ary_includes(scope, LINK_START))
                 {
                     // already in internal link scope! this is a syntax error
                     _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
@@ -1647,13 +1647,13 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     capture     = Qnil;
                     rb_str_append(output, link_start());
                 }
-                else if (ary_includes(scope, INT2FIX(SEPARATOR)))
+                else if (ary_includes(scope, SEPARATOR))
                 {
                     // scanning internal link text
                 }
                 else // not in internal link scope yet
                 {
-                    ary_push(scope, INT2FIX(LINK_START));
+                    ary_push(scope, LINK_START);
 
                     // look ahead and try to gobble up link target
                     while (NEXT_TOKEN(), (type = token->type))
@@ -1685,7 +1685,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                             break; // jump back to top of loop (will handle this in LINK_END case below)
                         else if (type == SEPARATOR)
                         {
-                            ary_push(scope, INT2FIX(SEPARATOR));
+                            ary_push(scope, SEPARATOR);
                             link_text   = rb_str_new2("");
                             capture     = link_text;
                             token       = NULL;
@@ -1708,20 +1708,20 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
             case LINK_END:
                 i = NIL_P(capture) ? output : capture;
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(i, link_end());
-                else if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                else if (ary_includes(scope, EXT_LINK_START))
                     // already in external link scope! (and in fact, must be capturing link_text right now)
                     rb_str_append(i, link_end());
-                else if (ary_includes(scope, INT2FIX(LINK_START)))
+                else if (ary_includes(scope, LINK_START))
                 {
                     // in internal link scope!
                     if (NIL_P(link_text) || RSTRING_LEN(link_text) == 0)
                         // use link target as link text
                         link_text = Wikitext_sanitize_link_target(self, link_target);
                     link_target = Wikitext_encode_link_target(self, link_target);
-                    _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(LINK_START), Qtrue, line_ending);
+                    _Wikitext_pop_from_stack_up_to(scope, i, LINK_START, Qtrue, line_ending);
                     _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
                     i = _Wikitext_hyperlink(prefix, link_target, link_text, Qnil); // link target, link text, link class
@@ -1744,20 +1744,20 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             //      he was very angery [sic] about the turn of events
             case EXT_LINK_START:
                 i = NIL_P(capture) ? output : capture;
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(i, ext_link_start());
-                else if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                else if (ary_includes(scope, EXT_LINK_START))
                     // already in external link scope! (and in fact, must be capturing link_text right now)
                     rb_str_append(i, ext_link_start());
-                else if (ary_includes(scope, INT2FIX(LINK_START)))
+                else if (ary_includes(scope, LINK_START))
                 {
                     // already in internal link scope!
                     i = ext_link_start();
                     if (NIL_P(link_target))
                         // this must be the first character of our link target
                         link_target = i;
-                    else if (ary_includes(scope, INT2FIX(SPACE)))
+                    else if (ary_includes(scope, SPACE))
                     {
                         // link target has already been scanned
                         if (NIL_P(link_text))
@@ -1776,7 +1776,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     // look ahead: expect a URI
                     NEXT_TOKEN();
                     if (token->type == URI)
-                        ary_push(scope, INT2FIX(EXT_LINK_START));    // so far so good, jump back to the top of the loop
+                        ary_push(scope, EXT_LINK_START);    // so far so good, jump back to the top of the loop
                     else
                     {
                         // only get here if there was a syntax error (missing URI)
@@ -1790,10 +1790,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
             case EXT_LINK_END:
                 i = NIL_P(capture) ? output : capture;
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(i, ext_link_end());
-                else if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                else if (ary_includes(scope, EXT_LINK_START))
                 {
                     if (NIL_P(link_text))
                         // this is a syntax error; external link with no link text
@@ -1802,7 +1802,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     else
                     {
                         // success!
-                        _Wikitext_pop_from_stack_up_to(scope, i, INT2FIX(EXT_LINK_START), Qtrue, line_ending);
+                        _Wikitext_pop_from_stack_up_to(scope, i, EXT_LINK_START, Qtrue, line_ending);
                         _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                         _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
                         i = _Wikitext_hyperlink(Qnil, link_target, link_text, link_class); // link target, link text, link class
@@ -1830,7 +1830,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case SPACE:
                 i = NIL_P(capture) ? output : capture;
                 j = TOKEN_TEXT(token); // SPACE token may actually be a run of spaces
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)) || ary_includes(scope, INT2FIX(PRE)))
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_append(i, j);
                 else
@@ -1838,12 +1838,12 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     // peek ahead to see next token
                     NEXT_TOKEN();
                     type = token->type;
-                    if (((type == H6_END) && ary_includes(scope, INT2FIX(H6_START))) ||
-                        ((type == H5_END) && ary_includes(scope, INT2FIX(H5_START))) ||
-                        ((type == H4_END) && ary_includes(scope, INT2FIX(H4_START))) ||
-                        ((type == H3_END) && ary_includes(scope, INT2FIX(H3_START))) ||
-                        ((type == H2_END) && ary_includes(scope, INT2FIX(H2_START))) ||
-                        ((type == H1_END) && ary_includes(scope, INT2FIX(H1_START))))
+                    if (((type == H6_END) && ary_includes(scope, H6_START)) ||
+                        ((type == H5_END) && ary_includes(scope, H5_START)) ||
+                        ((type == H4_END) && ary_includes(scope, H4_START)) ||
+                        ((type == H3_END) && ary_includes(scope, H3_START)) ||
+                        ((type == H2_END) && ary_includes(scope, H2_START)) ||
+                        ((type == H1_END) && ary_includes(scope, H1_START)))
                     {
                         // will suppress emission of space (discard) if next token is a H6_END, H5_END etc and we are in the corresponding scope
                     }
@@ -1908,7 +1908,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 break;
 
             case CRLF:
-                if (ary_includes(scope, INT2FIX(LINK_START)))
+                if (ary_includes(scope, LINK_START))
                 {
                     // this is a syntax error; an unclosed external link
                     _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
@@ -1916,7 +1916,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     link_text   = Qnil;
                     capture     = Qnil;
                 }
-                else if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                else if (ary_includes(scope, EXT_LINK_START))
                 {
                     // this is a syntax error; an unclosed external link
                     _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
@@ -1926,7 +1926,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     capture     = Qnil;
                 }
 
-                if (ary_includes(scope, INT2FIX(NO_WIKI_START)))
+                if (ary_includes(scope, NO_WIKI_START))
                 {
                     // <nowiki> spans are unique; CRLFs are blindly echoed
                     while (!NIL_P(ary_delete_at(line_buffer, -1)));
@@ -1934,10 +1934,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     pending_crlf = Qfalse;
                     break;
                 }
-                else if (ary_includes(scope, INT2FIX(PRE)))
+                else if (ary_includes(scope, PRE))
                 {
                     // beware when nothing or BLOCKQUOTE on line buffer (not line stack!) prior to CRLF, that must be end of PRE block
-                    if (NIL_P(ary_entry(line_buffer, -2)) || (FIX2INT(ary_entry(line_buffer, -2)) == BLOCKQUOTE))
+                    if (NO_ITEM(ary_entry(line_buffer, -2)) || ary_entry(line_buffer, -2) == BLOCKQUOTE)
                     {
                         // don't emit in this case
                     }
@@ -1952,19 +1952,19 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     // count number of BLOCKQUOTE tokens in line buffer (can be zero) and pop back to that level
                     // as a side effect, this handles any open span-level elements and unclosed blocks (with special handling for P blocks and LI elements)
                     i = ary_count(line, BLOCKQUOTE);
-                    for (j = RARRAY_LEN(scope); j > i; j--)
+                    for (j = scope->count; j > i; j--)
                     {
-                        if (RARRAY_LEN(line) > 0 && FIX2INT(ary_entry(line, -1)) == LI)
+                        if (line->count > 0 && ary_entry(line, -1) == LI)
                         {
                             pending_crlf = Qfalse;
                             break;
                         }
 
                         // special handling on last iteration through the loop if the top item on the scope is a P block
-                        if ((j - i == 1) && (FIX2INT(ary_entry(scope, -1)) == P))
+                        if ((j - i == 1) && ary_entry(scope, -1) == P)
                         {
                             // if nothing or BLOCKQUOTE on line buffer (not line stack!) prior to CRLF, this must be a paragraph break
-                            if (NIL_P(ary_entry(line_buffer, -2)) || (FIX2INT(ary_entry(line_buffer, -2)) == BLOCKQUOTE))
+                            if (NO_ITEM(ary_entry(line_buffer, -2)) || ary_entry(line_buffer, -2) == BLOCKQUOTE)
                                 // paragraph break
                                 pending_crlf = Qfalse;
                             else
@@ -1996,14 +1996,14 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
             case END_OF_FILE:
                 // close any open scopes on hitting EOF
-                if (ary_includes(scope, INT2FIX(EXT_LINK_START)))
+                if (ary_includes(scope, EXT_LINK_START))
                     // this is a syntax error; an unclosed external link
                     _Wikitext_rollback_failed_external_link(output, scope, line, link_target, link_text, link_class, autolink,
                         line_ending);
-                else if (ary_includes(scope, INT2FIX(LINK_START)))
+                else if (ary_includes(scope, LINK_START))
                     // this is a syntax error; an unclosed internal link
                     _Wikitext_rollback_failed_link(output, scope, line, link_target, link_text, link_class, line_ending);
-                for (i = 0, j = RARRAY_LEN(scope); i < j; i++)
+                for (i = 0, j = scope->count; i < j; i++)
                     _Wikitext_pop_from_stack(scope, output, line_ending);
                 goto return_output; // break not enough here (want to break out of outer while loop, not inner switch statement)
 
@@ -2015,5 +2015,8 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
         token = NULL;
     } while (1);
 return_output:
+    ary_free(scope);        // BUG: these will leak if we exit this function by raising an exception
+    ary_free(line);         // BUG: these will leak if we exit this function by raising an exception
+    ary_free(line_buffer);  // BUG: these will leak if we exit this function by raising an exception
     return output;
 }
