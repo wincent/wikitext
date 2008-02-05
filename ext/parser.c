@@ -397,7 +397,7 @@ inline VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
 
 // - non-printable (non-ASCII) characters converted to numeric entities
 // - QUOT and AMP characters converted to named entities
-inline VALUE _Wikitext_sanitize_link_target(VALUE self, VALUE string)
+inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 {
     string              = StringValue(string);  // raises if string is nil or doesn't quack like a string
     char    *src        = RSTRING_PTR(string);
@@ -474,9 +474,9 @@ inline VALUE _Wikitext_sanitize_link_target(VALUE self, VALUE string)
     return out;
 }
 
-VALUE Wikitext_sanitize_link_target(VALUE self, VALUE string)
+VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 {
-    return (_Wikitext_sanitize_link_target(self, string));
+    return (_Wikitext_parser_sanitize_link_target(self, string));
 }
 
 // encodes the input string according to RFCs 2396 and 2718
@@ -488,7 +488,7 @@ VALUE Wikitext_sanitize_link_target(VALUE self, VALUE string)
 // to be equivalent to:
 //         thing. [[Foo]] was...
 // TODO: this is probably the right place to check if treat_slash_as_special is true and act accordingly
-inline static VALUE _Wikitext_encode_link_target(VALUE self, VALUE in)
+inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 {
     in                      = StringValue(in);
     char        *input      = RSTRING_PTR(in);
@@ -544,9 +544,9 @@ inline static VALUE _Wikitext_encode_link_target(VALUE self, VALUE in)
     return out;
 }
 
-VALUE Wikitext_encode_link_target(VALUE self, VALUE in)
+VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 {
-    return _Wikitext_encode_link_target(self, in);
+    return _Wikitext_parser_encode_link_target(self, in);
 }
 
 // not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
@@ -575,7 +575,7 @@ inline void _Wikitext_rollback_failed_link(VALUE output, ary_t *scope, ary_t *li
     rb_str_cat(output, link_start, sizeof(link_start) - 1);
     if (!NIL_P(link_target))
     {
-        VALUE sanitized = Wikitext_sanitize_link_target(Qnil, link_target);
+        VALUE sanitized = Wikitext_parser_sanitize_link_target(Qnil, link_target);
         rb_str_append(output, sanitized);
         if (scope_includes_separator)
         {
@@ -1480,8 +1480,8 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     // in internal link scope!
                     if (NIL_P(link_text) || RSTRING_LEN(link_text) == 0)
                         // use link target as link text
-                        link_text = Wikitext_sanitize_link_target(self, link_target);
-                    link_target = Wikitext_encode_link_target(self, link_target);
+                        link_text = Wikitext_parser_sanitize_link_target(self, link_target);
+                    link_target = Wikitext_parser_encode_link_target(self, link_target);
                     _Wikitext_pop_from_stack_up_to(scope, i, LINK_START, Qtrue, line_ending);
                     _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);

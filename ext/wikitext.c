@@ -37,7 +37,7 @@ void Init_wikitext()
     //      foo, "bar" & baz €
     // would be sanitized as:
     //      foo, &quot;bar&quot; &amp; baz &#x20ac;
-    rb_define_singleton_method(cWikitextParser, "sanitize_link_target", Wikitext_sanitize_link_target, 1);
+    rb_define_singleton_method(cWikitextParser, "sanitize_link_target", Wikitext_parser_sanitize_link_target, 1);
 
     // encodes an internal link target for use as an anchor href; for example, the link target:
     //      foo, "bar" & baz €
@@ -45,7 +45,7 @@ void Init_wikitext()
     //      foo%2c%20%22bar%22%20%26%20baz%e2%82%ac
     // and used as follows (combined with the output of sanitize_link_target):
     //      <a href="foo%2c%20%22bar%22%20%26%20baz%e2%82%ac">foo, &quot;bar&quot; &amp; baz &#x20ac;</a>
-    rb_define_singleton_method(cWikitextParser, "encode_link_target", Wikitext_encode_link_target, 1);
+    rb_define_singleton_method(cWikitextParser, "encode_link_target", Wikitext_parser_encode_link_target, 1);
 
     // override default line_ending
     // defaults to "\n"
