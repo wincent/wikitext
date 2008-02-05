@@ -15,10 +15,10 @@
 #include "wikitext_ragel.h"
 #include "parser.h"
 
-VALUE mWikitext              = 0;   // Wikitext
-VALUE cWikitextParser        = 0;   // Wikitext::Parser
-VALUE eWikitextParserError   = 0;   // Wikitext::Parser::Error
-VALUE cWikitextParserToken   = 0;   // Wikitext::Parser::Token
+VALUE mWikitext              = 0;   // module Wikitext
+VALUE cWikitextParser        = 0;   // class Wikitext::Parser
+VALUE eWikitextParserError   = 0;   // class Wikitext::Parser::Error
+VALUE cWikitextParserToken   = 0;   // class Wikitext::Parser::Token
 
 void Init_wikitext()
 {

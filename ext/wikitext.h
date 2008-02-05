@@ -17,15 +17,14 @@
 
 #define ruby_inspect(obj) rb_funcall(rb_mKernel, rb_intern("p"), 1, obj)
 
-// Wikitext
+// module Wikitext
 extern VALUE mWikitext;
 
-// Wikitext::Parser
+// class Wikitext::Parser
 extern VALUE cWikitextParser;
 
-// Wikitext::Parser::Error
-// error raised when scanning fails
+// class Wikitext::Parser::Error
 extern VALUE eWikitextParserError;
 
-// Wikitext::Parser::Token
+// class Wikitext::Parser::Token
 extern VALUE cWikitextParserToken;
