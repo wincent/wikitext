@@ -76,21 +76,21 @@ Spec::Rake::SpecTask.new('spec') do |t|
 end
 
 SPEC = Gem::Specification.new do |s|
-  s.name          = 'wikitext'
-  s.version       = '0.1'
-  s.author        = 'Wincent Colaiuta'
-  s.email         = 'win@wincent.com'
-  s.homepage      = 'http://wincent.com/'
-  s.platform      = Gem::Platform::RUBY
-  s.summary       = 'Wikitext-to-HTML translator'
-  s.description   = <<-ENDDESC
+  s.name              = 'wikitext'
+  s.version           = '0.1'
+  s.author            = 'Wincent Colaiuta'
+  s.email             = 'win@wincent.com'
+  s.homepage          = 'http://wincent.com/'
+  s.rubyforge_project = 'wikitext'
+  s.platform          = Gem::Platform::RUBY
+  s.summary           = 'Wikitext-to-HTML translator'
+  s.description       = <<-ENDDESC
     Wikitext is a fast wikitext-to-HTML translator written in C.
   ENDDESC
-  s.require_paths = ['ext']
-  s.autorequire   = 'wikitext'
-  s.has_rdoc      = true
-  s.files         = FileList['spec/*', 'ext/*.{rb,c,h}'].to_a # TODO: add 'docs' subdirectory, 'README.txt' when they're done
-  s.extensions    = ['ext/extconf.rb']
+  s.require_paths     = ['ext']
+  s.has_rdoc          = true
+  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}'].to_a # TODO: add 'docs' subdirectory, 'README.txt' when they're done
+  s.extensions        = ['ext/extconf.rb']
 end
 
 Rake::GemPackageTask.new(SPEC) do |t|
