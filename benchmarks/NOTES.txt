@@ -31,3 +31,7 @@ After replacing many rb_str_append calls with rb_str_cat
   short slab of ASCII text    2.380000   0.010000   2.390000 (  2.461861)
   short slab of UTF-8 text    4.860000   0.000000   4.860000 (  5.016289)
 
+More rb_str_append calls replaced with rb_str_cat (token text):
+
+  short slab of ASCII text    1.570000   0.010000   1.580000 (  1.705596)
+  short slab of UTF-8 text    3.280000   0.020000   3.300000 (  3.353919)

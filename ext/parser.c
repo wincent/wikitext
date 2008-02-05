@@ -747,7 +747,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case BLOCKQUOTE:
                 if (ary_includes(scope, NO_WIKI_START))
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
-                    rb_str_append(output, TOKEN_TEXT(token));
+                    rb_str_cat(output, token->start, TOKEN_LEN(token));
                 else
                 {
                     ary_push(line, BLOCKQUOTE);
@@ -992,7 +992,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (ary_includes(scope, NO_WIKI_START))
                 {
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
-                    rb_str_append(output, TOKEN_TEXT(token));
+                    rb_str_cat(output, token->start, TOKEN_LEN(token));
                     break;
                 }
 
@@ -1084,7 +1084,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     while (k++, NEXT_TOKEN(), (type = token->type))
                     {
                         if (type == OL || type == UL)
-                            rb_str_append(output, TOKEN_TEXT(token));
+                            rb_str_cat(output, token->start, TOKEN_LEN(token));
                         else if (type == SPACE && k == 1)
                         {
                             // silently throw away the optional SPACE token after final list marker
@@ -1108,7 +1108,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (ary_includes(scope, NO_WIKI_START))
                 {
                     // already in <nowiki> span (no need to check for <pre>; can never appear inside it)
-                    rb_str_append(output, TOKEN_TEXT(token));
+                    rb_str_cat(output, token->start, TOKEN_LEN(token));
                     break;
                 }
 
@@ -1302,11 +1302,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 break;
 
             case URI:
-                i = TOKEN_TEXT(token); // the URI
                 if (ary_includes(scope, NO_WIKI_START))
                     // user can temporarily suppress autolinking by using <nowiki></nowiki>
                     // note that unlike MediaWiki, we do allow autolinking inside PRE blocks
-                    rb_str_append(output, i);
+                    rb_str_cat(output, token->start, TOKEN_LEN(token));
                 else if (ary_includes(scope, LINK_START))
                 {
                     // not yet implemented
@@ -1317,6 +1316,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     if (NIL_P(link_target))
                     {
                         // this must be our link target: look ahead to make sure we see the space we're expecting to see
+                        i = TOKEN_TEXT(token);
                         NEXT_TOKEN();
                         if (token->type == SPACE)
                         {
@@ -1342,10 +1342,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     {
                         if (NIL_P(link_text))
                             // this must be the first part of our link text
-                            link_text = i;
+                            link_text = TOKEN_TEXT(token);
                         else
                             // add to existing link text
-                            rb_str_append(link_text, i);
+                            rb_str_cat(link_text, token->start, TOKEN_LEN(token));
                     }
                 }
                 else
@@ -1353,6 +1353,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
                     _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
+                    i = TOKEN_TEXT(token);
                     if (autolink == Qtrue)
                         i = _Wikitext_hyperlink(Qnil, i, i, link_class); // link target, link text, link class
                     rb_str_append(output, i);
@@ -1433,7 +1434,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                                 // don't insert the entity, insert the literal ampersand
                                 rb_str_cat(link_target, ampersand, sizeof(ampersand) - 1);
                             else
-                                rb_str_append(link_target, TOKEN_TEXT(token));
+                                rb_str_cat(link_target, token->start, TOKEN_LEN(token));
                         }
                         else if (type == LINK_END)
                             break; // jump back to top of loop (will handle this in LINK_END case below)
@@ -1583,13 +1584,14 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
 
             case SPACE:
                 i = NIL_P(capture) ? output : capture;
-                j = TOKEN_TEXT(token); // SPACE token may actually be a run of spaces
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_append(i, j);
+                    rb_str_cat(i, token->start, TOKEN_LEN(token));
                 else
                 {
                     // peek ahead to see next token
+                    char    *token_ptr  = token->start;
+                    int     token_len   = TOKEN_LEN(token);
                     NEXT_TOKEN();
                     type = token->type;
                     if (((type == H6_END) && ary_includes(scope, H6_START)) ||
@@ -1606,7 +1608,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         // emit the space
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                         _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                        rb_str_append(i, j);
+                        rb_str_cat(i, token_ptr, token_len);
                     }
 
                     // jump to top of the loop to process token we scanned during lookahead
@@ -1622,7 +1624,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                 _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                rb_str_append(i, TOKEN_TEXT(token));
+                rb_str_cat(i, token->start, TOKEN_LEN(token));
                 break;
 
             case HEX_ENTITY:
@@ -1738,7 +1740,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
                 _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
-                rb_str_append(i, TOKEN_TEXT(token));
+                rb_str_cat(i, token->start, TOKEN_LEN(token));
                 break;
 
             case DEFAULT:

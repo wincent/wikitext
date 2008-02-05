@@ -16,6 +16,7 @@
 #include <stdint.h>     /* uint32_t */
 
 #define TOKEN_TEXT(token)   rb_str_new((const char *)token->start, (token->stop - token->start))
+#define TOKEN_LEN(token)    (token->stop - token->start)
 
 typedef struct
 {
