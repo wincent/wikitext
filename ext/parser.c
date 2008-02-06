@@ -403,6 +403,7 @@ inline VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
 
 // - non-printable (non-ASCII) characters converted to numeric entities
 // - QUOT and AMP characters converted to named entities
+// - leading and trailing whitespace trimmed
 inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 {
     string              = StringValue(string);  // raises if string is nil or doesn't quack like a string
@@ -416,7 +417,7 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
     // this efficiently handles the most common case (where the size of the buffer doesn't change much)
     char    *dest       = ALLOC_N(char, len * 2);
     char    *dest_ptr   = dest; // hang on to this so we can pass it to free() later
-
+    char    *non_space  = dest; // remember last non-space character output
     while (src < end)
     {
         // need at most 8 characters (8 bytes) to display each character
@@ -474,11 +475,20 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
             memcpy(dest, entity_src, entity_len);
             dest        += entity_len;
             src         += width;
+            non_space   = dest;
             continue;
         }
+        if (*src != ' ')
+            non_space = dest;
         src++;
     }
-    VALUE out = rb_str_new(dest_ptr, dest - dest_ptr);
+
+    // trim trailing space if necessary
+    if (non_space > dest_ptr && dest != non_space)
+        len = non_space - dest_ptr;
+    else
+        len = dest - dest_ptr;
+    VALUE out = rb_str_new(dest_ptr, len);
     free(dest_ptr);
     return out;
 }
@@ -489,6 +499,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 }
 
 // encodes the input string according to RFCs 2396 and 2718
+// leading and trailing whitespace trimmed
 // input is the pointer to the string, and len is its length in characters (not in bytes)
 // note that the first character of the target link is not case-sensitive
 // (this is a recommended application-level constraint; it is not imposed at this level)
@@ -558,7 +569,7 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
     }
 
     // trim trailing space if necessary
-    if (len> 0 && dest - 1 != non_space)
+    if (dest > dest_ptr && dest - 1 != non_space)
         dest_len = non_space - dest_ptr;
     else
         dest_len = dest - dest_ptr;
