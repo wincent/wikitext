@@ -401,10 +401,36 @@ inline VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
     return rb_str_new((const char *)hex_string, sizeof(hex_string));
 }
 
+inline VALUE _Wikitext_parser_trim_link_target(VALUE string)
+{
+    string              = StringValue(string);
+    char    *src        = RSTRING_PTR(string);
+    char    *start      = src;                  // remember this so we can check if we're at the start
+    char    *left       = src;
+    char    *non_space  = src;                  // remember last non-space character output
+    long    len         = RSTRING_LEN(string);
+    char    *end        = src + len;
+    while (src < end)
+    {
+        if (*src == ' ')
+        {
+            if (src == left)
+                *left++;
+        }
+        else
+            non_space = src;
+        src++;
+    }
+    if (left == start && non_space + 1 == end)
+        return string;
+    else
+        return rb_str_new(left, (non_space + 1) - left);
+}
+
 // - non-printable (non-ASCII) characters converted to numeric entities
 // - QUOT and AMP characters converted to named entities
 // - leading and trailing whitespace trimmed if trim is Qtrue
-inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string, VALUE trim)
+inline VALUE _Wikitext_parser_sanitize_link_target(VALUE string, VALUE trim)
 {
     string              = StringValue(string);  // raises if string is nil or doesn't quack like a string
     char    *src        = RSTRING_PTR(string);
@@ -496,7 +522,7 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string, VAL
 
 VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 {
-    return (_Wikitext_parser_sanitize_link_target(self, string, Qtrue));
+    return (_Wikitext_parser_sanitize_link_target(string, Qtrue));
 }
 
 // encodes the input string according to RFCs 2396 and 2718
@@ -509,7 +535,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 // to be equivalent to:
 //         thing. [[Foo]] was...
 // TODO: this is probably the right place to check if treat_slash_as_special is true and act accordingly
-inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
+inline static VALUE _Wikitext_parser_encode_link_target(VALUE in)
 {
     in                      = StringValue(in);
     char        *input      = RSTRING_PTR(in);
@@ -582,7 +608,7 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 
 VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 {
-    return _Wikitext_parser_encode_link_target(self, in);
+    return _Wikitext_parser_encode_link_target(in);
 }
 
 // not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
@@ -611,7 +637,7 @@ inline void _Wikitext_rollback_failed_link(VALUE output, ary_t *scope, ary_t *li
     rb_str_cat(output, link_start, sizeof(link_start) - 1);
     if (!NIL_P(link_target))
     {
-        VALUE sanitized = _Wikitext_parser_sanitize_link_target(Qnil, link_target, Qfalse);
+        VALUE sanitized = _Wikitext_parser_sanitize_link_target(link_target, Qfalse);
         rb_str_append(output, sanitized);
         if (scope_includes_separator)
         {
@@ -1619,8 +1645,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     // in internal link scope!
                     if (NIL_P(link_text) || RSTRING_LEN(link_text) == 0)
                         // use link target as link text
-                        link_text = _Wikitext_parser_sanitize_link_target(self, link_target, Qtrue);
-                    link_target = _Wikitext_parser_encode_link_target(self, link_target);
+                        link_text = _Wikitext_parser_sanitize_link_target(link_target, Qtrue);
+                    else
+                        link_text = _Wikitext_parser_trim_link_target(link_text);
+                    link_target = _Wikitext_parser_encode_link_target(link_target);
                     _Wikitext_pop_from_stack_up_to(scope, i, LINK_START, Qtrue, line_ending);
                     _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
@@ -1732,27 +1760,6 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_cat(i, token->start, TOKEN_LEN(token));
-                else if (ary_includes(scope, SEPARATOR))
-                {
-                    // scanning internal link text
-                    if (RSTRING_LEN(capture) == 0)
-                        ; // eat space immediately after the separator
-                    else
-                    {
-                        // peek ahead to see if this is trailing link text
-                        char    *token_ptr  = token->start;
-                        int     token_len   = TOKEN_LEN(token);
-                        NEXT_TOKEN();
-                        type = token->type;
-                        if (type == LINK_END)
-                            ; // eat trailing whitespace here too
-                        else
-                            rb_str_cat(i, token_ptr, token_len);
-
-                        // jump to top of the loop to process token we scanned in lookahead
-                        continue;
-                    }
-                }
                 else
                 {
                     // peek ahead to see next token

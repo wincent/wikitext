@@ -140,6 +140,15 @@ describe Wikitext::Parser, 'internal links' do
       @parser.parse('[[foo|bar      ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
     end
 
+    it 'should trim leading and trailing whitespace from the link text' do
+      @parser.parse('[[foo|      bar ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo|     bar  ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo|    bar   ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo|   bar    ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo|  bar     ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo| bar      ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+    end
+
     it 'should treat a separator inside the link text as part of the link text' do
       @parser.parse('[[foo|bar|baz]]').should == %Q{<p><a href="/wiki/foo">bar|baz</a></p>\n}
     end
@@ -183,7 +192,7 @@ describe Wikitext::Parser, 'internal links' do
       @parser.parse('[[foo|bar <tt>baz</tt>]]').should == expected
     end
 
-    it 'should automatically close unclosd tt markup in the custom link text' do
+    it 'should automatically close unclosed tt markup in the custom link text' do
       expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
       @parser.parse('[[foo|bar <tt>baz]]').should == expected
     end
@@ -325,6 +334,12 @@ describe Wikitext::Parser, 'internal links' do
     describe 'link cut off at separator (end-of-file)' do
       it 'should rollback and show the unterminated link' do
         @parser.parse('[[foo|').should == %Q{<p>[[foo|</p>\n}
+        @parser.parse('[[foo| ').should == %Q{<p>[[foo| </p>\n}
+        @parser.parse('[[foo|  ').should == %Q{<p>[[foo|  </p>\n}
+        @parser.parse('[[foo|   ').should == %Q{<p>[[foo|   </p>\n}
+        @parser.parse('[[foo|    ').should == %Q{<p>[[foo|    </p>\n}
+        @parser.parse('[[foo|     ').should == %Q{<p>[[foo|     </p>\n}
+        @parser.parse('[[foo|      ').should == %Q{<p>[[foo|      </p>\n}
       end
     end
 
