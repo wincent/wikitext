@@ -63,6 +63,7 @@ enum token_types {
     H2_END,
     H1_END,
     URI,
+    MAIL,
     LINK_START,
     LINK_END,
     EXT_LINK_START,
