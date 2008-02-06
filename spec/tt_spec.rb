@@ -25,6 +25,12 @@ describe Wikitext::Parser, 'parsing <tt> spans' do
     @parser.parse('foo <tt>bar</tt> baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
   end
 
+  it 'should recognize <tt> tags case-insensitively' do
+    @parser.parse('foo <TT>bar</tT> baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
+    @parser.parse('foo <tT>bar</Tt> baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
+    @parser.parse('foo <Tt>bar</TT> baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
+  end
+
   it 'should automatically insert missing closing tags' do
     @parser.parse('foo <tt>bar').should == "<p>foo <tt>bar</tt></p>\n"
   end
