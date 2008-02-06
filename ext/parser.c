@@ -459,10 +459,7 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
             rb_raise(rb_eRangeError, "invalid link text (\">\" may not appear in link text)");
         }
         else if (*src == ' ' && src == start)
-        {
-            // do nothing: we eat leading space
-            start++;
-        }
+            start++;                    // we eat leading space
         else if (*src >= 0x20 && *src <= 0x7e)    // printable ASCII
         {
             *dest = *src;
@@ -504,6 +501,7 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 {
     in                      = StringValue(in);
     char        *input      = RSTRING_PTR(in);
+    char        *start      = input;            // remember this so we can check if we're at the start
     long        len         = RSTRING_LEN(in);
     char        *end        = input + len;
     static char hex[]       = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
@@ -544,6 +542,8 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
             (*input == '.') ||
             (*input == '~'))
             *dest++ = *input;
+        else if (*input == ' ' && input == start)
+            start++;                    // we eat leading space
         else    // everything else gets URL-encoded
         {
             *dest++ = '%';

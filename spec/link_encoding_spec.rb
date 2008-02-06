@@ -26,8 +26,15 @@ describe Wikitext, 'encoding a link target' do
     Wikitext::Parser.encode_link_target('').should == ''
   end
 
-  it 'should convert spaces into "%20"' do
+  it 'should convert embedded spaces into "%20"' do
     Wikitext::Parser.encode_link_target('hello world').should == 'hello%20world'
+  end
+
+  it 'should eat leading spaces' do
+    Wikitext::Parser.encode_link_target(' hello world').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('  hello world').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('   hello world').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('    hello world').should == 'hello%20world'
   end
 
   it 'should convert reserved symbols into percent escapes' do
