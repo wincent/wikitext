@@ -435,6 +435,7 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string, VAL
             }
             dest_ptr    = dest;
             dest        = dest_ptr + (old_dest - old_dest_ptr);
+            non_space   = dest_ptr + (non_space - old_dest_ptr);
         }
 
         if (*src == '"')                 // QUOT
