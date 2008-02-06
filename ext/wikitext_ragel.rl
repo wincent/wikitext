@@ -99,6 +99,30 @@
             fbreak;
         };
 
+        /<strong>/i
+        {
+            EMIT(STRONG_START);
+            fbreak;
+        };
+
+        /<\/strong>/i   # this comment because the Ragel TextMate bundle miscolorizes without it /
+        {
+            EMIT(STRONG_END);
+            fbreak;
+        };
+
+        /<em>/i
+        {
+            EMIT(EM_START);
+            fbreak;
+        };
+
+        /<\/em>/i   # this comment because the Ragel TextMate bundle miscolorizes without it /
+        {
+            EMIT(EM_END);
+            fbreak;
+        };
+
         '`'
         {
             EMIT(TT);
