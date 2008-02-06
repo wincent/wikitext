@@ -1400,6 +1400,22 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 }
                 break;
 
+            case MAIL:
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
+                    // already in <nowiki> span or <pre> block
+                    rb_str_cat(i, token->start, TOKEN_LEN(token));
+                else
+                {
+                    // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
+                    _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending);
+                    _Wikitext_start_para_if_necessary(capture, scope, line, output, &pending_crlf);
+                    i = TOKEN_TEXT(token);
+                    if (autolink == Qtrue)
+                        i = _Wikitext_hyperlink(rb_str_new2("mailto:"), i, i, link_class); // prefix, target, text, class
+                    rb_str_append(output, i);
+                }
+                break;
+
             case URI:
                 if (ary_includes(scope, NO_WIKI_START))
                     // user can temporarily suppress autolinking by using <nowiki></nowiki>
