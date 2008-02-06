@@ -513,7 +513,7 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
     long        dest_len    = len * 2;
     char        *dest       = ALLOC_N(char, dest_len);
     char        *dest_ptr   = dest; // hang on to this so we can pass it to free() later
-
+    char        *non_space  = dest; // remember last non-space character output
     for (; input < end; input++)
     {
         if ((dest + 3) > (dest_ptr + dest_len))     // worst case: a single character may grow to 3 characters once encoded
@@ -541,17 +541,28 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
             (*input == '_') ||
             (*input == '.') ||
             (*input == '~'))
-            *dest++ = *input;
+        {
+            *dest++     = *input;
+            non_space   = dest;
+        }
         else if (*input == ' ' && input == start)
             start++;                    // we eat leading space
         else    // everything else gets URL-encoded
         {
-            *dest++ = '%';
-            *dest++ = hex[(unsigned char)(*input) / 16];   // left
-            *dest++ = hex[(unsigned char)(*input) % 16];   // right
+            *dest++     = '%';
+            *dest++     = hex[(unsigned char)(*input) / 16];   // left
+            *dest++     = hex[(unsigned char)(*input) % 16];   // right
+            if (*input != ' ')
+                non_space = dest;
         }
     }
-    VALUE out = rb_str_new(dest_ptr, dest - dest_ptr);
+
+    // trim trailing space if necessary
+    if (len> 0 && dest - 1 != non_space)
+        dest_len = non_space - dest_ptr;
+    else
+        dest_len = dest - dest_ptr;
+    VALUE out = rb_str_new(dest_ptr, dest_len);
     free(dest_ptr);
     return out;
 }

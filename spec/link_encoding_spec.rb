@@ -37,6 +37,13 @@ describe Wikitext, 'encoding a link target' do
     Wikitext::Parser.encode_link_target('    hello world').should == 'hello%20world'
   end
 
+  it 'should eat trailing spaces' do
+    Wikitext::Parser.encode_link_target('hello world ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('hello world  ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('hello world   ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('hello world    ').should == 'hello%20world'
+  end
+
   it 'should convert reserved symbols into percent escapes' do
     Wikitext::Parser.encode_link_target('http://www.apple.com/q?foo').should == 'http%3a%2f%2fwww.apple.com%2fq%3ffoo'
   end
