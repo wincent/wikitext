@@ -1403,7 +1403,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
             case MAIL:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
-                    rb_str_cat(i, token->start, TOKEN_LEN(token));
+                    rb_str_cat(output, token->start, TOKEN_LEN(token));
                 else
                 {
                     // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
