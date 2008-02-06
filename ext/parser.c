@@ -542,6 +542,7 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
             }
             dest_ptr    = dest;
             dest        = dest_ptr + (old_dest - old_dest_ptr);
+            non_space   = dest_ptr + (non_space - old_dest_ptr);
         }
 
         // pass through unreserved characters
@@ -569,7 +570,7 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
     }
 
     // trim trailing space if necessary
-    if (dest > dest_ptr && dest - 1 != non_space)
+    if (non_space > dest_ptr && dest - 1 != non_space)
         dest_len = non_space - dest_ptr;
     else
         dest_len = dest - dest_ptr;
