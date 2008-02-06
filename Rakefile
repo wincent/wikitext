@@ -18,6 +18,7 @@ require 'rake/gempackagetask'
 require 'rake/rdoctask'
 require 'rubygems'
 require 'spec/rake/spectask'
+require File.join(File.dirname(__FILE__), 'lib', 'version.rb')
 
 CLEAN.include   Rake::FileList['**/*.so', '**/*.bundle', '**/*.o', '**/mkmf.log', '**/Makefile']
 CLOBBER.include Rake::FileList['ext/wikitext_ragel.c']
@@ -83,12 +84,17 @@ Rake::RDocTask.new do |t|
   t.title             = 'Wikitext documentation'
 end
 
+desc 'Upload RDoc to RubyForge website'
+task :upload_rdoc => :rdoc do
+  sh 'scp -r html/* rubyforge.org:/var/www/gforge-projects/wikitext/'
+end
+
 SPEC = Gem::Specification.new do |s|
   s.name              = 'wikitext'
-  s.version           = '0.1'
+  s.version           =  Wikitext::VERSION
   s.author            = 'Wincent Colaiuta'
   s.email             = 'win@wincent.com'
-  s.homepage          = 'http://wincent.com/'
+  s.homepage          = 'http://wikitext.rubyforge.org/'
   s.rubyforge_project = 'wikitext'
   s.platform          = Gem::Platform::RUBY
   s.summary           = 'Wikitext-to-HTML translator'
