@@ -48,6 +48,11 @@ inline int ary_entry(ary_t *ary, int idx)
     return (idx >= 0 && ary->count > idx) ? ary->entries[idx] : INT_MAX;
 }
 
+inline void ary_clear(ary_t *ary)
+{
+    ary->count = 0;
+}
+
 inline int ary_pop(ary_t *ary)
 {
     if (ary->count > 0)
