@@ -507,7 +507,7 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE self, VALUE in)
     // often quite a few spaces, which are encoded as "%20" and occupy 3 bytes)
     // the worst case is where _every_ byte must be written out using 3 bytes
     long        dest_len    = len * 2;
-    char        *dest       = malloc(dest_len);
+    char        *dest       = ALLOC_N(char, dest_len);
     char        *dest_ptr   = dest; // hang on to this so we can pass it to free() later
 
     for (; input < end; input++)
