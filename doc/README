@@ -203,9 +203,9 @@ Would become:
 See the Parser attributes documentation for information on overriding
 the default external link class (+external+ in this example).
 
-= Author
+= Links
 
-The wikitext extension was written and is maintained by Wincent Colaiuta.
-
-* http://wincent.com
-* win@wincent.com
+* RubyForge project page: http://rubyforge.org/projects/wikitext
+* RDoc: http://wikitext.rubyforge.org
+* Source: http://git.wincent.com/wikitext.git
+* Author/maintainer: Wincent Colaiuta (win@wincent.com, http://wincent.com)
