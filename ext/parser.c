@@ -1620,7 +1620,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     if (NIL_P(link_text) || RSTRING_LEN(link_text) == 0)
                         // use link target as link text
                         link_text = _Wikitext_parser_sanitize_link_target(self, link_target, Qtrue);
-                    link_target = Wikitext_parser_encode_link_target(self, link_target);
+                    link_target = _Wikitext_parser_encode_link_target(self, link_target);
                     _Wikitext_pop_from_stack_up_to(scope, i, LINK_START, Qtrue, line_ending);
                     _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
                     _Wikitext_start_para_if_necessary(Qnil, scope, line, output, &pending_crlf);
@@ -1732,6 +1732,14 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
                     rb_str_cat(i, token->start, TOKEN_LEN(token));
+                else if (ary_includes(scope, SEPARATOR))
+                {
+                    // scanning internal link text
+                    if (RSTRING_LEN(capture) == 0)
+                        ; // eat space immediately after the separator
+                    else
+                        rb_str_cat(i, token->start, TOKEN_LEN(token));
+                }
                 else
                 {
                     // peek ahead to see next token
