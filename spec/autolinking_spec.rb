@@ -74,5 +74,9 @@ describe Wikitext::Parser, 'autolinking' do
     it 'should not convert URIs into hyperlinks' do
       @parser.parse('http://example.com/').should == "<p>http://example.com/</p>\n"
     end
+
+    it 'should not convert emails into hyperlinks' do
+      @parser.parse('user@example.com').should == "<p>user@example.com</p>\n"
+    end
   end
 end
