@@ -21,27 +21,42 @@ describe Wikitext::Parser, 'parsing <em> spans' do
     @parser = Wikitext::Parser.new
   end
 
-  it 'should recognize paired <em> tokens' do
-    @parser.parse("foo ''bar'' baz").should == "<p>foo <em>bar</em> baz</p>\n"
+  describe 'marked up using wikitext shorthand' do
+    it 'should recognize paired <em> tokens' do
+      @parser.parse("foo ''bar'' baz").should == "<p>foo <em>bar</em> baz</p>\n"
+    end
+
+    it 'should automatically insert missing closing tags' do
+      @parser.parse("foo ''bar").should == "<p>foo <em>bar</em></p>\n"
+    end
+
+    it 'should automatically close unclosed spans upon hitting newlines' do
+      @parser.parse("foo ''bar\nbaz").should == "<p>foo <em>bar</em> baz</p>\n"
+    end
+
+    it 'should handle (illegal) interleaved spans' do
+      @parser.parse("foo ''bar '''inner'' baz'''").should == "<p>foo <em>bar <strong>inner</strong></em> baz<strong></strong></p>\n"
+    end
+
+    it 'should have no effect inside <pre> blocks' do
+      @parser.parse(" ''foo''").should == "<pre>''foo''</pre>\n"
+    end
+
+    it 'should have no effect inside <nowiki> spans' do
+      @parser.parse("<nowiki>''foo''</nowiki>").should == "<p>''foo''</p>\n"
+    end
   end
 
-  it 'should automatically insert missing closing tags' do
-    @parser.parse("foo ''bar").should == "<p>foo <em>bar</em></p>\n"
-  end
+  describe 'marked up using HTML tags' do
+    it 'should recognized paired <em> tokens' do
+      @parser.parse("foo <em>bar</em> baz").should == "<p>foo <em>bar</em> baz</p>\n"
+    end
 
-  it 'should automatically close unclosed spans upon hitting newlines' do
-    @parser.parse("foo ''bar\nbaz").should == "<p>foo <em>bar</em> baz</p>\n"
-  end
+    it 'should recognize <em> tokens case-insensitively' do
+      @parser.parse("foo <EM>bar</EM> baz").should == "<p>foo <em>bar</em> baz</p>\n"
+      @parser.parse("foo <Em>bar</eM> baz").should == "<p>foo <em>bar</em> baz</p>\n"
+      @parser.parse("foo <eM>bar</Em> baz").should == "<p>foo <em>bar</em> baz</p>\n"
+    end
 
-  it 'should handle (illegal) interleaved spans' do
-    @parser.parse("foo ''bar '''inner'' baz'''").should == "<p>foo <em>bar <strong>inner</strong></em> baz<strong></strong></p>\n"
-  end
-
-  it 'should have no effect inside <pre> blocks' do
-    @parser.parse(" ''foo''").should == "<pre>''foo''</pre>\n"
-  end
-
-  it 'should have no effect inside <nowiki> spans' do
-    @parser.parse("<nowiki>''foo''</nowiki>").should == "<p>''foo''</p>\n"
   end
 end

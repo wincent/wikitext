@@ -48,6 +48,7 @@ describe Wikitext::Parser, 'parsing combined <strong>/<em> spans' do
     @parser.parse("'''''foo''' bar'' baz").should == "<p><strong><em>foo</em></strong> bar<em> baz</em></p>\n"
 
     # note that if you really want ''''' to be parsed as "<em><strong>" you have to use whitespace to disambiguate
+    # for more examples see the "disambiguation" specs below
     @parser.parse("'' '''foo''' bar'' baz").should == "<p><em> <strong>foo</strong> bar</em> baz</p>\n"
   end
 
@@ -57,5 +58,32 @@ describe Wikitext::Parser, 'parsing combined <strong>/<em> spans' do
 
   it 'should have no effect inside <nowiki> spans' do
     @parser.parse("<nowiki>'''''foo'''''</nowiki>").should == "<p>'''''foo'''''</p>\n"
+  end
+
+  describe 'disambiguation' do
+    it 'should by default assume strong followed by em' do
+      @parser.parse("'''''foo'''''").should == "<p><strong><em>foo</em></strong></p>\n"
+    end
+
+    it 'should accept an empty nowiki span as a means of imposing em followed by strong' do
+      @parser.parse("''<nowiki></nowiki>'''foo'''''").should == "<p><em><strong>foo</strong></em></p>\n"
+    end
+
+    it 'should accept whitespace as a means of imposing em followed by strong' do
+      # when rendered in the browser the whitespace won't have any visual effect
+      @parser.parse("'' '''foo'''''").should == "<p><em> <strong>foo</strong></em></p>\n"
+    end
+
+    it 'should accept a literal <em> tag  as a means of imposing em followed by strong' do
+      @parser.parse("<em>'''foo'''</em>").should == "<p><em><strong>foo</strong></em></p>\n"
+    end
+
+    it 'should accept a literal <strong> tag  as a means of imposing em followed by strong' do
+      @parser.parse("''<strong>foo</strong>''").should == "<p><em><strong>foo</strong></em></p>\n"
+    end
+
+    it 'should accept literal <em> and <strong> tags  as a means of imposing em followed by strong' do
+      @parser.parse("<em><strong>foo</strong></em>").should == "<p><em><strong>foo</strong></em></p>\n"
+    end
   end
 end

@@ -22,6 +22,10 @@ const char escaped_no_wiki_end[]    = "&lt;/nowiki&gt;";
 const char literal_strong_em[]      = "'''''";
 const char literal_strong[]         = "'''";
 const char literal_em[]             = "''";
+const char escaped_em_start[]       = "&lt;em&gt;";
+const char escaped_em_end[]         = "&lt;/em&gt;";
+const char escaped_strong_start[]   = "&lt;strong&gt;";
+const char escaped_strong_end[]     = "&lt;/strong&gt;";
 const char escaped_tt_start[]       = "&lt;tt&gt;";
 const char escaped_tt_end[]         = "&lt;/tt&gt;";
 const char literal_h6[]             = "======";
@@ -170,10 +174,12 @@ void _Wikitext_pop_from_stack(ary_t *stack, VALUE target, VALUE line_ending)
             break;
 
         case STRONG:
+        case STRONG_START:
             rb_str_cat(target, strong_end, sizeof(strong_end) - 1);
             break;
 
         case EM:
+        case EM_START:
             rb_str_cat(target, em_end, sizeof(em_end) - 1);
             break;
 
@@ -830,19 +836,20 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
 
-                // if you've seen STRONG or EM, must close them in the reverse order that you saw them! otherwise, must open them
+                // if you've seen STRONG/STRONG_START or EM/EM_START, must close them in the reverse order that you saw them!
+                // otherwise, must open them
                 remove_strong  = -1;
                 remove_em      = -1;
                 j              = scope->count;
                 for (j = j - 1; j >= 0; j--)
                 {
                     int val = ary_entry(scope, j);
-                    if (val == STRONG)
+                    if (val == STRONG || val == STRONG_START)
                     {
                         rb_str_cat(i, strong_end, sizeof(strong_end) - 1);
                         remove_strong = j;
                     }
-                    else if (val == EM)
+                    else if (val == EM || val == EM_START)
                     {
                         rb_str_cat(i, em_end, sizeof(em_end) - 1);
                         remove_em = j;
@@ -891,7 +898,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
-                    if (ary_includes(scope, STRONG))
+                    if (ary_includes(scope, STRONG_START))
+                        // already in span started with <strong>, no choice but to emit this literally
+                        rb_str_cat(output, literal_strong, sizeof(literal_strong) - 1);
+                    else if (ary_includes(scope, STRONG))
                         // STRONG already seen, this is a closing tag
                         _Wikitext_pop_from_stack_up_to(scope, i, STRONG, Qtrue, line_ending);
                     else
@@ -906,6 +916,46 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 }
                 break;
 
+            case STRONG_START:
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
+                    // already in <nowiki> span, <pre> block
+                    rb_str_cat(output, escaped_strong_start, sizeof(escaped_strong_start) - 1);
+                else
+                {
+                    i = NIL_P(capture) ? output : capture;
+                    if (ary_includes(scope, STRONG_START) || ary_includes(scope, STRONG))
+                        // already in STRONG_START (<strong>) or STRONG (''') span)
+                        rb_str_cat(output, escaped_strong_start, sizeof(escaped_strong_start) - 1);
+                    else
+                    {
+                        _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
+                        _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
+                        rb_str_cat(i, strong_start, sizeof(strong_start) - 1);
+                        ary_push(scope, STRONG_START);
+                        ary_push(line, STRONG_START);
+                    }
+                }
+                break;
+
+            case STRONG_END:
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
+                    // already in <nowiki> span or <pre> block
+                    rb_str_cat(output, escaped_strong_end, sizeof(escaped_strong_end) - 1);
+                else
+                {
+                    i = NIL_P(capture) ? output : capture;
+                    if (ary_includes(scope, STRONG_START))
+                        _Wikitext_pop_from_stack_up_to(scope, i, STRONG_START, Qtrue, line_ending);
+                    else
+                    {
+                        // no STRONG_START in scope, so must interpret the STRONG_END without any special meaning
+                        _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
+                        _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
+                        rb_str_cat(i, escaped_strong_end, sizeof(escaped_strong_end) - 1);
+                    }
+                }
+                break;
+
             case EM:
                 if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
                     // already in <nowiki> span or <pre> block
@@ -913,7 +963,10 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                 else
                 {
                     i = NIL_P(capture) ? output : capture;
-                    if (ary_includes(scope, EM))
+                    if (ary_includes(scope, EM_START))
+                        // already in span started with <em>, no choice but to emit this literally
+                        rb_str_cat(output, literal_em, sizeof(literal_em) - 1);
+                    else if (ary_includes(scope, EM))
                         // EM already seen, this is a closing tag
                         _Wikitext_pop_from_stack_up_to(scope, i, EM, Qtrue, line_ending);
                     else
@@ -924,6 +977,46 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                         rb_str_cat(i, em_start, sizeof(em_start) - 1);
                         ary_push(scope, EM);
                         ary_push(line, EM);
+                    }
+                }
+                break;
+
+            case EM_START:
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
+                    // already in <nowiki> span, <pre> block
+                    rb_str_cat(output, escaped_em_start, sizeof(escaped_em_start) - 1);
+                else
+                {
+                    i = NIL_P(capture) ? output : capture;
+                    if (ary_includes(scope, EM_START) || ary_includes(scope, EM))
+                        // already in EM_START (<em>) or EM ('') span)
+                        rb_str_cat(output, escaped_em_start, sizeof(escaped_em_start) - 1);
+                    else
+                    {
+                        _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
+                        _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
+                        rb_str_cat(i, em_start, sizeof(em_start) - 1);
+                        ary_push(scope, EM_START);
+                        ary_push(line, EM_START);
+                    }
+                }
+                break;
+
+            case EM_END:
+                if (ary_includes(scope, NO_WIKI_START) || ary_includes(scope, PRE))
+                    // already in <nowiki> span or <pre> block
+                    rb_str_cat(output, escaped_em_end, sizeof(escaped_em_end) - 1);
+                else
+                {
+                    i = NIL_P(capture) ? output : capture;
+                    if (ary_includes(scope, EM_START))
+                        _Wikitext_pop_from_stack_up_to(scope, i, EM_START, Qtrue, line_ending);
+                    else
+                    {
+                        // no EM_START in scope, so must interpret the TT_END without any special meaning
+                        _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending);
+                        _Wikitext_start_para_if_necessary(capture, scope, line, i, &pending_crlf);
+                        rb_str_cat(i, escaped_em_end, sizeof(escaped_em_end) - 1);
                     }
                 }
                 break;
