@@ -45,6 +45,10 @@ describe Wikitext::Parser, 'parsing <em> spans' do
     it 'should have no effect inside <nowiki> spans' do
       @parser.parse("<nowiki>''foo''</nowiki>").should == "<p>''foo''</p>\n"
     end
+
+    it "should have no effect if an em (<em>) span is already open" do
+      @parser.parse("foo <em>''bar''</em> baz").should == "<p>foo <em>''bar''</em> baz</p>\n"
+    end
   end
 
   describe 'marked up using HTML tags' do
@@ -58,5 +62,36 @@ describe Wikitext::Parser, 'parsing <em> spans' do
       @parser.parse("foo <eM>bar</Em> baz").should == "<p>foo <em>bar</em> baz</p>\n"
     end
 
+    it 'should automatically insert missing closing tags' do
+      @parser.parse("foo <em>bar").should == "<p>foo <em>bar</em></p>\n"
+    end
+
+    it 'should automatically close unclosed spans upon hitting newlines' do
+      @parser.parse("foo <em>bar\nbaz").should == "<p>foo <em>bar</em> baz</p>\n"
+    end
+
+    it 'should handle (illegal) interleaved spans' do
+      expected = "<p>foo <em>bar <strong>inner</strong></em> baz&lt;/strong&gt;</p>\n"
+      @parser.parse("foo <em>bar <strong>inner</em> baz</strong>").should == expected
+
+      expected = "<p>foo <em>bar <strong>inner</strong></em> baz<strong></strong></p>\n"
+      @parser.parse("foo <em>bar '''inner</em> baz'''").should == expected
+    end
+
+    it 'should handle (illegal) nested <em> spans' do
+      @parser.parse('foo <em>bar <em>inner</em></em> baz').should == "<p>foo <em>bar &lt;em&gt;inner</em>&lt;/em&gt; baz</p>\n"
+    end
+
+    it 'should have no effect inside <pre> blocks' do
+      @parser.parse(" <em>foo</em>").should == "<pre>&lt;em&gt;foo&lt;/em&gt;</pre>\n"
+    end
+
+    it 'should have no effect inside <nowiki> spans' do
+      @parser.parse("<nowiki><em>foo</em></nowiki>").should == "<p>&lt;em&gt;foo&lt;/em&gt;</p>\n"
+    end
+
+    it "should have no effect if an em ('') span is already open" do
+      @parser.parse("foo ''<em>bar</em>'' baz").should == "<p>foo <em>&lt;em&gt;bar&lt;/em&gt;</em> baz</p>\n"
+    end
   end
 end
