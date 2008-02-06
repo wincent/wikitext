@@ -1738,7 +1738,20 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     if (RSTRING_LEN(capture) == 0)
                         ; // eat space immediately after the separator
                     else
-                        rb_str_cat(i, token->start, TOKEN_LEN(token));
+                    {
+                        // peek ahead to see if this is trailing link text
+                        char    *token_ptr  = token->start;
+                        int     token_len   = TOKEN_LEN(token);
+                        NEXT_TOKEN();
+                        type = token->type;
+                        if (type == LINK_END)
+                            ; // eat trailing whitespace here too
+                        else
+                            rb_str_cat(i, token_ptr, token_len);
+
+                        // jump to top of the loop to process token we scanned in lookahead
+                        continue;
+                    }
                 }
                 else
                 {

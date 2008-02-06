@@ -122,6 +122,24 @@ describe Wikitext::Parser, 'internal links' do
       @parser.parse('[[foo|      bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
     end
 
+    it 'should trim whitespace on both sides of the separator (at the same time)' do
+      @parser.parse('[[foo      | bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo     |  bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo    |   bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo   |    bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo  |     bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo |      bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+    end
+
+    it 'should trim trailing whitespace from the link text' do
+      @parser.parse('[[foo|bar ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo|bar  ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo|bar   ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo|bar    ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo|bar     ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+      @parser.parse('[[foo|bar      ]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
+    end
+
     it 'should treat a separator inside the link text as part of the link text' do
       @parser.parse('[[foo|bar|baz]]').should == %Q{<p><a href="/wiki/foo">bar|baz</a></p>\n}
     end
