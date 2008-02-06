@@ -403,8 +403,8 @@ inline VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
 
 // - non-printable (non-ASCII) characters converted to numeric entities
 // - QUOT and AMP characters converted to named entities
-// - leading and trailing whitespace trimmed
-inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
+// - leading and trailing whitespace trimmed if trim is Qtrue
+inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string, VALUE trim)
 {
     string              = StringValue(string);  // raises if string is nil or doesn't quack like a string
     char    *src        = RSTRING_PTR(string);
@@ -459,8 +459,8 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
             free(dest_ptr);
             rb_raise(rb_eRangeError, "invalid link text (\">\" may not appear in link text)");
         }
-        else if (*src == ' ' && src == start)
-            start++;                    // we eat leading space
+        else if (*src == ' ' && src == start && trim == Qtrue)
+            start++;                // we eat leading space
         else if (*src >= 0x20 && *src <= 0x7e)    // printable ASCII
         {
             *dest = *src;
@@ -484,7 +484,7 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
     }
 
     // trim trailing space if necessary
-    if (non_space > dest_ptr && dest != non_space)
+    if (trim == Qtrue && non_space > dest_ptr && dest != non_space)
         len = non_space - dest_ptr;
     else
         len = dest - dest_ptr;
@@ -495,7 +495,7 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 
 VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 {
-    return (_Wikitext_parser_sanitize_link_target(self, string));
+    return (_Wikitext_parser_sanitize_link_target(self, string, Qtrue));
 }
 
 // encodes the input string according to RFCs 2396 and 2718
@@ -609,7 +609,7 @@ inline void _Wikitext_rollback_failed_link(VALUE output, ary_t *scope, ary_t *li
     rb_str_cat(output, link_start, sizeof(link_start) - 1);
     if (!NIL_P(link_target))
     {
-        VALUE sanitized = Wikitext_parser_sanitize_link_target(Qnil, link_target);
+        VALUE sanitized = _Wikitext_parser_sanitize_link_target(Qnil, link_target, Qfalse);
         rb_str_append(output, sanitized);
         if (scope_includes_separator)
         {
@@ -1617,7 +1617,7 @@ VALUE Wikitext_parser_parse(VALUE self, VALUE string)
                     // in internal link scope!
                     if (NIL_P(link_text) || RSTRING_LEN(link_text) == 0)
                         // use link target as link text
-                        link_text = Wikitext_parser_sanitize_link_target(self, link_target);
+                        link_text = _Wikitext_parser_sanitize_link_target(self, link_target, Qtrue);
                     link_target = Wikitext_parser_encode_link_target(self, link_target);
                     _Wikitext_pop_from_stack_up_to(scope, i, LINK_START, Qtrue, line_ending);
                     _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending);
