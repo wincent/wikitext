@@ -35,6 +35,8 @@ describe Wikitext, 'encoding a link target' do
     Wikitext::Parser.encode_link_target('  hello world').should == 'hello%20world'
     Wikitext::Parser.encode_link_target('   hello world').should == 'hello%20world'
     Wikitext::Parser.encode_link_target('    hello world').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('     hello world').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('      hello world').should == 'hello%20world'
   end
 
   it 'should eat trailing spaces' do
@@ -42,13 +44,17 @@ describe Wikitext, 'encoding a link target' do
     Wikitext::Parser.encode_link_target('hello world  ').should == 'hello%20world'
     Wikitext::Parser.encode_link_target('hello world   ').should == 'hello%20world'
     Wikitext::Parser.encode_link_target('hello world    ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('hello world     ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('hello world      ').should == 'hello%20world'
   end
 
   it 'should eat leading and trailing spaces combined' do
-    Wikitext::Parser.encode_link_target('    hello world ').should == 'hello%20world'
-    Wikitext::Parser.encode_link_target('   hello world  ').should == 'hello%20world'
-    Wikitext::Parser.encode_link_target('  hello world   ').should == 'hello%20world'
-    Wikitext::Parser.encode_link_target(' hello world    ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('     hello world ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('     hello world ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('    hello world  ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('   hello world   ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target('  hello world    ').should == 'hello%20world'
+    Wikitext::Parser.encode_link_target(' hello world     ').should == 'hello%20world'
   end
 
   it 'should return nothing for input consisting entirely of spaces' do
@@ -56,6 +62,8 @@ describe Wikitext, 'encoding a link target' do
     Wikitext::Parser.encode_link_target('  ').should == ''
     Wikitext::Parser.encode_link_target('   ').should == ''
     Wikitext::Parser.encode_link_target('    ').should == ''
+    Wikitext::Parser.encode_link_target('     ').should == ''
+    Wikitext::Parser.encode_link_target('      ').should == ''
   end
 
   it 'should convert reserved symbols into percent escapes' do

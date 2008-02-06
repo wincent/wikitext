@@ -42,6 +42,8 @@ describe Wikitext, 'sanitizing a link target' do
     Wikitext::Parser.sanitize_link_target('  hello world').should == 'hello world'
     Wikitext::Parser.sanitize_link_target('   hello world').should == 'hello world'
     Wikitext::Parser.sanitize_link_target('    hello world').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('     hello world').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('      hello world').should == 'hello world'
   end
 
   it 'should eat trailing spaces' do
@@ -49,13 +51,21 @@ describe Wikitext, 'sanitizing a link target' do
     Wikitext::Parser.sanitize_link_target('hello world  ').should == 'hello world'
     Wikitext::Parser.sanitize_link_target('hello world   ').should == 'hello world'
     Wikitext::Parser.sanitize_link_target('hello world    ').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('hello world     ').should == 'hello world'   # was a crasher
+    Wikitext::Parser.sanitize_link_target('hello world      ').should == 'hello world'  # was a crasher
+
+    # same but with lots of entities to force a reallocation (we were crashing under reallocation)
+    expected = '&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;'
+    Wikitext::Parser.sanitize_link_target('""""""""""      ').should == expected
   end
 
   it 'should eat leading and trailing spaces combined' do
-    Wikitext::Parser.sanitize_link_target(' hello world    ').should == 'hello world'
-    Wikitext::Parser.sanitize_link_target('  hello world   ').should == 'hello world'
-    Wikitext::Parser.sanitize_link_target('   hello world  ').should == 'hello world'
-    Wikitext::Parser.sanitize_link_target('    hello world ').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target(' hello world     ').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('  hello world    ').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('   hello world   ').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('    hello world  ').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('     hello world  ').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('      hello world ').should == 'hello world'
   end
 
   it 'should return nothing for input consisting entirely of spaces' do
@@ -63,6 +73,8 @@ describe Wikitext, 'sanitizing a link target' do
     Wikitext::Parser.sanitize_link_target('  ').should == ''
     Wikitext::Parser.sanitize_link_target('   ').should == ''
     Wikitext::Parser.sanitize_link_target('    ').should == ''
+    Wikitext::Parser.sanitize_link_target('     ').should == ''
+    Wikitext::Parser.sanitize_link_target('      ').should == ''
   end
 
   it 'should convert double quotes into named entities' do

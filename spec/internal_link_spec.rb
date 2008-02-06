@@ -44,6 +44,34 @@ describe Wikitext::Parser, 'internal links' do
     @parser.parse('[[foo bar]]').should == %Q{<p><a href="/wiki/foo%20bar">foo bar</a></p>\n}
   end
 
+  it 'should trim leading whitespace' do
+    @parser.parse('[[ foo]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+    @parser.parse('[[  foo]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+    @parser.parse('[[   foo]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+    @parser.parse('[[    foo]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+  end
+
+  it 'should trim trailing whitespace' do
+    @parser.parse('[[foo ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+    @parser.parse('[[foo  ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+    @parser.parse('[[foo   ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+    @parser.parse('[[foo    ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}   # was a bug (exception)
+    @parser.parse('[[foo     ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}  # was a bug (crash)
+  end
+
+  it 'should trim leading and trailing whitespace (combined)' do
+    @parser.parse('[[ foo    ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+    @parser.parse('[[  foo   ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+    @parser.parse('[[   foo  ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+    @parser.parse('[[    foo ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+  end
+
+  it 'should leave embedded whitespace intact' do
+    @parser.parse('[[ foo bar ]]').should == %Q{<p><a href="/wiki/foo%20bar">foo bar</a></p>\n}
+    @parser.parse('[[foo bar ]]').should == %Q{<p><a href="/wiki/foo%20bar">foo bar</a></p>\n}
+    @parser.parse('[[ foo bar ]]').should == %Q{<p><a href="/wiki/foo%20bar">foo bar</a></p>\n}
+  end
+
   it 'should encode and sanitize quotes' do
     # note how percent encoding is used in the href, and named entities in the link text
     @parser.parse('[[hello "world"]]').should == %Q{<p><a href="/wiki/hello%20%22world%22">hello &quot;world&quot;</a></p>\n}
@@ -202,11 +230,53 @@ describe Wikitext::Parser, 'internal links' do
       it 'should rollback and show the unterminated link' do
         @parser.parse('[[foo').should == %Q{<p>[[foo</p>\n}
       end
+
+      it 'should not trim leading whitespace when rolling back' do
+        @parser.parse('[[ foo').should    == %Q{<p>[[ foo</p>\n}
+        @parser.parse('[[  foo').should   == %Q{<p>[[  foo</p>\n}
+        @parser.parse('[[   foo').should  == %Q{<p>[[   foo</p>\n}
+        @parser.parse('[[    foo').should == %Q{<p>[[    foo</p>\n}
+      end
+
+      it 'should not trim trailing whitespace when rolling back' do
+        @parser.parse('[[foo ').should    == %Q{<p>[[foo </p>\n}
+        @parser.parse('[[foo  ').should   == %Q{<p>[[foo  </p>\n}
+        @parser.parse('[[foo   ').should  == %Q{<p>[[foo   </p>\n}
+        @parser.parse('[[foo    ').should == %Q{<p>[[foo    </p>\n}
+      end
+
+      it 'should not trim leadig and trailing whitespace (combined) when rolling back' do
+        @parser.parse('[[    foo ').should == %Q{<p>[[    foo </p>\n}
+        @parser.parse('[[   foo  ').should == %Q{<p>[[   foo  </p>\n}
+        @parser.parse('[[  foo   ').should == %Q{<p>[[  foo   </p>\n}
+        @parser.parse('[[ foo    ').should == %Q{<p>[[ foo    </p>\n}
+      end
     end
 
     describe 'unterminated link targets (end-of-line)' do
       it 'should rollback and show the unterminated link' do
         @parser.parse("[[foo\n").should == %Q{<p>[[foo</p>\n}
+      end
+
+      it 'should not trim leading whitespace when rolling back' do
+        @parser.parse("[[ foo\n").should    == %Q{<p>[[ foo</p>\n}
+        @parser.parse("[[  foo\n").should   == %Q{<p>[[  foo</p>\n}
+        @parser.parse("[[   foo\n").should  == %Q{<p>[[   foo</p>\n}
+        @parser.parse("[[    foo\n").should == %Q{<p>[[    foo</p>\n}
+      end
+
+      it 'should not trim trailing whitespace when rolling back' do
+        @parser.parse("[[foo \n").should    == %Q{<p>[[foo </p>\n}
+        @parser.parse("[[foo  \n").should   == %Q{<p>[[foo  </p>\n}
+        @parser.parse("[[foo   \n").should  == %Q{<p>[[foo   </p>\n}
+        @parser.parse("[[foo    \n").should == %Q{<p>[[foo    </p>\n}
+      end
+
+      it 'should not trim leading and trailing whitespace (combined) when rolling back' do
+        @parser.parse("[[ foo    \n").should == %Q{<p>[[ foo    </p>\n}
+        @parser.parse("[[  foo   \n").should == %Q{<p>[[  foo   </p>\n}
+        @parser.parse("[[   foo  \n").should == %Q{<p>[[   foo  </p>\n}
+        @parser.parse("[[    foo \n").should == %Q{<p>[[    foo </p>\n}
       end
     end
 
