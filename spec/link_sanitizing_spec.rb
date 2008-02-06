@@ -33,8 +33,15 @@ describe Wikitext, 'sanitizing a link target' do
     Wikitext::Parser.sanitize_link_target('').should == ''
   end
 
-  it 'should do nothing to spaces' do
+  it 'should do nothing to embedded spaces' do
     Wikitext::Parser.sanitize_link_target('hello world').should == 'hello world'
+  end
+
+  it 'should eat leading spaces' do
+    Wikitext::Parser.sanitize_link_target(' hello world').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('  hello world').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('   hello world').should == 'hello world'
+    Wikitext::Parser.sanitize_link_target('    hello world').should == 'hello world'
   end
 
   it 'should convert double quotes into named entities' do

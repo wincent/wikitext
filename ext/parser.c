@@ -407,6 +407,7 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 {
     string              = StringValue(string);  // raises if string is nil or doesn't quack like a string
     char    *src        = RSTRING_PTR(string);
+    char    *start      = src;                  // remember this so we can check if we're at the start
     long    len         = RSTRING_LEN(string);
     char    *end        = src + len;
 
@@ -456,6 +457,11 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
         {
             free(dest_ptr);
             rb_raise(rb_eRangeError, "invalid link text (\">\" may not appear in link text)");
+        }
+        else if (*src == ' ' && src == start)
+        {
+            // do nothing: we eat leading space
+            start++;
         }
         else if (*src >= 0x20 && *src <= 0x7e)    // printable ASCII
         {
