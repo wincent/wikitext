@@ -31,21 +31,41 @@ describe Wikitext::Parser, 'parsing <pre> blocks' do
 
   it 'should allow nesting inside a <blockquote> block' do
     # nesting inside single blockquotes
-    @parser.parse(">  foo").should == "<blockquote>\n<pre>foo</pre>\n</blockquote>\n"
+    @parser.parse(">  foo").should == "<blockquote>\n  <pre>foo</pre>\n</blockquote>\n"
 
     # same, but continued over multiple lines
-    @parser.parse(">  foo\n>  bar").should == "<blockquote>\n<pre>foo\nbar</pre>\n</blockquote>\n"
+    @parser.parse(">  foo\n>  bar").should == "<blockquote>\n  <pre>foo\nbar</pre>\n</blockquote>\n"
 
     # nesting inside double blockquotes
-    @parser.parse("> >  foo").should == "<blockquote>\n<blockquote>\n<pre>foo</pre>\n</blockquote>\n</blockquote>\n"
+    @parser.parse("> >  foo").should == <<-END
+<blockquote>
+  <blockquote>
+    <pre>foo</pre>
+  </blockquote>
+</blockquote>
+END
 
     # same, but continued over multiple lines
-    @parser.parse("> >  foo\n> >  bar").should == "<blockquote>\n<blockquote>\n<pre>foo\nbar</pre>\n</blockquote>\n</blockquote>\n"
+    @parser.parse("> >  foo\n> >  bar").should == <<-END
+<blockquote>
+  <blockquote>
+    <pre>foo
+bar</pre>
+  </blockquote>
+</blockquote>
+END
   end
 
   it 'should automatically close preceding blocks at the same depth' do
-    @parser.parse("> foo\n bar").should == "<blockquote>\n<p>foo</p>\n</blockquote>\n<pre>bar</pre>\n"
-    expected = "<blockquote>\n<blockquote>\n<p>foo</p>\n</blockquote>\n</blockquote>\n<pre>bar</pre>\n"
+    @parser.parse("> foo\n bar").should == "<blockquote>\n  <p>foo</p>\n</blockquote>\n<pre>bar</pre>\n"
+    expected = <<-END
+<blockquote>
+  <blockquote>
+    <p>foo</p>
+  </blockquote>
+</blockquote>
+<pre>bar</pre>
+END
     @parser.parse("> > foo\n bar").should == expected
   end
 
