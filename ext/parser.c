@@ -1230,13 +1230,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
 
                 // emit
-                if (type == OL)
-                    rb_str_cat(output, ol_start, sizeof(ol_start) - 1);
-                else if (type == UL)
-                    rb_str_cat(output, ul_start, sizeof(ul_start) - 1);
-
                 if (type == OL || type == UL)
                 {
+                    if (type == OL)
+                        rb_str_cat(output, ol_start, sizeof(ol_start) - 1);
+                    else if (type == UL)
+                        rb_str_cat(output, ul_start, sizeof(ul_start) - 1);
                     ary_push(scope, type);
                     rb_str_append(output, line_ending);
                 }
