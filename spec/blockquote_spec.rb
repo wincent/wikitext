@@ -57,5 +57,29 @@ describe Wikitext::Parser, 'parsing blockquotes' do
     @parser.parse("> foo\nbar").should == "<blockquote><p>foo</p>\n</blockquote>\n<p>bar</p>\n"
   end
 
+  it 'should allow nesting of h1 blocks' do
+    @parser.parse('> = foo =').should == "<blockquote><h1>foo</h1>\n</blockquote>\n"
+  end
+
+  it 'should allow nesting of h2 blocks' do
+    @parser.parse('> == foo ==').should == "<blockquote><h2>foo</h2>\n</blockquote>\n"
+  end
+
+  it 'should allow nesting of h3 blocks' do
+    @parser.parse('> === foo ===').should == "<blockquote><h3>foo</h3>\n</blockquote>\n"
+  end
+
+  it 'should allow nesting of h4 blocks' do
+    @parser.parse('> ==== foo ====').should == "<blockquote><h4>foo</h4>\n</blockquote>\n"
+  end
+
+  it 'should allow nesting of h5 blocks' do
+    @parser.parse('> ===== foo =====').should == "<blockquote><h5>foo</h5>\n</blockquote>\n"
+  end
+
+  it 'should allow nesting of h6 blocks' do
+    @parser.parse('> ====== foo ======').should == "<blockquote><h6>foo</h6>\n</blockquote>\n"
+  end
+
   # TODO: tests for nesting other types of blocks
 end
