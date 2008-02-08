@@ -39,7 +39,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should recognize <ul> markers nested inside blockquote blocks' do
-    @parser.parse('> * foo').should == "<blockquote><ul>\n<li>foo</li>\n</ul>\n</blockquote>\n"
+    @parser.parse('> * foo').should == "<blockquote>\n<ul>\n<li>foo</li>\n</ul>\n</blockquote>\n"
   end
 
   it 'should display excess <ul> markers as literals' do
@@ -73,7 +73,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should be terminated by subsequent blockquote at the same level' do
-    @parser.parse("* foo\n> bar").should == "<ul>\n<li>foo</li>\n</ul>\n<blockquote><p>bar</p>\n</blockquote>\n"
+    @parser.parse("* foo\n> bar").should == "<ul>\n<li>foo</li>\n</ul>\n<blockquote>\n<p>bar</p>\n</blockquote>\n"
   end
 
   it 'should be terminated by subsequent heading at the same level' do

@@ -22,15 +22,15 @@ describe Wikitext::Parser, 'parsing blockquotes' do
   end
 
   it 'should treat ">" in first column as a blockquote marker' do
-    @parser.parse('>foo').should == "<blockquote><p>foo</p>\n</blockquote>\n"
+    @parser.parse('>foo').should == "<blockquote>\n<p>foo</p>\n</blockquote>\n"
   end
 
   it 'should accept (and ignore) one optional space after the ">"' do
-    @parser.parse('> foo').should == "<blockquote><p>foo</p>\n</blockquote>\n"
+    @parser.parse('> foo').should == "<blockquote>\n<p>foo</p>\n</blockquote>\n"
   end
 
   it 'should recognize consecutive ">" as continuance of blockquote section' do
-    @parser.parse("> foo\n> bar").should == "<blockquote><p>foo bar</p>\n</blockquote>\n"
+    @parser.parse("> foo\n> bar").should == "<blockquote>\n<p>foo bar</p>\n</blockquote>\n"
   end
 
   it 'should not give ">" special treatment when not on the far left' do
@@ -38,47 +38,47 @@ describe Wikitext::Parser, 'parsing blockquotes' do
   end
 
   it 'should allow nesting of blockquotes' do
-    @parser.parse('> > foo').should == "<blockquote><blockquote><p>foo</p>\n</blockquote>\n</blockquote>\n"
+    @parser.parse('> > foo').should == "<blockquote>\n<blockquote>\n<p>foo</p>\n</blockquote>\n</blockquote>\n"
   end
 
   it 'should allow opening of a nested blockquote after other content' do
-    @parser.parse("> foo\n> > bar").should == "<blockquote><p>foo</p>\n<blockquote><p>bar</p>\n</blockquote>\n</blockquote>\n"
+    @parser.parse("> foo\n> > bar").should == "<blockquote>\n<p>foo</p>\n<blockquote>\n<p>bar</p>\n</blockquote>\n</blockquote>\n"
   end
 
   it 'should allow opening of a nested blockquote before other content' do
-    @parser.parse("> > foo\n> bar").should == "<blockquote><blockquote><p>foo</p>\n</blockquote>\n<p>bar</p>\n</blockquote>\n"
+    @parser.parse("> > foo\n> bar").should == "<blockquote>\n<blockquote>\n<p>foo</p>\n</blockquote>\n<p>bar</p>\n</blockquote>\n"
   end
 
   it 'should accept an empty blockquote' do
-    @parser.parse('>').should == "<blockquote></blockquote>\n"
+    @parser.parse('>').should == "<blockquote>\n</blockquote>\n"
   end
 
   it 'should jump out of blockquote mode on seeing a normal line of text' do
-    @parser.parse("> foo\nbar").should == "<blockquote><p>foo</p>\n</blockquote>\n<p>bar</p>\n"
+    @parser.parse("> foo\nbar").should == "<blockquote>\n<p>foo</p>\n</blockquote>\n<p>bar</p>\n"
   end
 
   it 'should allow nesting of h1 blocks' do
-    @parser.parse('> = foo =').should == "<blockquote><h1>foo</h1>\n</blockquote>\n"
+    @parser.parse('> = foo =').should == "<blockquote>\n<h1>foo</h1>\n</blockquote>\n"
   end
 
   it 'should allow nesting of h2 blocks' do
-    @parser.parse('> == foo ==').should == "<blockquote><h2>foo</h2>\n</blockquote>\n"
+    @parser.parse('> == foo ==').should == "<blockquote>\n<h2>foo</h2>\n</blockquote>\n"
   end
 
   it 'should allow nesting of h3 blocks' do
-    @parser.parse('> === foo ===').should == "<blockquote><h3>foo</h3>\n</blockquote>\n"
+    @parser.parse('> === foo ===').should == "<blockquote>\n<h3>foo</h3>\n</blockquote>\n"
   end
 
   it 'should allow nesting of h4 blocks' do
-    @parser.parse('> ==== foo ====').should == "<blockquote><h4>foo</h4>\n</blockquote>\n"
+    @parser.parse('> ==== foo ====').should == "<blockquote>\n<h4>foo</h4>\n</blockquote>\n"
   end
 
   it 'should allow nesting of h5 blocks' do
-    @parser.parse('> ===== foo =====').should == "<blockquote><h5>foo</h5>\n</blockquote>\n"
+    @parser.parse('> ===== foo =====').should == "<blockquote>\n<h5>foo</h5>\n</blockquote>\n"
   end
 
   it 'should allow nesting of h6 blocks' do
-    @parser.parse('> ====== foo ======').should == "<blockquote><h6>foo</h6>\n</blockquote>\n"
+    @parser.parse('> ====== foo ======').should == "<blockquote>\n<h6>foo</h6>\n</blockquote>\n"
   end
 
   # TODO: tests for nesting other types of blocks

@@ -141,7 +141,7 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse('==== foo ] bar ====').should == "<h4>foo ] bar</h4>\n"                         # in H4 scope
     @parser.parse('===== foo ] bar =====').should == "<h5>foo ] bar</h5>\n"                       # in H5 scope
     @parser.parse('====== foo ] bar ======').should == "<h6>foo ] bar</h6>\n"                     # in H6 scope
-    @parser.parse('> ]').should == "<blockquote><p>]</p>\n</blockquote>\n"                        # in BLOCKQUOTE scope
+    @parser.parse('> ]').should == "<blockquote>\n<p>]</p>\n</blockquote>\n"                      # in BLOCKQUOTE scope
   end
 
   describe 'invalid links' do
@@ -228,7 +228,7 @@ describe Wikitext::Parser, 'external links' do
       @parser.parse("= [http://example.com/ visit\n").should == expected # was a bug
 
       # here's a slightly more complicated example using a blockquote
-      expected = %Q{<blockquote><p>[<a href="http://google.com/" class="external">http://google.com/</a></p>\n</blockquote>\n}
+      expected = %Q{<blockquote>\n<p>[<a href="http://google.com/" class="external">http://google.com/</a></p>\n</blockquote>\n}
       @parser.parse("> [http://google.com/\n").should == expected # was a bug
     end
   end

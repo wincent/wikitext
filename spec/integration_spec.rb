@@ -91,7 +91,8 @@ INPUT
 <p>paragraph second line</p>
 <p>new paragraph</p>
 <h1>a heading</h1>
-<blockquote><p>a blockquote second line of blockquote</p>
+<blockquote>
+<p>a blockquote second line of blockquote</p>
 <p>new paragraph within blockquote</p>
 </blockquote>
 <h2>another heading</h2>

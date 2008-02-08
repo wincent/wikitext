@@ -50,7 +50,7 @@ describe Wikitext::Parser, 'parsing <h3> blocks' do
   end
 
   it 'should be nestable inside blockquote blocks' do
-    @parser.parse('> === foo ===').should == "<blockquote><h3>foo</h3>\n</blockquote>\n"
+    @parser.parse('> === foo ===').should == "<blockquote>\n<h3>foo</h3>\n</blockquote>\n"
   end
 
   it 'should have no special meaning inside <nowiki> spans' do

@@ -854,6 +854,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         for (i = i - j; i > 0; i--)
                         {
                             rb_str_cat(output, blockquote_start, sizeof(blockquote_start) - 1);
+                            rb_str_append(output, line_ending);
                             ary_push(scope, BLOCKQUOTE);
                         }
                     }
