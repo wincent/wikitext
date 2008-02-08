@@ -166,8 +166,9 @@ inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE lin
     return string;
 }
 
-// Pops a single item off the stack.
+// Pops a single item off the parser's scope stack.
 // A corresponding closing tag is written to the target string.
+// The target string may be the main output buffer, or a substring capturing buffer if a link is being scanned.
 void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
 {
     int top = ary_entry(parser->scope, -1);
@@ -291,8 +292,9 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
     ary_pop(parser->scope);
 }
 
-// Pops items off top of stack, accumulating closing tags for them into the target string, until item is reached.
+// Pops items off the top of parser's scope stack, accumulating closing tags for them into the target string, until item is reached.
 // If including is Qtrue then the item itself is also popped.
+// The target string may be the main output buffer, or a substring capturing buffer when scanning links.
 void _Wikitext_pop_from_stack_up_to(parser_t *parser, VALUE target, int item, VALUE including)
 {
     int continue_looping = 1;
@@ -320,7 +322,7 @@ inline void _Wikitext_indent_if_needed(parser_t *parser)
 
 inline void _Wikitext_start_para_if_necessary(parser_t *parser)
 {
-    if (!NIL_P(parser->capture))    // we don't do anything if capturing mode
+    if (!NIL_P(parser->capture))    // we don't do anything if in capturing mode
         return;
 
     // if no block open yet, or top of stack is BLOCKQUOTE (with nothing in it yet)
