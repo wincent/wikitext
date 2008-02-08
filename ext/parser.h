@@ -24,6 +24,6 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string);
 
 VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in);
 
-VALUE Wikitext_parser_parse(VALUE self, VALUE string);
+VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self);
 
 VALUE Wikitext_parser_profiling_parse(VALUE self, VALUE string);

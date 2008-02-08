@@ -695,12 +695,15 @@ VALUE Wikitext_parser_initialize(VALUE self)
 VALUE Wikitext_parser_profiling_parse(VALUE self, VALUE string)
 {
     for (int i = 0; i < 100000; i++)
-        Wikitext_parser_parse(self, string);
+        Wikitext_parser_parse(1, &string, self);
 }
 
-VALUE Wikitext_parser_parse(VALUE self, VALUE string)
+VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 {
     // process arguments
+    VALUE string, options;
+    if (rb_scan_args(argc, argv, "11", &string, &options) == 1) // 1 mandatory argument, 1 optional argument
+        options = rb_hash_new();                                // default to an empty hash if no argument passed
     if (NIL_P(string))
         return Qnil;
     string = StringValue(string);
