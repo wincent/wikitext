@@ -167,6 +167,37 @@ inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE lin
     return string;
 }
 
+// will emit indentation only if we are about to emit any of:
+//      <blockquote>, <p>, <ul>, <ol>, <li>, <h1> etc, <pre>
+// each time we enter one of those spans must ++ the indentation level
+inline void _Wikitext_indent(parser_t *parser)
+{
+    int space_count = parser->current_indent + parser->base_indent;
+
+    // TODO: cache this
+    char *spaces = ALLOC_N(char, space_count);
+    for (int i = 0; i < space_count; i++)
+        spaces[i] = ' ';
+    rb_str_cat(parser->output, spaces, space_count);
+    free(spaces);
+    parser->current_indent += 2;
+}
+
+inline void _Wikitext_dedent(parser_t *parser, VALUE emit)
+{
+    parser->current_indent -= 2;
+    if (emit != Qtrue)
+        return;
+    int space_count = parser->current_indent + parser->base_indent;
+
+    // TODO: cache this
+    char *spaces = ALLOC_N(char, space_count);
+    for (int i = 0; i < space_count; i++)
+        spaces[i] = ' ';
+    rb_str_cat(parser->output, spaces, space_count);
+    free(spaces);
+}
+
 // Pops a single item off the parser's scope stack.
 // A corresponding closing tag is written to the target string.
 // The target string may be the main output buffer, or a substring capturing buffer if a link is being scanned.
@@ -182,13 +213,13 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
         case PRE:
             rb_str_cat(target, pre_end, sizeof(pre_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
+            _Wikitext_dedent(parser, Qfalse);
             break;
 
         case BLOCKQUOTE:
+            _Wikitext_dedent(parser, Qtrue);
             rb_str_cat(target, blockquote_end, sizeof(blockquote_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
             break;
 
         case NO_WIKI_START:
@@ -211,57 +242,57 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
             break;
 
         case OL:
+            _Wikitext_dedent(parser, Qtrue);
             rb_str_cat(target, ol_end, sizeof(ol_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
             break;
 
         case UL:
+            _Wikitext_dedent(parser, Qtrue);
             rb_str_cat(target, ul_end, sizeof(ul_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
             break;
 
         case LI:
             rb_str_cat(target, li_end, sizeof(li_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
+            _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H6_START:
             rb_str_cat(target, h6_end, sizeof(h6_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
+            _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H5_START:
             rb_str_cat(target, h5_end, sizeof(h5_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
+            _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H4_START:
             rb_str_cat(target, h4_end, sizeof(h4_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
+            _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H3_START:
             rb_str_cat(target, h3_end, sizeof(h3_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
+            _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H2_START:
             rb_str_cat(target, h2_end, sizeof(h2_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
+            _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H1_START:
             rb_str_cat(target, h1_end, sizeof(h1_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
+            _Wikitext_dedent(parser, Qfalse);
             break;
 
         case EXT_LINK_START:
@@ -279,7 +310,7 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
         case P:
             rb_str_cat(target, p_end, sizeof(p_end) - 1);
             rb_str_append(target, parser->line_ending);
-            parser->current_indent -= 2;
+            _Wikitext_dedent(parser, Qfalse);
             break;
 
         case END_OF_FILE:
@@ -314,16 +345,6 @@ void _Wikitext_pop_from_stack_up_to(parser_t *parser, VALUE target, int item, VA
     } while (continue_looping);
 }
 
-// will emit indentation only if we are about to emit any of:
-//      <blockquote>, <p>, <ul>, <ol>, <li>, <h1> etc, <pre>
-// each time we enter one of those spans must ++ the indentation level
-inline void _Wikitext_indent(parser_t *parser)
-{
-    parser->current_indent += 2;
-    int spaces = parser->current_indent + parser->base_indent;
-    // will emit spaces
-}
-
 inline void _Wikitext_start_para_if_necessary(parser_t *parser)
 {
     if (!NIL_P(parser->capture))    // we don't do anything if in capturing mode
@@ -332,10 +353,10 @@ inline void _Wikitext_start_para_if_necessary(parser_t *parser)
     // if no block open yet, or top of stack is BLOCKQUOTE (with nothing in it yet)
     if (parser->scope->count == 0 || ary_entry(parser->scope, -1) == BLOCKQUOTE)
     {
+        _Wikitext_indent(parser);
         rb_str_cat(parser->output, p_start, sizeof(p_start) - 1);
         ary_push(parser->scope, P);
         ary_push(parser->line, P);
-        _Wikitext_indent(parser);
     }
     else if (ary_includes(parser->scope, P) && parser->pending_crlf == Qtrue)
         // already in a paragraph block; convert pending CRLF into a space
