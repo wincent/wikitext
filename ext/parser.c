@@ -651,7 +651,7 @@ VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 }
 
 // not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
-inline void _Wikitext_rollback_failed_link(parser_t *parser, VALUE output, VALUE link_class)
+inline void _Wikitext_rollback_failed_link(parser_t *parser)
 {
     // I'd like to remove this paragraph creation from here and instead put it where the scope is first entered: would be cleaner
     // same for the method below
@@ -668,20 +668,20 @@ inline void _Wikitext_rollback_failed_link(parser_t *parser, VALUE output, VALUE
         !ary_includes(parser->scope, H1_START))
     {
         // create a paragraph if necessary
-        rb_str_cat(output, p_start, sizeof(p_start) - 1);
+        rb_str_cat(parser->output, p_start, sizeof(p_start) - 1);
         ary_push(parser->scope, P);
         ary_push(parser->line, P);
     }
-    rb_str_cat(output, link_start, sizeof(link_start) - 1);
+    rb_str_cat(parser->output, link_start, sizeof(link_start) - 1);
     if (!NIL_P(parser->link_target))
     {
         VALUE sanitized = _Wikitext_parser_sanitize_link_target(parser->link_target, Qfalse);
-        rb_str_append(output, sanitized);
+        rb_str_append(parser->output, sanitized);
         if (scope_includes_separator)
         {
-            rb_str_cat(output, separator, sizeof(separator) - 1);
+            rb_str_cat(parser->output, separator, sizeof(separator) - 1);
             if (!NIL_P(parser->link_text))
-                rb_str_append(output, parser->link_text);
+                rb_str_append(parser->output, parser->link_text);
         }
     }
     parser->capture     = Qnil;
@@ -1596,7 +1596,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (ary_includes(scope, LINK_START))
                 {
                     // already in internal link scope! this is a syntax error
-                    _Wikitext_rollback_failed_link(parser, output, link_class);
+                    _Wikitext_rollback_failed_link(parser);
                     rb_str_cat(output, link_start, sizeof(link_start) - 1);
                 }
                 else if (ary_includes(scope, SEPARATOR))
@@ -1645,7 +1645,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         }
                         else // unexpected token (syntax error)
                         {
-                            _Wikitext_rollback_failed_link(parser, output, link_class);
+                            _Wikitext_rollback_failed_link(parser);
                             break; // jump back to top of loop to handle unexpected token
                         }
                     }
@@ -1861,7 +1861,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case CRLF:
                 if (ary_includes(scope, LINK_START))
                     // syntax error: an unclosed external link
-                    _Wikitext_rollback_failed_link(parser, output, link_class);
+                    _Wikitext_rollback_failed_link(parser);
                 else if (ary_includes(scope, EXT_LINK_START))
                     // syntax error: an unclosed external link
                     _Wikitext_rollback_failed_external_link(parser, link_class);
@@ -1941,7 +1941,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_rollback_failed_external_link(parser, link_class);
                 else if (ary_includes(scope, LINK_START))
                     // syntax error: an unclosed internal link
-                    _Wikitext_rollback_failed_link(parser, output, link_class);
+                    _Wikitext_rollback_failed_link(parser);
                 for (i = 0, j = scope->count; i < j; i++)
                     _Wikitext_pop_from_stack(parser, Qnil);
                 goto return_output; // break not enough here (want to break out of outer while loop, not inner switch statement)
