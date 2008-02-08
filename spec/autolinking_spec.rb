@@ -38,6 +38,7 @@ describe Wikitext::Parser, 'autolinking' do
     end
 
     it 'should apply no CSS if external_link_class is set to nil' do
+      uri = 'http://example.com/'
       @parser.external_link_class = nil
       @parser.parse(uri).should == %Q{<p><a href="http://example.com/">http://example.com/</a></p>\n}
     end
