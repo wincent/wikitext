@@ -33,7 +33,7 @@ describe Wikitext::Parser, 'internal links' do
     @parser.parse('==== foo ]] bar ====').should == "<h4>foo ]] bar</h4>\n"                         # in H4 scope
     @parser.parse('===== foo ]] bar =====').should == "<h5>foo ]] bar</h5>\n"                       # in H5 scope
     @parser.parse('====== foo ]] bar ======').should == "<h6>foo ]] bar</h6>\n"                     # in H6 scope
-    @parser.parse('> ]]').should == "<blockquote>\n<p>]]</p>\n</blockquote>\n"                      # in BLOCKQUOTE scope
+    @parser.parse('> ]]').should == "<blockquote>\n  <p>]]</p>\n</blockquote>\n"                    # in BLOCKQUOTE scope
   end
 
   it 'should turn single words into links' do
