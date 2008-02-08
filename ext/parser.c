@@ -253,6 +253,16 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
             rb_str_append(target, parser->line_ending);
             break;
 
+        case NESTED_LIST:
+            // next token to pop will be a LI
+            // LI is an interesting token because sometimes we want it to behave like P (ie. do a non-emitting indent)
+            // and other times we want it to behave like BLOCKQUOTE (ie. when it has a nested list inside)
+            // hence this hack: we do an emitting dedent on behalf of the LI that we know must be coming
+            // and then when we pop the actual LI itself (below) we do the standard non-emitting indent
+            _Wikitext_dedent(parser, Qtrue);    // we really only want to emit the spaces
+            parser->current_indent += 2;        // we don't want to decrement the actual indent level, so put it back
+            break;
+
         case LI:
             rb_str_cat(target, li_end, sizeof(li_end) - 1);
             rb_str_append(target, parser->line_ending);
@@ -1249,6 +1259,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 // count number of tokens in line and scope stacks
                 i = line->count;
                 j = scope->count;
+                k = i;
 
                 // list tokens can be nested so look ahead for any more which might affect the decision to push or pop
                 for (;;)
@@ -1257,9 +1268,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (type == OL || type == UL)
                     {
                         token = NULL;
+                        if (i - k >= 2)                     // already seen at least one OL or UL
+                        {
+                            ary_push(line, NESTED_LIST);    // which means this is a nested list
+                            i += 3;
+                        }
+                        else
+                            i += 2;
                         ary_push(line, type);
                         ary_push(line, LI);
-                        i += 2;
 
                         // want to compare line with scope but can only do so if scope has enough items on it
                         if (j >= i)
@@ -1300,18 +1317,18 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     NEXT_TOKEN();
                 }
 
-                // TODO: consider adding indentation here... wouldn't be too hard...
+                // will emit
                 if (type == OL || type == UL)
                 {
                     // if LI is at the top of a stack this is the start of a nested list
                     if (j > 0 && ary_entry(scope, -1) == LI)
-                        // so we should precede it with a CRLF
+                    {
+                        // so we should precede it with a CRLF, and indicate that it's a nested list
                         rb_str_append(output, line_ending);
-                }
+                        ary_push(scope, NESTED_LIST);
+                    }
 
-                // emit
-                if (type == OL || type == UL)
-                {
+                    // emit
                     _Wikitext_indent(parser);
                     if (type == OL)
                         rb_str_cat(output, ol_start, sizeof(ol_start) - 1);
