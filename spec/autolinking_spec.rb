@@ -48,8 +48,18 @@ describe Wikitext::Parser, 'autolinking' do
 
     it 'should convert emails into hyperlinks' do
       uri = 'user@example.com'
-      @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com" class="external">user@example.com</a></p>\n}
-      @parser.external_link_class = nil
+      @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com" class="mailto">user@example.com</a></p>\n}
+    end
+
+    it 'should apply the mailto CSS class if set' do
+      uri = 'user@example.com'
+      @parser.mailto_class = 'foo'
+      @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com" class="foo">user@example.com</a></p>\n}
+    end
+
+    it 'should apply no CSS if the mailto class is set to nil' do
+      uri = 'user@example.com'
+      @parser.mailto_class = nil
       @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com">user@example.com</a></p>\n}
     end
 

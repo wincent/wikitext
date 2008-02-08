@@ -19,18 +19,19 @@
 
 typedef struct
 {
-    VALUE   output;         // for accumulating output to be returned
-    VALUE   capture;        // for capturing substrings
-    VALUE   link_target;    // short term "memory" for parsing links
-    VALUE   link_text;      // short term "memory" for parsing links
-    ary_t   *scope;         // stack for tracking scope
-    ary_t   *line;          // stack for tracking scope as implied by current line
-    ary_t   *line_buffer;   // stack for tracking raw tokens (not scope) on current line
-    VALUE   pending_crlf;   // boolean (Qtrue or Qfalse)
+    VALUE   output;                 // for accumulating output to be returned
+    VALUE   capture;                // for capturing substrings
+    VALUE   link_target;            // short term "memory" for parsing links
+    VALUE   link_text;              // short term "memory" for parsing links
+    VALUE   external_link_class;    // CSS class applied to external links
+    ary_t   *scope;                 // stack for tracking scope
+    ary_t   *line;                  // stack for tracking scope as implied by current line
+    ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
+    VALUE   pending_crlf;           // boolean (Qtrue or Qfalse)
     VALUE   autolink;
     VALUE   line_ending;
-    int     base_indent;    // controlled by the :indent option to Wikitext::Parser#parse
-    int     current_indent; // fluctuates according to currently nested structures
+    int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
+    int     current_indent;         // fluctuates according to currently nested structures
 } parser_t;
 
 const char escaped_no_wiki_start[]  = "&lt;nowiki&gt;";
@@ -689,7 +690,7 @@ inline void _Wikitext_rollback_failed_link(parser_t *parser)
     parser->link_text   = Qnil;
 }
 
-inline void _Wikitext_rollback_failed_external_link(parser_t *parser, VALUE link_class)
+inline void _Wikitext_rollback_failed_external_link(parser_t *parser)
 {
     int scope_includes_space = ary_includes(parser->scope, SPACE);
     _Wikitext_pop_from_stack_up_to(parser, Qnil, EXT_LINK_START, Qtrue);
@@ -710,7 +711,7 @@ inline void _Wikitext_rollback_failed_external_link(parser_t *parser, VALUE link
     if (!NIL_P(parser->link_target))
     {
         if (parser->autolink == Qtrue)
-            parser->link_target = _Wikitext_hyperlink(Qnil, parser->link_target, parser->link_target, link_class);
+            parser->link_target = _Wikitext_hyperlink(Qnil, parser->link_target, parser->link_target, parser->external_link_class);
         rb_str_append(parser->output, parser->link_target);
         if (scope_includes_space)
         {
@@ -778,25 +779,26 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     VALUE link_class    = rb_iv_get(self, "@external_link_class");
     link_class          = NIL_P(link_class) ? Qnil : StringValue(link_class);
     VALUE mailto_class  = rb_iv_get(self, "@mailto_class");
-    mailto_class        = StringValue(mailto_class);
+    mailto_class        = NIL_P(mailto_class) ? Qnil : StringValue(mailto_class);
     VALUE prefix        = rb_iv_get(self, "@internal_link_prefix");
 
     // set up parser struct to make passing parameters a little easier
     // eventually this will encapsulate most or all of the variables above
     parser_t _parser;
-    parser_t *parser        = &_parser;
-    parser->output          = output;
-    parser->capture         = Qnil;
-    parser->link_target     = Qnil;
-    parser->link_text       = Qnil;
-    parser->scope           = scope;
-    parser->line            = line;
-    parser->line_buffer     = line_buffer;
-    parser->pending_crlf    = Qfalse;
-    parser->autolink        = autolink;
-    parser->line_ending     = line_ending;
-    parser->base_indent     = base_indent;
-    parser->current_indent  = 0;
+    parser_t *parser            = &_parser;
+    parser->output              = output;
+    parser->capture             = Qnil;
+    parser->link_target         = Qnil;
+    parser->link_text           = Qnil;
+    parser->external_link_class = link_class;
+    parser->scope               = scope;
+    parser->line                = line;
+    parser->line_buffer         = line_buffer;
+    parser->pending_crlf        = Qfalse;
+    parser->autolink            = autolink;
+    parser->line_ending         = line_ending;
+    parser->base_indent         = base_indent;
+    parser->current_indent      = 0;
 
     token_t _token;
     _token.type = NO_TOKEN;
@@ -1379,7 +1381,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (ary_includes(scope, EXT_LINK_START))
                         // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser, link_class);
+                        _Wikitext_rollback_failed_external_link(parser);
 
                     if (!ary_includes(scope, H6_START))
                     {
@@ -1398,7 +1400,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (ary_includes(scope, EXT_LINK_START))
                         // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser, link_class);
+                        _Wikitext_rollback_failed_external_link(parser);
 
                     if (!ary_includes(scope, H5_START))
                     {
@@ -1417,7 +1419,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (ary_includes(scope, EXT_LINK_START))
                         // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser, link_class);
+                        _Wikitext_rollback_failed_external_link(parser);
 
                     if (!ary_includes(scope, H4_START))
                     {
@@ -1436,7 +1438,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (ary_includes(scope, EXT_LINK_START))
                         // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser, link_class);
+                        _Wikitext_rollback_failed_external_link(parser);
 
                     if (!ary_includes(scope, H3_START))
                     {
@@ -1455,7 +1457,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (ary_includes(scope, EXT_LINK_START))
                         // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser, link_class);
+                        _Wikitext_rollback_failed_external_link(parser);
 
                     if (!ary_includes(scope, H2_START))
                     {
@@ -1474,7 +1476,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (ary_includes(scope, EXT_LINK_START))
                         // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser, link_class);
+                        _Wikitext_rollback_failed_external_link(parser);
 
                     if (!ary_includes(scope, H1_START))
                     {
@@ -1496,7 +1498,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_start_para_if_necessary(parser);
                     i = TOKEN_TEXT(token);
                     if (autolink == Qtrue)
-                        i = _Wikitext_hyperlink(rb_str_new2("mailto:"), i, i, link_class); // prefix, target, text, class
+                        i = _Wikitext_hyperlink(rb_str_new2("mailto:"), i, i, mailto_class);
                     rb_str_append(output, i);
                 }
                 break;
@@ -1534,7 +1536,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             _Wikitext_start_para_if_necessary(parser);
                             rb_str_cat(output, ext_link_start, sizeof(ext_link_start) - 1);
                             if (autolink == Qtrue)
-                                i = _Wikitext_hyperlink(Qnil, i, i, link_class); // link target, link text, link class
+                                i = _Wikitext_hyperlink(Qnil, i, i, parser->external_link_class); // link target, link text
                             rb_str_append(output, i);
                         }
                     }
@@ -1555,7 +1557,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_start_para_if_necessary(parser);
                     i = TOKEN_TEXT(token);
                     if (autolink == Qtrue)
-                        i = _Wikitext_hyperlink(Qnil, i, i, link_class); // link target, link text, link class
+                        i = _Wikitext_hyperlink(Qnil, i, i, parser->external_link_class); // link target, link text
                     rb_str_append(output, i);
                 }
                 break;
@@ -1748,7 +1750,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (NIL_P(parser->link_text))
                         // syntax error: external link with no link text
-                        _Wikitext_rollback_failed_external_link(parser, link_class);
+                        _Wikitext_rollback_failed_external_link(parser);
                     else
                     {
                         // success!
@@ -1756,7 +1758,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         _Wikitext_pop_excess_elements(parser);
                         parser->capture = Qnil;
                         _Wikitext_start_para_if_necessary(parser);
-                        i = _Wikitext_hyperlink(Qnil, parser->link_target, parser->link_text, link_class);
+                        i = _Wikitext_hyperlink(Qnil, parser->link_target, parser->link_text, parser->external_link_class);
                         rb_str_append(output, i);
                     }
                     parser->link_target = Qnil;
@@ -1864,7 +1866,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_rollback_failed_link(parser);
                 else if (ary_includes(scope, EXT_LINK_START))
                     // syntax error: an unclosed external link
-                    _Wikitext_rollback_failed_external_link(parser, link_class);
+                    _Wikitext_rollback_failed_external_link(parser);
 
                 if (ary_includes(scope, NO_WIKI_START))
                 {
@@ -1938,7 +1940,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 // close any open scopes on hitting EOF
                 if (ary_includes(scope, EXT_LINK_START))
                     // syntax error: an unclosed external link
-                    _Wikitext_rollback_failed_external_link(parser, link_class);
+                    _Wikitext_rollback_failed_external_link(parser);
                 else if (ary_includes(scope, LINK_START))
                     // syntax error: an unclosed internal link
                     _Wikitext_rollback_failed_link(parser);
