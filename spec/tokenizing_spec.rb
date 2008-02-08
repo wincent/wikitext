@@ -99,6 +99,26 @@ describe Wikitext::Parser, 'tokenizing' do
     @tokens[0].string_value.should  == ''
   end
 
+  it 'should be able to tokenize strings containing "}"' do
+    # was a bug: we were throwing an exception "failed before finding a token" because our PRINTABLE rule omitted this code point
+    lambda { @tokens = @parser.tokenize('}') }.should_not raise_error
+    @tokens.length.should == 2
+    @tokens[0].token_type.should    == :printable
+    @tokens[0].string_value.should  == '}'
+    @tokens[0].line_start.should    == 1
+    @tokens[0].column_start.should  == 1
+    @tokens[0].line_stop.should     == 1
+    @tokens[0].column_stop.should   == 2
+    @tokens[1].token_type.should    == :end_of_file
+    @tokens[1].string_value.should  == ''
+  end
+
+  it 'should be able to tokenize the full range of printable ASCII' do
+    # see the previous example: we just want to make sure that our PRINTABLE rule is adequate
+    printable_ascii = (0x20..0x7e).to_a.pack('C*')
+    lambda { @parser.tokenize(printable_ascii) }.should_not raise_error
+  end
+
   it 'should be able to tokenize large blocks of text' do
     large_block_of_text = <<SLAB
 paragraph

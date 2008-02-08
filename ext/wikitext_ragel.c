@@ -585,34 +585,35 @@ case 54:
 		case 102: goto st75;
 		case 104: goto st83;
 		case 115: goto st84;
-		case 123: goto st57;
 		case 124: goto tr86;
-		case 126: goto st57;
 		case 127: goto tr66;
 	}
-	if ( (*p) < 1 ) {
+	if ( (*p) < 33 ) {
 		if ( (*p) < -32 ) {
 			if ( -62 <= (*p) && (*p) <= -33 )
 				goto st1;
 		} else if ( (*p) > -17 ) {
-			if ( -16 <= (*p) && (*p) <= -12 )
+			if ( (*p) > -12 ) {
+				if ( 1 <= (*p) && (*p) <= 31 )
+					goto tr66;
+			} else if ( (*p) >= -16 )
 				goto st4;
 		} else
 			goto st2;
-	} else if ( (*p) > 31 ) {
-		if ( (*p) < 45 ) {
-			if ( 33 <= (*p) && (*p) <= 44 )
-				goto st57;
-		} else if ( (*p) > 57 ) {
-			if ( (*p) > 64 ) {
-				if ( 65 <= (*p) && (*p) <= 122 )
-					goto st63;
-			} else if ( (*p) >= 58 )
-				goto st57;
+	} else if ( (*p) > 44 ) {
+		if ( (*p) < 58 ) {
+			if ( 45 <= (*p) && (*p) <= 57 )
+				goto st63;
+		} else if ( (*p) > 64 ) {
+			if ( (*p) > 122 ) {
+				if ( 123 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 65 )
+				goto st63;
 		} else
-			goto st63;
+			goto st57;
 	} else
-		goto tr66;
+		goto st57;
 	goto st0;
 st0:
 cs = 0;
@@ -669,7 +670,7 @@ st55:
 	if ( ++p == pe )
 		goto _test_eof55;
 case 55:
-#line 673 "wikitext_ragel.c"
+#line 674 "wikitext_ragel.c"
 	if ( (*p) == 10 )
 		goto tr88;
 	goto tr87;
@@ -683,7 +684,7 @@ st56:
 	if ( ++p == pe )
 		goto _test_eof56;
 case 56:
-#line 687 "wikitext_ragel.c"
+#line 688 "wikitext_ragel.c"
 	if ( (*p) == 32 )
 		goto st56;
 	goto tr89;
@@ -694,20 +695,22 @@ case 57:
 	switch( (*p) ) {
 		case 33: goto st57;
 		case 92: goto st57;
-		case 126: goto st57;
 	}
-	if ( (*p) < 43 ) {
-		if ( (*p) > 37 ) {
-			if ( 40 <= (*p) && (*p) <= 41 )
+	if ( (*p) < 63 ) {
+		if ( (*p) < 40 ) {
+			if ( 36 <= (*p) && (*p) <= 37 )
 				goto st57;
-		} else if ( (*p) >= 36 )
+		} else if ( (*p) > 41 ) {
+			if ( 43 <= (*p) && (*p) <= 59 )
+				goto st57;
+		} else
 			goto st57;
-	} else if ( (*p) > 59 ) {
-		if ( (*p) < 94 ) {
-			if ( 63 <= (*p) && (*p) <= 90 )
+	} else if ( (*p) > 90 ) {
+		if ( (*p) < 97 ) {
+			if ( 94 <= (*p) && (*p) <= 95 )
 				goto st57;
-		} else if ( (*p) > 95 ) {
-			if ( 97 <= (*p) && (*p) <= 123 )
+		} else if ( (*p) > 123 ) {
+			if ( 125 <= (*p) && (*p) <= 126 )
 				goto st57;
 		} else
 			goto st57;
@@ -722,7 +725,7 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 726 "wikitext_ragel.c"
+#line 729 "wikitext_ragel.c"
 	switch( (*p) ) {
 		case 35: goto st7;
 		case 97: goto st13;
@@ -962,7 +965,6 @@ case 63:
 		case 94: goto st57;
 		case 95: goto st63;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 45 ) {
 		if ( (*p) < 40 ) {
@@ -978,7 +980,10 @@ case 63:
 			if ( 58 <= (*p) && (*p) <= 59 )
 				goto st57;
 		} else if ( (*p) > 90 ) {
-			if ( 97 <= (*p) && (*p) <= 122 )
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
 				goto st63;
 		} else
 			goto st63;
@@ -993,7 +998,6 @@ case 64:
 		case 33: goto st57;
 		case 92: goto st57;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 58 ) {
 		if ( (*p) < 40 ) {
@@ -1008,17 +1012,20 @@ case 64:
 		} else
 			goto st57;
 	} else if ( (*p) > 59 ) {
-		if ( (*p) < 65 ) {
-			if ( 63 <= (*p) && (*p) <= 64 )
-				goto st57;
-		} else if ( (*p) > 90 ) {
-			if ( (*p) > 95 ) {
-				if ( 97 <= (*p) && (*p) <= 122 )
+		if ( (*p) < 94 ) {
+			if ( (*p) > 64 ) {
+				if ( 65 <= (*p) && (*p) <= 90 )
 					goto tr102;
-			} else if ( (*p) >= 94 )
+			} else if ( (*p) >= 63 )
 				goto st57;
+		} else if ( (*p) > 95 ) {
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
+				goto tr102;
 		} else
-			goto tr102;
+			goto st57;
 	} else
 		goto st57;
 	goto tr91;
@@ -1038,13 +1045,12 @@ st65:
 	if ( ++p == pe )
 		goto _test_eof65;
 case 65:
-#line 1042 "wikitext_ragel.c"
+#line 1049 "wikitext_ragel.c"
 	switch( (*p) ) {
 		case 33: goto st57;
 		case 46: goto st66;
 		case 92: goto st57;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 58 ) {
 		if ( (*p) < 40 ) {
@@ -1059,17 +1065,20 @@ case 65:
 		} else
 			goto st57;
 	} else if ( (*p) > 59 ) {
-		if ( (*p) < 65 ) {
-			if ( 63 <= (*p) && (*p) <= 64 )
-				goto st57;
-		} else if ( (*p) > 90 ) {
-			if ( (*p) > 95 ) {
-				if ( 97 <= (*p) && (*p) <= 122 )
+		if ( (*p) < 94 ) {
+			if ( (*p) > 64 ) {
+				if ( 65 <= (*p) && (*p) <= 90 )
 					goto tr102;
-			} else if ( (*p) >= 94 )
+			} else if ( (*p) >= 63 )
 				goto st57;
+		} else if ( (*p) > 95 ) {
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
+				goto tr102;
 		} else
-			goto tr102;
+			goto st57;
 	} else
 		goto st57;
 	goto tr103;
@@ -1081,7 +1090,6 @@ case 66:
 		case 33: goto st57;
 		case 92: goto st57;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 58 ) {
 		if ( (*p) < 40 ) {
@@ -1096,17 +1104,20 @@ case 66:
 		} else
 			goto st57;
 	} else if ( (*p) > 59 ) {
-		if ( (*p) < 65 ) {
-			if ( 63 <= (*p) && (*p) <= 64 )
-				goto st57;
-		} else if ( (*p) > 90 ) {
-			if ( (*p) > 95 ) {
-				if ( 97 <= (*p) && (*p) <= 122 )
+		if ( (*p) < 94 ) {
+			if ( (*p) > 64 ) {
+				if ( 65 <= (*p) && (*p) <= 90 )
 					goto st67;
-			} else if ( (*p) >= 94 )
+			} else if ( (*p) >= 63 )
 				goto st57;
+		} else if ( (*p) > 95 ) {
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
+				goto st67;
 		} else
-			goto st67;
+			goto st57;
 	} else
 		goto st57;
 	goto tr91;
@@ -1119,7 +1130,6 @@ case 67:
 		case 46: goto st66;
 		case 92: goto st57;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 58 ) {
 		if ( (*p) < 40 ) {
@@ -1134,17 +1144,20 @@ case 67:
 		} else
 			goto st57;
 	} else if ( (*p) > 59 ) {
-		if ( (*p) < 65 ) {
-			if ( 63 <= (*p) && (*p) <= 64 )
-				goto st57;
-		} else if ( (*p) > 90 ) {
-			if ( (*p) > 95 ) {
-				if ( 97 <= (*p) && (*p) <= 122 )
+		if ( (*p) < 94 ) {
+			if ( (*p) > 64 ) {
+				if ( 65 <= (*p) && (*p) <= 90 )
 					goto st68;
-			} else if ( (*p) >= 94 )
+			} else if ( (*p) >= 63 )
 				goto st57;
+		} else if ( (*p) > 95 ) {
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
+				goto st68;
 		} else
-			goto st68;
+			goto st57;
 	} else
 		goto st57;
 	goto tr91;
@@ -1157,7 +1170,6 @@ case 68:
 		case 46: goto st66;
 		case 92: goto st57;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 58 ) {
 		if ( (*p) < 40 ) {
@@ -1172,17 +1184,20 @@ case 68:
 		} else
 			goto st57;
 	} else if ( (*p) > 59 ) {
-		if ( (*p) < 65 ) {
-			if ( 63 <= (*p) && (*p) <= 64 )
-				goto st57;
-		} else if ( (*p) > 90 ) {
-			if ( (*p) > 95 ) {
-				if ( 97 <= (*p) && (*p) <= 122 )
+		if ( (*p) < 94 ) {
+			if ( (*p) > 64 ) {
+				if ( 65 <= (*p) && (*p) <= 90 )
 					goto st69;
-			} else if ( (*p) >= 94 )
+			} else if ( (*p) >= 63 )
 				goto st57;
+		} else if ( (*p) > 95 ) {
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
+				goto st69;
 		} else
-			goto st69;
+			goto st57;
 	} else
 		goto st57;
 	goto tr107;
@@ -1195,7 +1210,6 @@ case 69:
 		case 46: goto st66;
 		case 92: goto st57;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 58 ) {
 		if ( (*p) < 40 ) {
@@ -1210,17 +1224,20 @@ case 69:
 		} else
 			goto st57;
 	} else if ( (*p) > 59 ) {
-		if ( (*p) < 65 ) {
-			if ( 63 <= (*p) && (*p) <= 64 )
-				goto st57;
-		} else if ( (*p) > 90 ) {
-			if ( (*p) > 95 ) {
-				if ( 97 <= (*p) && (*p) <= 122 )
+		if ( (*p) < 94 ) {
+			if ( (*p) > 64 ) {
+				if ( 65 <= (*p) && (*p) <= 90 )
 					goto st70;
-			} else if ( (*p) >= 94 )
+			} else if ( (*p) >= 63 )
 				goto st57;
+		} else if ( (*p) > 95 ) {
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
+				goto st70;
 		} else
-			goto st70;
+			goto st57;
 	} else
 		goto st57;
 	goto tr107;
@@ -1233,7 +1250,6 @@ case 70:
 		case 46: goto st66;
 		case 92: goto st57;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 58 ) {
 		if ( (*p) < 40 ) {
@@ -1248,17 +1264,20 @@ case 70:
 		} else
 			goto st57;
 	} else if ( (*p) > 59 ) {
-		if ( (*p) < 65 ) {
-			if ( 63 <= (*p) && (*p) <= 64 )
-				goto st57;
-		} else if ( (*p) > 90 ) {
-			if ( (*p) > 95 ) {
-				if ( 97 <= (*p) && (*p) <= 122 )
+		if ( (*p) < 94 ) {
+			if ( (*p) > 64 ) {
+				if ( 65 <= (*p) && (*p) <= 90 )
 					goto tr110;
-			} else if ( (*p) >= 94 )
+			} else if ( (*p) >= 63 )
 				goto st57;
+		} else if ( (*p) > 95 ) {
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
+				goto tr110;
 		} else
-			goto tr110;
+			goto st57;
 	} else
 		goto st57;
 	goto tr107;
@@ -1270,7 +1289,7 @@ st71:
 	if ( ++p == pe )
 		goto _test_eof71;
 case 71:
-#line 1274 "wikitext_ragel.c"
+#line 1293 "wikitext_ragel.c"
 	switch( (*p) ) {
 		case 47: goto st20;
 		case 69: goto st37;
@@ -1580,7 +1599,7 @@ st72:
 	if ( ++p == pe )
 		goto _test_eof72;
 case 72:
-#line 1584 "wikitext_ragel.c"
+#line 1603 "wikitext_ragel.c"
 	switch( (*p) ) {
 		case 32: goto st73;
 		case 61: goto tr78;
@@ -1603,7 +1622,7 @@ st74:
 	if ( ++p == pe )
 		goto _test_eof74;
 case 74:
-#line 1607 "wikitext_ragel.c"
+#line 1626 "wikitext_ragel.c"
 	if ( (*p) == 32 )
 		goto tr120;
 	goto tr119;
@@ -1622,7 +1641,6 @@ case 75:
 		case 95: goto st63;
 		case 116: goto st76;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 45 ) {
 		if ( (*p) < 40 ) {
@@ -1638,7 +1656,10 @@ case 75:
 			if ( 58 <= (*p) && (*p) <= 59 )
 				goto st57;
 		} else if ( (*p) > 90 ) {
-			if ( 97 <= (*p) && (*p) <= 122 )
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
 				goto st63;
 		} else
 			goto st63;
@@ -1660,7 +1681,6 @@ case 76:
 		case 95: goto st63;
 		case 112: goto st77;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 45 ) {
 		if ( (*p) < 40 ) {
@@ -1676,7 +1696,10 @@ case 76:
 			if ( 58 <= (*p) && (*p) <= 59 )
 				goto st57;
 		} else if ( (*p) > 90 ) {
-			if ( 97 <= (*p) && (*p) <= 122 )
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
 				goto st63;
 		} else
 			goto st63;
@@ -1698,25 +1721,27 @@ case 77:
 		case 94: goto st57;
 		case 95: goto st63;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
-	if ( (*p) < 43 ) {
-		if ( (*p) > 37 ) {
-			if ( 40 <= (*p) && (*p) <= 41 )
+	if ( (*p) < 45 ) {
+		if ( (*p) < 40 ) {
+			if ( 36 <= (*p) && (*p) <= 37 )
 				goto st57;
-		} else if ( (*p) >= 36 )
+		} else if ( (*p) > 41 ) {
+			if ( 43 <= (*p) && (*p) <= 44 )
+				goto st57;
+		} else
 			goto st57;
-	} else if ( (*p) > 44 ) {
-		if ( (*p) < 65 ) {
-			if ( 45 <= (*p) && (*p) <= 57 )
+	} else if ( (*p) > 57 ) {
+		if ( (*p) < 97 ) {
+			if ( 65 <= (*p) && (*p) <= 90 )
 				goto st63;
-		} else if ( (*p) > 90 ) {
-			if ( 97 <= (*p) && (*p) <= 122 )
-				goto st63;
+		} else if ( (*p) > 122 ) {
+			if ( 125 <= (*p) && (*p) <= 126 )
+				goto st57;
 		} else
 			goto st63;
 	} else
-		goto st57;
+		goto st63;
 	goto tr91;
 st78:
 	if ( ++p == pe )
@@ -1726,20 +1751,22 @@ case 78:
 		case 33: goto st57;
 		case 47: goto st79;
 		case 92: goto st57;
-		case 126: goto st57;
 	}
-	if ( (*p) < 43 ) {
-		if ( (*p) > 37 ) {
-			if ( 40 <= (*p) && (*p) <= 41 )
+	if ( (*p) < 63 ) {
+		if ( (*p) < 40 ) {
+			if ( 36 <= (*p) && (*p) <= 37 )
 				goto st57;
-		} else if ( (*p) >= 36 )
+		} else if ( (*p) > 41 ) {
+			if ( 43 <= (*p) && (*p) <= 59 )
+				goto st57;
+		} else
 			goto st57;
-	} else if ( (*p) > 59 ) {
-		if ( (*p) < 94 ) {
-			if ( 63 <= (*p) && (*p) <= 90 )
+	} else if ( (*p) > 90 ) {
+		if ( (*p) < 97 ) {
+			if ( 94 <= (*p) && (*p) <= 95 )
 				goto st57;
-		} else if ( (*p) > 95 ) {
-			if ( 97 <= (*p) && (*p) <= 123 )
+		} else if ( (*p) > 123 ) {
+			if ( 125 <= (*p) && (*p) <= 126 )
 				goto st57;
 		} else
 			goto st57;
@@ -1754,20 +1781,22 @@ case 79:
 		case 33: goto st57;
 		case 47: goto st80;
 		case 92: goto st57;
-		case 126: goto st57;
 	}
-	if ( (*p) < 43 ) {
-		if ( (*p) > 37 ) {
-			if ( 40 <= (*p) && (*p) <= 41 )
+	if ( (*p) < 63 ) {
+		if ( (*p) < 40 ) {
+			if ( 36 <= (*p) && (*p) <= 37 )
 				goto st57;
-		} else if ( (*p) >= 36 )
+		} else if ( (*p) > 41 ) {
+			if ( 43 <= (*p) && (*p) <= 59 )
+				goto st57;
+		} else
 			goto st57;
-	} else if ( (*p) > 59 ) {
-		if ( (*p) < 94 ) {
-			if ( 63 <= (*p) && (*p) <= 90 )
+	} else if ( (*p) > 90 ) {
+		if ( (*p) < 97 ) {
+			if ( 94 <= (*p) && (*p) <= 95 )
 				goto st57;
-		} else if ( (*p) > 95 ) {
-			if ( 97 <= (*p) && (*p) <= 123 )
+		} else if ( (*p) > 123 ) {
+			if ( 125 <= (*p) && (*p) <= 126 )
 				goto st57;
 		} else
 			goto st57;
@@ -1791,6 +1820,7 @@ case 80:
 		case 94: goto st57;
 		case 95: goto tr126;
 		case 123: goto st57;
+		case 125: goto st57;
 		case 126: goto tr126;
 	}
 	if ( (*p) < 43 ) {
@@ -1819,7 +1849,7 @@ st81:
 	if ( ++p == pe )
 		goto _test_eof81;
 case 81:
-#line 1823 "wikitext_ragel.c"
+#line 1853 "wikitext_ragel.c"
 	switch( (*p) ) {
 		case 33: goto st53;
 		case 41: goto st53;
@@ -1884,7 +1914,7 @@ st82:
 	if ( ++p == pe )
 		goto _test_eof82;
 case 82:
-#line 1888 "wikitext_ragel.c"
+#line 1918 "wikitext_ragel.c"
 	switch( (*p) ) {
 		case 33: goto tr128;
 		case 35: goto tr62;
@@ -1898,6 +1928,7 @@ case 82:
 		case 94: goto st57;
 		case 95: goto tr126;
 		case 123: goto st57;
+		case 125: goto st57;
 		case 126: goto tr126;
 	}
 	if ( (*p) < 43 ) {
@@ -1933,7 +1964,6 @@ case 83:
 		case 95: goto st63;
 		case 116: goto st75;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 45 ) {
 		if ( (*p) < 40 ) {
@@ -1949,7 +1979,10 @@ case 83:
 			if ( 58 <= (*p) && (*p) <= 59 )
 				goto st57;
 		} else if ( (*p) > 90 ) {
-			if ( 97 <= (*p) && (*p) <= 122 )
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
 				goto st63;
 		} else
 			goto st63;
@@ -1971,7 +2004,6 @@ case 84:
 		case 95: goto st63;
 		case 118: goto st85;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 45 ) {
 		if ( (*p) < 40 ) {
@@ -1987,7 +2019,10 @@ case 84:
 			if ( 58 <= (*p) && (*p) <= 59 )
 				goto st57;
 		} else if ( (*p) > 90 ) {
-			if ( 97 <= (*p) && (*p) <= 122 )
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
 				goto st63;
 		} else
 			goto st63;
@@ -2009,7 +2044,6 @@ case 85:
 		case 95: goto st63;
 		case 110: goto st77;
 		case 123: goto st57;
-		case 126: goto st57;
 	}
 	if ( (*p) < 45 ) {
 		if ( (*p) < 40 ) {
@@ -2025,7 +2059,10 @@ case 85:
 			if ( 58 <= (*p) && (*p) <= 59 )
 				goto st57;
 		} else if ( (*p) > 90 ) {
-			if ( 97 <= (*p) && (*p) <= 122 )
+			if ( (*p) > 122 ) {
+				if ( 125 <= (*p) && (*p) <= 126 )
+					goto st57;
+			} else if ( (*p) >= 97 )
 				goto st63;
 		} else
 			goto st63;
