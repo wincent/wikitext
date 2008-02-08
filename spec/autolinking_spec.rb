@@ -29,6 +29,15 @@ describe Wikitext::Parser, 'autolinking' do
     it 'should convert URIs into hyperlinks' do
       uri = 'http://example.com/'
       @parser.parse(uri).should == %Q{<p><a href="http://example.com/" class="external">http://example.com/</a></p>\n}
+    end
+
+    it 'should apple the external_link_class CSS class if set' do
+      uri = 'http://example.com/'
+      @parser.external_link_class = 'bar'
+      @parser.parse(uri).should == %Q{<p><a href="http://example.com/" class="bar">http://example.com/</a></p>\n}
+    end
+
+    it 'should apply no CSS if external_link_class is set to nil' do
       @parser.external_link_class = nil
       @parser.parse(uri).should == %Q{<p><a href="http://example.com/">http://example.com/</a></p>\n}
     end
