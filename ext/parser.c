@@ -19,6 +19,8 @@
 
 typedef struct
 {
+    VALUE   output;         // for accumulating output to be returned
+    VALUE   capture;        // for capturing substrings
     ary_t   *scope;         // stack for tracking scope
     ary_t   *line;          // stack for tracking scope as implied by current line
     ary_t   *line_buffer;   // stack for tracking raw tokens (not scope) on current line
@@ -308,20 +310,20 @@ inline void _Wikitext_indent_if_needed(parser_t *parser)
     // each time we enter one of those spans must ++ the indentation level
 }
 
-inline void _Wikitext_start_para_if_necessary(VALUE capture, parser_t *parser, VALUE output)
+inline void _Wikitext_start_para_if_necessary(parser_t *parser)
 {
-    if (!NIL_P(capture)) // we don't do anything if capturing mode
+    if (!NIL_P(parser->capture))    // we don't do anything if capturing mode
         return;
     // if no block open yet, or top of stack is BLOCKQUOTE (with nothing in it yet)
     if (parser->scope->count == 0 || ary_entry(parser->scope, -1) == BLOCKQUOTE)
     {
-        rb_str_cat(output, p_start, sizeof(p_start) - 1);
+        rb_str_cat(parser->output, p_start, sizeof(p_start) - 1);
         ary_push(parser->scope, P);
         ary_push(parser->line, P);
     }
     else if (ary_includes(parser->scope, P) && parser->pending_crlf == Qtrue)
         // already in a paragraph block; convert pending CRLF into a space
-        rb_str_cat(output, space, sizeof(space) - 1);
+        rb_str_cat(parser->output, space, sizeof(space) - 1);
     parser->pending_crlf = Qfalse;
 }
 
@@ -755,7 +757,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
     // house-keeping
     VALUE output        = rb_str_new2("");
-    VALUE capture       = Qnil;             // sometimes we want to capture output rather than send it to the output variable
+    VALUE capture       = Qnil;
     ary_t *scope        = ary_new();        // stack for tracking scope
     ary_t *line         = ary_new();        // stack for tracking scope as implied by current line
     ary_t *line_buffer  = ary_new();        // stack for tracking raw tokens (not scope) on current line
@@ -776,6 +778,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     // eventually this will encapsulate most or all of the variables above
     parser_t _parser;
     parser_t *parser        = &_parser;
+    parser->output          = output;
+    parser->capture         = capture;
     parser->scope           = scope;
     parser->line            = line;
     parser->line_buffer     = line_buffer;
@@ -914,7 +918,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     i = NIL_P(capture) ? output : capture;
                     _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                    _Wikitext_start_para_if_necessary(capture, parser, i);
+                    _Wikitext_start_para_if_necessary(parser);
                     ary_push(scope, NO_WIKI_START);
                     ary_push(line, NO_WIKI_START);
                 }
@@ -928,7 +932,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     i = NIL_P(capture) ? output : capture;
                     _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                    _Wikitext_start_para_if_necessary(capture, parser, i);
+                    _Wikitext_start_para_if_necessary(parser);
                     rb_str_cat(output, escaped_no_wiki_end, sizeof(escaped_no_wiki_end) - 1);
                 }
                 break;
@@ -990,7 +994,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else    // no strong or em to remove, so this must be a new opening of both
                 {
-                    _Wikitext_start_para_if_necessary(capture, parser, i);
+                    _Wikitext_start_para_if_necessary(parser);
                     rb_str_cat(i, strong_em_start, sizeof(strong_em_start) - 1);
                     ary_push(scope, STRONG);
                     ary_push(line, STRONG);
@@ -1016,7 +1020,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // this is a new opening
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, strong_start, sizeof(strong_start) - 1);
                         ary_push(scope, STRONG);
                         ary_push(line, STRONG);
@@ -1037,7 +1041,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     else
                     {
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, strong_start, sizeof(strong_start) - 1);
                         ary_push(scope, STRONG_START);
                         ary_push(line, STRONG_START);
@@ -1058,7 +1062,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // no STRONG_START in scope, so must interpret the STRONG_END without any special meaning
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, escaped_strong_end, sizeof(escaped_strong_end) - 1);
                     }
                 }
@@ -1081,7 +1085,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // this is a new opening
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, em_start, sizeof(em_start) - 1);
                         ary_push(scope, EM);
                         ary_push(line, EM);
@@ -1102,7 +1106,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     else
                     {
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, em_start, sizeof(em_start) - 1);
                         ary_push(scope, EM_START);
                         ary_push(line, EM_START);
@@ -1123,7 +1127,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // no EM_START in scope, so must interpret the TT_END without any special meaning
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, escaped_em_end, sizeof(escaped_em_end) - 1);
                     }
                 }
@@ -1146,7 +1150,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // this is a new opening
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, tt_start, sizeof(tt_start) - 1);
                         ary_push(scope, TT);
                         ary_push(line, TT);
@@ -1167,7 +1171,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     else
                     {
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, tt_start, sizeof(tt_start) - 1);
                         ary_push(scope, TT_START);
                         ary_push(line, TT_START);
@@ -1188,7 +1192,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // no TT_START in scope, so must interpret the TT_END without any special meaning
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, escaped_tt_end, sizeof(escaped_tt_end) - 1);
                     }
                 }
@@ -1376,7 +1380,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (!ary_includes(scope, H6_START))
                     {
                         // literal output only if not in h6 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(capture, parser, output);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(output, literal_h6, sizeof(literal_h6) - 1);
                     }
                 }
@@ -1401,7 +1405,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (!ary_includes(scope, H5_START))
                     {
                         // literal output only if not in h5 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(capture, parser, output);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(output, literal_h5, sizeof(literal_h5) - 1);
                     }
                 }
@@ -1426,7 +1430,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (!ary_includes(scope, H4_START))
                     {
                         // literal output only if not in h4 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(capture, parser, output);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(output, literal_h4, sizeof(literal_h4) - 1);
                     }
                 }
@@ -1451,7 +1455,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (!ary_includes(scope, H3_START))
                     {
                         // literal output only if not in h3 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(capture, parser, output);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(output, literal_h3, sizeof(literal_h3) - 1);
                     }
                 }
@@ -1476,7 +1480,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (!ary_includes(scope, H2_START))
                     {
                         // literal output only if not in h2 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(capture, parser, output);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(output, literal_h2, sizeof(literal_h2) - 1);
                     }
                 }
@@ -1501,7 +1505,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (!ary_includes(scope, H1_START))
                     {
                         // literal output only if not in h1 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(capture, parser, output);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(output, literal_h1, sizeof(literal_h1) - 1);
                     }
                 }
@@ -1515,7 +1519,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
                     _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending, indent);
-                    _Wikitext_start_para_if_necessary(capture, parser, output);
+                    _Wikitext_start_para_if_necessary(parser);
                     i = TOKEN_TEXT(token);
                     if (autolink == Qtrue)
                         i = _Wikitext_hyperlink(rb_str_new2("mailto:"), i, i, link_class); // prefix, target, text, class
@@ -1553,7 +1557,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             // didn't see the space! this must be an error
                             _Wikitext_pop_from_stack(scope, output, line_ending, indent);
                             _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending, indent);
-                            _Wikitext_start_para_if_necessary(Qnil, parser, output);
+                            _Wikitext_start_para_if_necessary(parser);
                             rb_str_cat(output, ext_link_start, sizeof(ext_link_start) - 1);
                             if (autolink == Qtrue)
                                 i = _Wikitext_hyperlink(Qnil, i, i, link_class); // link target, link text, link class
@@ -1574,7 +1578,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
                     _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending, indent);
-                    _Wikitext_start_para_if_necessary(capture, parser, output);
+                    _Wikitext_start_para_if_necessary(parser);
                     i = TOKEN_TEXT(token);
                     if (autolink == Qtrue)
                         i = _Wikitext_hyperlink(Qnil, i, i, link_class); // link target, link text, link class
@@ -1703,7 +1707,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     link_target = _Wikitext_parser_encode_link_target(link_target);
                     _Wikitext_pop_from_stack_up_to(scope, i, LINK_START, Qtrue, line_ending, indent);
                     _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending, indent);
-                    _Wikitext_start_para_if_necessary(Qnil, parser, output);
+                    _Wikitext_start_para_if_necessary(parser);
                     i = _Wikitext_hyperlink(prefix, link_target, link_text, Qnil); // link target, link text, link class
                     rb_str_append(output, i);
                     link_target = Qnil;
@@ -1713,7 +1717,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else // wasn't in internal link scope
                 {
                     _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending, indent);
-                    _Wikitext_start_para_if_necessary(capture, parser, output);
+                    _Wikitext_start_para_if_necessary(parser);
                     rb_str_cat(i, link_end, sizeof(link_end) - 1);
                 }
                 break;
@@ -1761,7 +1765,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // only get here if there was a syntax error (missing URI)
                         _Wikitext_pop_excess_elements(capture, scope, line, output, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, output);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(output, ext_link_start, sizeof(ext_link_start) - 1);
                     }
                     continue; // jump back to top of loop to handle token (either URI or whatever it is)
@@ -1784,7 +1788,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         // success!
                         _Wikitext_pop_from_stack_up_to(scope, i, EXT_LINK_START, Qtrue, line_ending, indent);
                         _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(Qnil, parser, output);
+                        _Wikitext_start_para_if_necessary(parser);
                         i = _Wikitext_hyperlink(Qnil, link_target, link_text, link_class); // link target, link text, link class
                         rb_str_append(output, i);
                     }
@@ -1795,7 +1799,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else
                 {
                     _Wikitext_pop_excess_elements(Qnil, scope, line, output, line_ending, indent);
-                    _Wikitext_start_para_if_necessary(Qnil, parser, output);
+                    _Wikitext_start_para_if_necessary(parser);
                     rb_str_cat(output, ext_link_end, sizeof(ext_link_end) - 1);
                 }
                 break;
@@ -1803,7 +1807,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case SEPARATOR:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                _Wikitext_start_para_if_necessary(capture, parser, i);
+                _Wikitext_start_para_if_necessary(parser);
                 rb_str_cat(i, separator, sizeof(separator) - 1);
                 break;
 
@@ -1832,7 +1836,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // emit the space
                         _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                        _Wikitext_start_para_if_necessary(capture, parser, i);
+                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(i, token_ptr, token_len);
                     }
 
@@ -1848,7 +1852,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 // pass these through unaltered as they are case sensitive
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                _Wikitext_start_para_if_necessary(capture, parser, i);
+                _Wikitext_start_para_if_necessary(parser);
                 rb_str_cat(i, token->start, TOKEN_LEN(token));
                 break;
 
@@ -1856,35 +1860,35 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 // normalize hex entities (downcase them)
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                _Wikitext_start_para_if_necessary(capture, parser, i);
+                _Wikitext_start_para_if_necessary(parser);
                 rb_str_append(i, _Wikitext_downcase(TOKEN_TEXT(token)));
                 break;
 
             case QUOT:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                _Wikitext_start_para_if_necessary(capture, parser, i);
+                _Wikitext_start_para_if_necessary(parser);
                 rb_str_cat(i, quot_entity, sizeof(quot_entity) - 1);
                 break;
 
             case AMP:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                _Wikitext_start_para_if_necessary(capture, parser, i);
+                _Wikitext_start_para_if_necessary(parser);
                 rb_str_cat(i, amp_entity, sizeof(amp_entity) - 1);
                 break;
 
             case LESS:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                _Wikitext_start_para_if_necessary(capture, parser, i);
+                _Wikitext_start_para_if_necessary(parser);
                 rb_str_cat(i, lt_entity, sizeof(lt_entity) - 1);
                 break;
 
             case GREATER:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                _Wikitext_start_para_if_necessary(capture, parser, i);
+                _Wikitext_start_para_if_necessary(parser);
                 rb_str_cat(i, gt_entity, sizeof(gt_entity) - 1);
                 break;
 
@@ -1964,14 +1968,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case PRINTABLE:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                _Wikitext_start_para_if_necessary(capture, parser, i);
+                _Wikitext_start_para_if_necessary(parser);
                 rb_str_cat(i, token->start, TOKEN_LEN(token));
                 break;
 
             case DEFAULT:
                 i = NIL_P(capture) ? output : capture;
                 _Wikitext_pop_excess_elements(capture, scope, line, i, line_ending, indent);
-                _Wikitext_start_para_if_necessary(capture, parser, i);
+                _Wikitext_start_para_if_necessary(parser);
                 rb_str_append(i, _Wikitext_utf32_char_to_entity(token->code_point));    // convert to entity
                 break;
 
