@@ -703,10 +703,22 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     // process arguments
     VALUE string, options;
     if (rb_scan_args(argc, argv, "11", &string, &options) == 1) // 1 mandatory argument, 1 optional argument
-        options = rb_hash_new();                                // default to an empty hash if no argument passed
+        options = Qnil;
     if (NIL_P(string))
         return Qnil;
     string = StringValue(string);
+
+    // process options hash
+    VALUE indent = Qnil;
+    if (!NIL_P(options) && TYPE(options) == T_HASH)
+    {
+        indent = rb_hash_aref(options, ID2SYM(rb_intern("indent")));
+        if (!NIL_P(indent) && TYPE(indent) == T_FIXNUM)
+            // will optimize this later, probably by caching the indent string in some way
+            indent = rb_funcall(rb_str_new2(" "), rb_intern("*"), 1, indent);
+        else
+            indent = Qnil;
+    }
 
     // set up scanner
     char *p = RSTRING_PTR(string);
