@@ -414,15 +414,6 @@ void inline _Wikitext_pop_excess_elements(parser_t *parser)
             int k = ary_entry(parser->scope, -1);
             if (k == P)
                 continue;
-            else if (k != ary_entry(parser->line, -1))
-            {
-                // pop off one more item in cases like this:
-                // * foo
-                //   pre
-                // seems necessary in the PRE case becase there's something braindead with my PRE implementation
-                // other rules (eg BLOCKQUOTE, H6 etc) seem to handle this fine
-                _Wikitext_pop_from_stack(parser, parser->output);
-            }
         }
         _Wikitext_pop_from_stack(parser, parser->output);
     }
@@ -927,7 +918,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 if (!ary_includes(parser->scope, PRE))
                 {
                     parser->pending_crlf = Qfalse;
-                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qfalse);
                     _Wikitext_indent(parser);
                     rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
                     ary_push(parser->scope, PRE);
