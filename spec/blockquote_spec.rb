@@ -145,5 +145,51 @@ END
 END
   end
 
+  it 'should allow alternating nested paragraphs and pre blocks' do
+    # was a bug
+    input = <<-END
+> para 1
+>
+>  pre 1
+>  pre 2
+>
+> para 2
+END
+    expected = <<-END
+<blockquote>
+  <p>para 1</p>
+  <pre>pre 1
+pre 2</pre>
+  <p>para 2</p>
+</blockquote>
+END
+
+    @parser.parse(input).should == expected
+  end
+
+  it 'should allow nested blockquotes containing nested ordered lists' do
+    input = <<-END
+> outer para
+> > inner
+> > blockquote
+> > # inner list
+> > ## nested list
+END
+    expected = <<-END
+<blockquote>
+  <p>outer para</p>
+  <blockquote>
+    <p>inner blockquote</p>
+    <ol>
+      <li>inner list
+        <ol>
+          <li>nested list</li>
+        </ol>
+      </li>
+    </ol>
+  </blockquote>
+</blockquote>
+END
+  end
   # TODO: tests for nesting other types of blocks
 end
