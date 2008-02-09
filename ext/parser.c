@@ -381,9 +381,15 @@ inline void _Wikitext_start_para_if_necessary(parser_t *parser)
         ary_push(parser->scope, P);
         ary_push(parser->line, P);
     }
-    else if (ary_includes(parser->scope, P) && parser->pending_crlf == Qtrue)
-        // already in a paragraph block; convert pending CRLF into a space
-        rb_str_cat(parser->output, space, sizeof(space) - 1);
+    else if (parser->pending_crlf == Qtrue)
+    {
+        if (ary_includes(parser->scope, P))
+            // already in a paragraph block; convert pending CRLF into a space
+            rb_str_cat(parser->output, space, sizeof(space) - 1);
+        else if (ary_includes(parser->scope, PRE))
+            // PRE blocks can have pending CRLF too (helps us avoid emitting the trailing newline)
+            rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
+    }
     parser->pending_crlf = Qfalse;
 }
 
@@ -1924,6 +1930,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 break;
 
             case CRLF:
+                parser->pending_crlf = Qfalse;
                 if (ary_includes(scope, LINK_START))
                     // syntax error: an unclosed external link
                     _Wikitext_rollback_failed_link(parser);
@@ -1936,7 +1943,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // <nowiki> spans are unique; CRLFs are blindly echoed
                     ary_clear(line_buffer);
                     rb_str_cat(output, parser->line_ending->ptr, parser->line_ending->len);
-                    parser->pending_crlf = Qfalse;
                     break;
                 }
                 else if (ary_includes(scope, PRE))
@@ -1956,11 +1962,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             // this is definitely the end of the block, so don't emit
                         }
                         else
-                        {
-                            // go ahead and emit
-                            parser->pending_crlf = Qfalse;
-                            rb_str_cat(output, parser->line_ending->ptr, parser->line_ending->len);
-                        }
+                            // potentially will emit
+                            parser->pending_crlf = Qtrue;
+
                         // delete the entire contents of the line scope stack and buffer
                         ary_clear(line);
                         ary_clear(line_buffer);
