@@ -1338,6 +1338,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
                         ary_push(parser->scope, NESTED_LIST);
                     }
+                    else
+                        // this is a new list
+                        _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qfalse);
 
                     // emit
                     _Wikitext_indent(parser);
