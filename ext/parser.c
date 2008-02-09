@@ -702,26 +702,8 @@ VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 // not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
 inline void _Wikitext_rollback_failed_link(parser_t *parser)
 {
-    // I'd like to remove this paragraph creation from here and instead put it where the scope is first entered: would be cleaner
-    // same for the method below
-    // basically we can create a paragraph at that point because we know we'll either be emitting a valid link or the residue
-    // left behind by an invalid one
     int scope_includes_separator = ary_includes(parser->scope, SEPARATOR);
     _Wikitext_pop_from_stack_up_to(parser, Qnil, LINK_START, Qtrue);
-    if (!ary_includes(parser->scope, P) &&
-        !ary_includes(parser->scope, LI) &&
-        !ary_includes(parser->scope, H6_START) &&
-        !ary_includes(parser->scope, H5_START) &&
-        !ary_includes(parser->scope, H4_START) &&
-        !ary_includes(parser->scope, H3_START) &&
-        !ary_includes(parser->scope, H2_START) &&
-        !ary_includes(parser->scope, H1_START))
-    {
-        // create a paragraph if necessary
-        rb_str_cat(parser->output, p_start, sizeof(p_start) - 1);
-        ary_push(parser->scope, P);
-        ary_push(parser->line, P);
-    }
     rb_str_cat(parser->output, link_start, sizeof(link_start) - 1);
     if (!NIL_P(parser->link_target))
     {
@@ -743,20 +725,6 @@ inline void _Wikitext_rollback_failed_external_link(parser_t *parser)
 {
     int scope_includes_space = ary_includes(parser->scope, SPACE);
     _Wikitext_pop_from_stack_up_to(parser, Qnil, EXT_LINK_START, Qtrue);
-    if (!ary_includes(parser->scope, P) &&
-        !ary_includes(parser->scope, LI) &&
-        !ary_includes(parser->scope, H6_START) &&
-        !ary_includes(parser->scope, H5_START) &&
-        !ary_includes(parser->scope, H4_START) &&
-        !ary_includes(parser->scope, H3_START) &&
-        !ary_includes(parser->scope, H2_START) &&
-        !ary_includes(parser->scope, H1_START))
-    {
-        // create a paragraph if necessary
-        rb_str_cat(parser->output, p_start, sizeof(p_start) - 1);
-        ary_push(parser->scope, P);
-        ary_push(parser->line, P);
-    }
     rb_str_cat(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
     if (!NIL_P(parser->link_target))
     {
@@ -1670,6 +1638,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else // not in internal link scope yet
                 {
+                    // will either emit a link, or the rollback of a failed link, so start the para now
+                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_start_para_if_necessary(parser);
                     ary_push(parser->scope, LINK_START);
 
                     // look ahead and try to gobble up link target
@@ -1738,9 +1709,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         parser->link_text = _Wikitext_parser_trim_link_target(parser->link_text);
                     parser->link_target = _Wikitext_parser_encode_link_target(parser->link_target);
                     _Wikitext_pop_from_stack_up_to(parser, i, LINK_START, Qtrue);
-                    _Wikitext_pop_excess_elements(parser);
                     parser->capture     = Qnil;
-                    _Wikitext_start_para_if_necessary(parser);
                     i = _Wikitext_hyperlink(prefix, parser->link_target, parser->link_text, Qnil); // link target, link text, link class
                     rb_str_append(parser->output, i);
                     parser->link_target = Qnil;
@@ -1789,17 +1758,17 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else // not in external link scope yet
                 {
+                    // will either emit a link, or the rollback of a failed link, so start the para now
+                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_start_para_if_necessary(parser);
+
                     // look ahead: expect a URI
                     NEXT_TOKEN();
                     if (token->type == URI)
                         ary_push(parser->scope, EXT_LINK_START);    // so far so good, jump back to the top of the loop
                     else
-                    {
                         // only get here if there was a syntax error (missing URI)
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
                         rb_str_cat(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
-                    }
                     continue; // jump back to top of loop to handle token (either URI or whatever it is)
                 }
                 break;
@@ -1818,9 +1787,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // success!
                         _Wikitext_pop_from_stack_up_to(parser, i, EXT_LINK_START, Qtrue);
-                        _Wikitext_pop_excess_elements(parser);
                         parser->capture = Qnil;
-                        _Wikitext_start_para_if_necessary(parser);
                         i = _Wikitext_hyperlink(Qnil, parser->link_target, parser->link_text, parser->external_link_class);
                         rb_str_append(parser->output, i);
                     }
