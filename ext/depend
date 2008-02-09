@@ -16,7 +16,7 @@
 
 CFLAGS += -std=gnu99
 
-parser.o : ary.h parser.c parser.h token.h wikitext.h wikitext_ragel.h
+parser.o : ary.h parser.c parser.h token.h str.h wikitext.h wikitext_ragel.h
 token.o : token.c token.h wikitext.h
 wikitext.o : parser.h token.h wikitext.c wikitext.h wikitext_ragel.h
 wikitext_ragel.o : token.h wikitext.h wikitext_ragel.h wikitext_ragel.c

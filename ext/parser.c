@@ -14,6 +14,7 @@
 
 #include "parser.h"
 #include "ary.h"
+#include "str.h"
 #include "wikitext.h"
 #include "wikitext_ragel.h"
 

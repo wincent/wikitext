@@ -36,6 +36,7 @@ extension_files     = FileList[
   'ext/ary.h',
   'ext/parser.c',
   'ext/parser.h',
+  'ext/str.h',
   'ext/token.c',
   'ext/token.h',
   'ext/wikitext.c',
