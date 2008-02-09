@@ -32,8 +32,8 @@ typedef struct
     ary_t   *line;                  // stack for tracking scope as implied by current line
     ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
     VALUE   pending_crlf;           // boolean (Qtrue or Qfalse)
-    VALUE   autolink;
-    VALUE   line_ending;
+    VALUE   autolink;               // boolean (Qtrue or Qfalse)
+    str_t   *line_ending;
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
     int     current_indent;         // fluctuates according to currently nested structures
     str_t   *tabulation;            // caching buffer for emitting indentation
@@ -225,14 +225,14 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
     {
         case PRE:
             rb_str_cat(target, pre_end, sizeof(pre_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             _Wikitext_dedent(parser, Qfalse);
             break;
 
         case BLOCKQUOTE:
             _Wikitext_dedent(parser, Qtrue);
             rb_str_cat(target, blockquote_end, sizeof(blockquote_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             break;
 
         case NO_WIKI_START:
@@ -257,13 +257,13 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
         case OL:
             _Wikitext_dedent(parser, Qtrue);
             rb_str_cat(target, ol_end, sizeof(ol_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             break;
 
         case UL:
             _Wikitext_dedent(parser, Qtrue);
             rb_str_cat(target, ul_end, sizeof(ul_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             break;
 
         case NESTED_LIST:
@@ -278,43 +278,43 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
 
         case LI:
             rb_str_cat(target, li_end, sizeof(li_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H6_START:
             rb_str_cat(target, h6_end, sizeof(h6_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H5_START:
             rb_str_cat(target, h5_end, sizeof(h5_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H4_START:
             rb_str_cat(target, h4_end, sizeof(h4_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H3_START:
             rb_str_cat(target, h3_end, sizeof(h3_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H2_START:
             rb_str_cat(target, h2_end, sizeof(h2_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             _Wikitext_dedent(parser, Qfalse);
             break;
 
         case H1_START:
             rb_str_cat(target, h1_end, sizeof(h1_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             _Wikitext_dedent(parser, Qfalse);
             break;
 
@@ -332,7 +332,7 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
 
         case P:
             rb_str_cat(target, p_end, sizeof(p_end) - 1);
-            rb_str_append(target, parser->line_ending);
+            rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
             _Wikitext_dedent(parser, Qfalse);
             break;
 
@@ -846,7 +846,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->line_buffer         = line_buffer;
     parser->pending_crlf        = Qfalse;
     parser->autolink            = autolink;
-    parser->line_ending         = line_ending;
+    parser->line_ending         = str_new_from_string(line_ending);
     parser->base_indent         = base_indent;
     parser->current_indent      = 0;
     parser->tabulation          = NULL;
@@ -961,7 +961,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         {
                             _Wikitext_indent(parser);
                             rb_str_cat(output, blockquote_start, sizeof(blockquote_start) - 1);
-                            rb_str_append(output, line_ending);
+                            rb_str_cat(output, parser->line_ending->ptr, parser->line_ending->len);
                             ary_push(scope, BLOCKQUOTE);
                         }
                     }
@@ -1340,7 +1340,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (j > 0 && ary_entry(scope, -1) == LI)
                     {
                         // so we should precede it with a CRLF, and indicate that it's a nested list
-                        rb_str_append(output, line_ending);
+                        rb_str_cat(output, parser->line_ending->ptr, parser->line_ending->len);
                         ary_push(scope, NESTED_LIST);
                     }
 
@@ -1351,7 +1351,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     else if (type == UL)
                         rb_str_cat(output, ul_start, sizeof(ul_start) - 1);
                     ary_push(scope, type);
-                    rb_str_append(output, line_ending);
+                    rb_str_cat(output, parser->line_ending->ptr, parser->line_ending->len);
                 }
                 else if (type == SPACE)
                     // silently throw away the optional SPACE token after final list marker
@@ -1935,7 +1935,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     // <nowiki> spans are unique; CRLFs are blindly echoed
                     ary_clear(line_buffer);
-                    rb_str_append(output, line_ending);
+                    rb_str_cat(output, parser->line_ending->ptr, parser->line_ending->len);
                     parser->pending_crlf = Qfalse;
                     break;
                 }
@@ -1947,7 +1947,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         // don't emit in this case
                     }
                     else
-                        rb_str_append(output, line_ending);
+                        rb_str_cat(output, parser->line_ending->ptr, parser->line_ending->len);
                     parser->pending_crlf = Qfalse;
                 }
                 else
@@ -2023,6 +2023,7 @@ return_output:
     ary_free(parser->scope);
     ary_free(parser->line);
     ary_free(parser->line_buffer);
+    str_free(parser->line_ending);
     if (parser->tabulation)
         str_free(parser->tabulation);
     return output;
