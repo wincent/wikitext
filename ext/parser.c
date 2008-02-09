@@ -794,6 +794,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     {
         indent = rb_hash_aref(options, ID2SYM(rb_intern("indent")));
         base_indent = NUM2INT(indent);
+        if (base_indent < 0)
+            base_indent = 0;
     }
 
     // set up scanner
