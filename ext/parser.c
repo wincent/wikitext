@@ -411,9 +411,12 @@ void inline _Wikitext_pop_excess_elements(parser_t *parser)
         if (i - j == 1)
         {
             // don't auto-pop P if it is only item on scope
-            int k = ary_entry(parser->scope, -1);
-            if (k == P)
+            if (ary_entry(parser->scope, -1) == P)
+            {
+                // add P to the line scope to prevent us entering the loop at all next time around
+                ary_push(parser->line, P);
                 continue;
+            }
         }
         _Wikitext_pop_from_stack(parser, parser->output);
     }
@@ -847,6 +850,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     token_t *token = NULL;
     do
     {
+        // note that whenever we grab a token we push it into the line buffer
+        // this provides us with context-sensitive "memory" of what's been seen so far on this line
+#define NEXT_TOKEN()    token = &_token, next_token(token, token, NULL, pe), ary_push(parser->line_buffer, token->type)
+
         // check to see if we have a token hanging around from a previous iteration of this loop
         if (token == NULL)
         {
@@ -855,20 +862,16 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 // first time here (haven't started scanning yet)
                 token = &_token;
                 next_token(token, NULL, p, pe);
+                ary_push(parser->line_buffer, token->type);
             }
             else
                 // already scanning
-#define NEXT_TOKEN()    token = &_token, next_token(token, token, NULL, pe)
                 NEXT_TOKEN();
         }
         int type = token->type;
 
         // many restrictions depend on what is at the top of the stack
         int top = ary_entry(parser->scope, -1);
-
-        // push current token into line buffer
-        // provides us with context-sensitive "memory" of what's been seen so far on this line
-        ary_push(parser->line_buffer, type);
 
         // can't declare new variables inside a switch statement, so predeclare them here
         long remove_strong          = -1;
@@ -1934,9 +1937,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (ary_includes(parser->scope, PRE))
                 {
                     // beware when nothing or BLOCKQUOTE on line buffer (not line stack!) prior to CRLF, that must be end of PRE block
-                    if (parser->line_buffer->count < 2 ||
-                        NO_ITEM(ary_entry(parser->line_buffer, -2)) ||
-                        ary_entry(parser->line_buffer, -2) == BLOCKQUOTE)
+                    if (NO_ITEM(ary_entry(parser->line_buffer, -2)) || ary_entry(parser->line_buffer, -2) == BLOCKQUOTE)
                         // don't emit in this case
                         _Wikitext_pop_from_stack_up_to(parser, parser->output, PRE, Qtrue);
                     else
@@ -1964,7 +1965,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     parser->pending_crlf = Qtrue;
 
                     // count number of BLOCKQUOTE tokens in line buffer (can be zero) and pop back to that level
-                    // as a side effect, this handles any open span-level elements and unclosed blocks (with special handling for P blocks and LI elements)
+                    // as a side effect, this handles any open span-level elements and unclosed blocks
+                    // (with special handling for P blocks and LI elements)
                     i = ary_count(parser->line, BLOCKQUOTE);
                     for (j = parser->scope->count; j > i; j--)
                     {
