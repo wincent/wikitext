@@ -932,6 +932,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
                 if (!ary_includes(scope, PRE))
                 {
+                    parser->pending_crlf = Qfalse;
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_indent(parser);
                     rb_str_cat(output, pre_start, sizeof(pre_start) - 1);
