@@ -55,7 +55,7 @@ similar, but with '''styles in ''different'' order'''
 again, a '''different ''order'''''
 
 * list item 1
-** nested list item 1
+** nested list item 1 with [[bad link
 ** nested list item 2 with unclosed <tt>span
 ** nested list item 3
 * list item 2
@@ -139,7 +139,7 @@ INPUT
 <ul>
   <li>list item 1
     <ul>
-      <li>nested list item 1</li>
+      <li>nested list item 1 with [[bad link</li>
       <li>nested list item 2 with unclosed <tt>span</tt></li>
       <li>nested list item 3</li>
     </ul>

@@ -709,6 +709,7 @@ inline void _Wikitext_rollback_failed_link(parser_t *parser)
     int scope_includes_separator = ary_includes(parser->scope, SEPARATOR);
     _Wikitext_pop_from_stack_up_to(parser, Qnil, LINK_START, Qtrue);
     if (!ary_includes(parser->scope, P) &&
+        !ary_includes(parser->scope, LI) &&
         !ary_includes(parser->scope, H6_START) &&
         !ary_includes(parser->scope, H5_START) &&
         !ary_includes(parser->scope, H4_START) &&
