@@ -1279,7 +1279,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (type == OL || type == UL)
                     {
                         token = NULL;
-                        if (i - k >= 2)                     // already seen at least one OL or UL
+                        if (i - k >= 2)                             // already seen at least one OL or UL
                         {
                             ary_push(parser->line, NESTED_LIST);    // which means this is a nested list
                             i += 3;
@@ -1973,7 +1973,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     i = ary_count(parser->line, BLOCKQUOTE);
                     for (j = parser->scope->count; j > i; j--)
                     {
-                        if (parser->line->count > 0 && ary_entry(parser->line, -1) == LI)
+                        if (parser->scope->count > 0 && ary_entry(parser->scope, -1) == LI)
                         {
                             parser->pending_crlf = Qfalse;
                             break;

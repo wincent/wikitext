@@ -195,4 +195,117 @@ END
 </ul>
 END
   end
+
+  it 'should automatically close open TT_START elements on reaching the end of the line' do
+    # this (and the same for all other span-level elements) was a bug
+    input = <<-END
+* <tt>hello
+* world
+END
+
+    expected = <<-END
+<ul>
+  <li><tt>hello</tt></li>
+  <li>world</li>
+</ul>
+END
+
+    @parser.parse(input).should == expected
+  end
+
+  it 'should automatically close open TT elements on reaching the end of the line' do
+    input = <<-END
+* `hello
+* world
+END
+
+    expected = <<-END
+<ul>
+  <li><tt>hello</tt></li>
+  <li>world</li>
+</ul>
+END
+
+    @parser.parse(input).should == expected
+  end
+
+  it 'should automatically close open EM_START elements on reaching the end of the line' do
+    input = <<-END
+* <em>hello
+* world
+END
+
+    expected = <<-END
+<ul>
+  <li><em>hello</em></li>
+  <li>world</li>
+</ul>
+END
+
+    @parser.parse(input).should == expected
+  end
+
+  it 'should automatically close open EM elements on reaching the end of the line' do
+    input = <<-END
+* ''hello
+* world
+END
+
+    expected = <<-END
+<ul>
+  <li><em>hello</em></li>
+  <li>world</li>
+</ul>
+END
+
+    @parser.parse(input).should == expected
+  end
+
+  it 'should automatically close open STRONG_START elements on reaching the end of the line' do
+    input = <<-END
+* <strong>hello
+* world
+END
+
+    expected = <<-END
+<ul>
+  <li><strong>hello</strong></li>
+  <li>world</li>
+</ul>
+END
+
+    @parser.parse(input).should == expected
+  end
+
+  it 'should automatically close open STRONG elements on reaching the end of the line' do
+    input = <<-END
+* '''hello
+* world
+END
+
+    expected = <<-END
+<ul>
+  <li><strong>hello</strong></li>
+  <li>world</li>
+</ul>
+END
+
+    @parser.parse(input).should == expected
+  end
+
+  it 'should automatically close open STRONG_EM elements on reaching the end of the line' do
+    input = <<-END
+* '''''hello
+* world
+END
+
+    expected = <<-END
+<ul>
+  <li><strong><em>hello</em></strong></li>
+  <li>world</li>
+</ul>
+END
+
+    @parser.parse(input).should == expected
+  end
 end

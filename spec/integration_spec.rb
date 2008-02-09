@@ -29,12 +29,19 @@ second line
 
 new paragraph
 
+literal &quot; HTML &copy; entities
+
+UTF-8 characters: € etc
+
+characters which have <special> meaning in "HTML" & all that
+
 = a heading =
 
 > a blockquote
 > second line of blockquote
 >
-> new paragraph within blockquote
+> new paragraph within blockquote. this one features ''an
+> unclosed em span (should be automatically closed).
 > 
 > Note how the optional space following the blockquote marker
 >has no effect.
@@ -49,7 +56,7 @@ again, a '''different ''order'''''
 
 * list item 1
 ** nested list item 1
-** nested list item 2
+** nested list item 2 with unclosed <tt>span
 ** nested list item 3
 * list item 2
 
@@ -116,10 +123,13 @@ INPUT
     expected = <<EXPECTED
 <p>paragraph second line</p>
 <p>new paragraph</p>
+<p>literal &quot; HTML &copy; entities</p>
+<p>UTF-8 characters: &#x20ac; etc</p>
+<p>characters which have &lt;special&gt; meaning in &quot;HTML&quot; &amp; all that</p>
 <h1>a heading</h1>
 <blockquote>
   <p>a blockquote second line of blockquote</p>
-  <p>new paragraph within blockquote</p>
+  <p>new paragraph within blockquote. this one features <em>an</em> unclosed em span (should be automatically closed).</p>
   <p>Note how the optional space following the blockquote marker has no effect.</p>
 </blockquote>
 <h2>another heading</h2>
@@ -130,7 +140,7 @@ INPUT
   <li>list item 1
     <ul>
       <li>nested list item 1</li>
-      <li>nested list item 2</li>
+      <li>nested list item 2 with unclosed <tt>span</tt></li>
       <li>nested list item 3</li>
     </ul>
   </li>
