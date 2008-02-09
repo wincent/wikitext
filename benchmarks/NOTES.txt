@@ -47,3 +47,11 @@ After implementing profiling_parse method
   and rb_str_buf_cat (11.2%)
   not clear whether a custom string implementation would help here
   (next_token function currently accounts for 13.3%)
+
+New baseline after adding additional features (additional em and strong
+tokens, email address tokenization and autolinking, whitespace trimming
+for link components, optional options hash for parse method, auotmatic
+indentation, and indentation overrides):
+
+  short slab of ASCII text    1.620000   0.010000   1.630000 (  1.765099)
+  short slab of UTF-8 text    3.370000   0.010000   3.380000 (  3.561710)
