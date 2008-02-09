@@ -18,6 +18,9 @@
 #include "wikitext.h"
 #include "wikitext_ragel.h"
 
+// poor man's object orientation in C:
+// instead of parsing around multiple parameters between functions in the parser
+// we pack everything into a struct and pass around only a pointer to that
 typedef struct
 {
     VALUE   output;                 // for accumulating output to be returned
@@ -33,6 +36,7 @@ typedef struct
     VALUE   line_ending;
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
     int     current_indent;         // fluctuates according to currently nested structures
+    str_t   *tabulation;            // caching buffer for emitting indentation
 } parser_t;
 
 const char escaped_no_wiki_start[]  = "&lt;nowiki&gt;";
@@ -174,13 +178,26 @@ inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE lin
 inline void _Wikitext_indent(parser_t *parser)
 {
     int space_count = parser->current_indent + parser->base_indent;
-
-    // TODO: cache this
-    char *spaces = ALLOC_N(char, space_count);
-    for (int i = 0; i < space_count; i++)
-        spaces[i] = ' ';
-    rb_str_cat(parser->output, spaces, space_count);
-    free(spaces);
+    if (space_count > 0)
+    {
+        char *old_end, *new_end;
+        if (!parser->tabulation)
+        {
+            parser->tabulation = str_new_size(space_count);
+            old_end = parser->tabulation->ptr;
+        }
+        else if (parser->tabulation->len < space_count)
+        {
+            old_end = parser->tabulation->ptr;
+            str_grow(parser->tabulation, space_count);
+        }
+        else
+            old_end = parser->tabulation->ptr;
+        new_end = parser->tabulation->ptr + space_count;
+        while (old_end < new_end)
+            *old_end++ = ' ';
+        rb_str_cat(parser->output, parser->tabulation->ptr, space_count);
+    }
     parser->current_indent += 2;
 }
 
@@ -190,13 +207,8 @@ inline void _Wikitext_dedent(parser_t *parser, VALUE emit)
     if (emit != Qtrue)
         return;
     int space_count = parser->current_indent + parser->base_indent;
-
-    // TODO: cache this
-    char *spaces = ALLOC_N(char, space_count);
-    for (int i = 0; i < space_count; i++)
-        spaces[i] = ' ';
-    rb_str_cat(parser->output, spaces, space_count);
-    free(spaces);
+    if (space_count > 0)
+        rb_str_cat(parser->output, parser->tabulation->ptr, space_count);
 }
 
 // Pops a single item off the parser's scope stack.
@@ -837,6 +849,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->line_ending         = line_ending;
     parser->base_indent         = base_indent;
     parser->current_indent      = 0;
+    parser->tabulation          = NULL;
 
     token_t _token;
     _token.type = NO_TOKEN;
@@ -2006,8 +2019,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         token = NULL;
     } while (1);
 return_output:
-    ary_free(scope);        // BUG: these will leak if we exit this function by raising an exception
-    ary_free(line);         // BUG: these will leak if we exit this function by raising an exception
-    ary_free(line_buffer);  // BUG: these will leak if we exit this function by raising an exception
+    // BUG: these will leak if we exit this function by raising an exception; need to investigate using Data_Wrap_Struct
+    ary_free(parser->scope);
+    ary_free(parser->line);
+    ary_free(parser->line_buffer);
+    if (parser->tabulation)
+        str_free(parser->tabulation);
     return output;
 }
