@@ -1947,8 +1947,25 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         // don't emit in this case
                     }
                     else
-                        rb_str_cat(output, parser->line_ending->ptr, parser->line_ending->len);
-                    parser->pending_crlf = Qfalse;
+                    {
+                        // peek ahead to see if this is definitely the end of the PRE block
+                        NEXT_TOKEN();
+                        type = token->type;
+                        if (type != BLOCKQUOTE && type != PRE)
+                        {
+                            // this is definitely the end of the block, so don't emit
+                        }
+                        else
+                        {
+                            // go ahead and emit
+                            parser->pending_crlf = Qfalse;
+                            rb_str_cat(output, parser->line_ending->ptr, parser->line_ending->len);
+                        }
+                        // delete the entire contents of the line scope stack and buffer
+                        ary_clear(line);
+                        ary_clear(line_buffer);
+                        continue; // jump back to top of loop to handle token grabbed via lookahead
+                    }
                 }
                 else
                 {

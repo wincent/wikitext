@@ -112,8 +112,7 @@ INPUT
 <pre>// this is a code block
 notice how it can contain ''markup''
 which would '''otherwise''' have &lt;tt&gt;special&lt;/tt&gt; meaning
-although explicit entities &copy; are passed through unchanged
-</pre>
+although explicit entities &copy; are passed through unchanged</pre>
 <p>a normal paragraph again</p>
 <p>This is where we show a link to an article on <a href="/wiki/GCC">GCC</a>. Related to that, <a href="/wiki/GCC">a link</a> to the same article but with custom link text.</p>
 <p>External links <a href="http://example.com" class="external">work too</a>. As well as autolinks as seen <a href="http://example.com/" class="external">http://example.com/</a> here.</p>
