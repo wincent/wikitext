@@ -1541,8 +1541,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, token->start, TOKEN_LEN(token));
                 else if (ary_includes(parser->scope, LINK_START))
                 {
-                    // not yet implemented
-                    // TODO: implement
+                    // if the URI were allowed it would have been handled already in LINK_START
+                    _Wikitext_rollback_failed_link(parser);
+                    i = TOKEN_TEXT(token);
+                    if (autolink == Qtrue)
+                        i = _Wikitext_hyperlink(Qnil, i, i, parser->external_link_class); // link target, link text
+                    rb_str_append(parser->output, i);
                 }
                 else if (ary_includes(parser->scope, EXT_LINK_START))
                 {
