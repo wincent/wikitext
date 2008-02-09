@@ -54,7 +54,7 @@ similar, but with '''styles in ''different'' order'''
 
 again, a '''different ''order'''''
 
-* list item 1
+* list item 1 [http://google.com/ unterminated
 ** nested list item 1 with [[bad link
 ** nested list item 2 with unclosed <tt>span
 ** nested list item 3
@@ -137,7 +137,7 @@ INPUT
 <p>similar, but with <strong>styles in <em>different</em> order</strong></p>
 <p>again, a <strong>different <em>order</em></strong></p>
 <ul>
-  <li>list item 1
+  <li>list item 1 [<a href="http://google.com/" class="external">http://google.com/</a> unterminated
     <ul>
       <li>nested list item 1 with [[bad link</li>
       <li>nested list item 2 with unclosed <tt>span</tt></li>
