@@ -271,6 +271,35 @@ describe Wikitext::Parser, 'internal links' do
       @parser.parse('[[a &euro; b]]').should == "<p>[[a &euro; b]]</p>\n"
     end
 
+    it 'should not allow URIs in the link text' do
+      expected = %Q{<p>[[hello <a href="http://example.com/" class="external">http://example.com/</a> world]]</p>\n}
+      @parser.parse('[[hello http://example.com/ world]]').should == expected
+    end
+
+    it 'should handle embedded [[ inside links' do
+      # note how first part "[[foo " in itself is invalid and so gets rejected and echoed literally
+      expected = %Q{<p>[[foo <a href="/wiki/bar">bar</a></p>\n}
+      @parser.parse('[[foo [[bar]]').should == expected
+    end
+
+    it 'should handled embedded ]] inside links' do
+      # note how the link gets terminated early and the trailing part is rejected and echoed literally
+      expected = %Q{<p><a href="/wiki/foo">foo</a>bar]]</p>\n}
+      @parser.parse('[[foo ]]bar]]').should == expected
+    end
+
+    it 'should handle embedded [ inside links' do
+      # [ is not allowed at all so the entire link is rendered invalid
+      expected = "<p>[[foo [bar]]</p>\n"
+      @parser.parse('[[foo [bar]]').should == expected
+    end
+
+    it 'should handle embedded ] inside links' do
+      # [ is not allowed at all so the entire link is rendered invalid
+      expected = "<p>[[foo ]bar]]</p>\n"
+      @parser.parse('[[foo ]bar]]').should == expected
+    end
+
     describe 'unterminated link targets (end-of-file)' do
       it 'should rollback and show the unterminated link' do
         @parser.parse('[[foo').should == %Q{<p>[[foo</p>\n}

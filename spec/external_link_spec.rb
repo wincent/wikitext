@@ -144,6 +144,38 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse('> ]').should == "<blockquote>\n  <p>]</p>\n</blockquote>\n"                    # in BLOCKQUOTE scope
   end
 
+  describe 'questionable links' do
+    it 'should handle links which contain an embedded [ character' do
+      # note that [ is allowed in the link text, although the result may be unexpected to the user
+      expected = %Q{<p><a href="http://google.com/" class="external">[hello</a></p>\n}
+      @parser.parse("[http://google.com/ [hello]").should == expected
+    end
+
+    it 'should handle links which contain an embedded ] character' do
+      # note how the first ] terminates the link
+      expected = %Q{<p><a href="http://google.com/" class="external">[hello</a> world]</p>\n}
+      @parser.parse("[http://google.com/ [hello] world]").should == expected
+    end
+
+    it 'should handle links which contain an embedded [[ character' do
+      # note that [[ is allowed in the link text
+      expected = %Q{<p><a href="http://google.com/" class="external">[[hello</a></p>\n}
+      @parser.parse("[http://google.com/ [[hello]").should == expected
+    end
+
+    it 'should handle links which contain an embedded ]] character' do
+      # note how this time ]] does not terminate the link because it is tokenized as LINK_END rather than EXT_LINK_END
+      expected = %Q{<p><a href="http://google.com/" class="external">[[hello]] world</a></p>\n}
+      @parser.parse("[http://google.com/ [[hello]] world]").should == expected
+    end
+
+    it 'should allow URIs in the link text' do
+      # not sure why you'd want to do this, but...
+      expected = %Q{<p><a href="http://example.net/" class="external">hello http://example.com/ world</a></p>\n}
+      @parser.parse('[http://example.net/ hello http://example.com/ world]').should == expected
+    end
+  end
+
   describe 'invalid links' do
     it "should pass through links which don't have a valid target" do
       expected = "<p>[well]</p>\n"
