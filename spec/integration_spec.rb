@@ -21,7 +21,8 @@ describe Wikitext::Parser, 'with large slab of input text' do
     @parser = Wikitext::Parser.new
   end
 
-  it 'should handle nested lists which follow other items' do
+  # the integration spec is designed to test all aspects of the parser at once
+  it 'should handle complex input containing nested structures, syntax errors, and exercising a wide variety features' do
     input = <<INPUT
 paragraph
 second line
@@ -34,6 +35,9 @@ new paragraph
 > second line of blockquote
 >
 > new paragraph within blockquote
+> 
+> Note how the optional space following the blockquote marker
+>has no effect.
 
 == another heading ==
 
@@ -55,6 +59,28 @@ again, a '''different ''order'''''
  although explicit entities &copy; are passed through unchanged
 
 a normal paragraph again
+
+> This is another blockquote which demonstrates that we
+> can nest other structures inside of it. For example, here
+> we have a code sample:
+>
+>  line 1
+>  line 2
+>
+> And now back to the normal blockquote again.
+>
+> * here
+> * is
+> * a
+> * list
+>
+> And here is a link to [[something]], and some ''other''
+> `styled` '''spans'''.
+>
+> > Finally we have
+> > a nested blockquote.
+> > # Which itself contains
+> > ## a nested list
 
 This is where we show a link to an article on [[GCC]].
 Related to that, [[GCC|a link]] to the same
@@ -94,6 +120,7 @@ INPUT
 <blockquote>
   <p>a blockquote second line of blockquote</p>
   <p>new paragraph within blockquote</p>
+  <p>Note how the optional space following the blockquote marker has no effect.</p>
 </blockquote>
 <h2>another heading</h2>
 <p>paragraph within <em>multiple <strong>styles</strong></em> and <tt>tt span</tt></p>
@@ -114,6 +141,29 @@ notice how it can contain ''markup''
 which would '''otherwise''' have &lt;tt&gt;special&lt;/tt&gt; meaning
 although explicit entities &copy; are passed through unchanged</pre>
 <p>a normal paragraph again</p>
+<blockquote>
+  <p>This is another blockquote which demonstrates that we can nest other structures inside of it. For example, here we have a code sample:</p>
+  <pre>line 1
+line 2</pre>
+  <p>And now back to the normal blockquote again.</p>
+  <ul>
+    <li>here</li>
+    <li>is</li>
+    <li>a</li>
+    <li>list</li>
+  </ul>
+  <p>And here is a link to <a href="/wiki/something">something</a>, and some <em>other</em> <tt>styled</tt> <strong>spans</strong>.</p>
+  <blockquote>
+    <p>Finally we have a nested blockquote.</p>
+    <ol>
+      <li>Which itself contains
+        <ol>
+          <li>a nested list</li>
+        </ol>
+      </li>
+    </ol>
+  </blockquote>
+</blockquote>
 <p>This is where we show a link to an article on <a href="/wiki/GCC">GCC</a>. Related to that, <a href="/wiki/GCC">a link</a> to the same article but with custom link text.</p>
 <p>External links <a href="http://example.com" class="external">work too</a>. As well as autolinks as seen <a href="http://example.com/" class="external">http://example.com/</a> here.</p>
 <p>Look at how we handle bad syntax. [[This is an unterminated link. And [<a href="http://example.com/" class="external">http://example.com/</a> is another.</p>
