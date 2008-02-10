@@ -1744,7 +1744,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_parser_encode_link_target(parser);
                     _Wikitext_pop_from_stack_up_to(parser, i, LINK_START, Qtrue);
                     parser->capture     = Qnil;
-                    i = _Wikitext_hyperlink(prefix, parser->link_target, parser->link_text, Qnil); // link target, link text, link class
+                    if (parser->special_link)
+                        i = _Wikitext_hyperlink(rb_str_new2("/"), parser->link_target, parser->link_text, Qnil);
+                    else
+                        i = _Wikitext_hyperlink(prefix, parser->link_target, parser->link_text, Qnil);
                     rb_str_append(parser->output, i);
                     parser->link_target = Qnil;
                     parser->link_text   = Qnil;
