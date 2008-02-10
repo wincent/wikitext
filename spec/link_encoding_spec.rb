@@ -84,5 +84,49 @@ describe Wikitext, 'encoding a link target' do
       Wikitext::Parser.encode_link_target(string).should == URI.escape(string, reserved).downcase
     end
   end
+
+  # "special" links don't get transformed in any way
+  describe 'special links' do
+    it 'should recognize links which match /\A[a-z]+\/\d+\z/ as being special' do
+      string = 'foo/10'
+      Wikitext::Parser.encode_special_link_target(string).should == string
+      Wikitext::Parser.encode_link_target(string).should_not == string
+    end
+
+    it "should not recognize links which don't match at /\A/ as being special" do
+      string = '  foo/10'
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+      string = '..foo/10'
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+      string = '12foo/10'
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+    end
+
+    it "should not recognize links which don't match at /\z/ as being special" do
+      string = 'foo/10  '
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+      string = 'foo/10__'
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+      string = 'foo/10##'
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+      string = 'foo/10ab'
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+    end
+
+    it "should not recognize links which don't match at /[a-z]/ (case differences) as being special" do
+      string = 'FOO/10'
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+    end
+
+    it "should not recognize links which don't match at /[0-9]/ (case differences) as being special" do
+      string = 'foo/xx'
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+    end
+
+    it "should not recognize links which don't match at /\// as being special" do
+      string = 'foo 10'
+      Wikitext::Parser.encode_special_link_target(string).should_not == string
+    end
+  end
 end
 
