@@ -41,6 +41,8 @@ enum token_types {
     NO_WIKI_START,
     NO_WIKI_END,
     BLOCKQUOTE,
+    BLOCKQUOTE_START,
+    BLOCKQUOTE_END,
     STRONG_EM,
     STRONG_START,
     STRONG_END,

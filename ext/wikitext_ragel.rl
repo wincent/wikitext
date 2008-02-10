@@ -100,6 +100,18 @@
             fbreak;
         };
 
+        '<blockquote>'i
+        {
+            EMIT(BLOCKQUOTE_START);
+            fbreak;
+        };
+
+        '</blockquote>'i
+        {
+            EMIT(BLOCKQUOTE_END);
+            fbreak;
+        };
+
         "'"{1,5}
         {
             if (DISTANCE() == 5)
@@ -160,7 +172,7 @@
             fbreak;
         };
 
-        # consider adding <blockquote></blockquote> HTML tags as well later on
+        # shorthand for <blockquote> and </blockquote>
         '>' @mark ' '?
         {
             if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
@@ -174,7 +186,6 @@
         };
 
         # shorthand for <pre> and </pre>
-        # consider adding real <pre> and </pre> HTML tags later on
         ' ' @mark ' '*
         {
             if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
