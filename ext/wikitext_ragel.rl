@@ -71,8 +71,8 @@
 
     uri_chars           = (alnum | [@$&'(\*\+=%_~/#] | '-')+ ;
     special_uri_chars   = ([:!),;\.\?])+ ;
-    uri                 = (/mailto:/i mail) |
-                          ((/http:\/\//i | /ftp:\/\//i | /svn:\/\//i) uri_chars (special_uri_chars uri_chars)*) ;
+    uri                 = ('mailto:'i mail) |
+                          (('http'i [sS]? '://' | 'ftp://'i | 'svn://'i) uri_chars (special_uri_chars uri_chars)*) ;
 
     main := |*
 

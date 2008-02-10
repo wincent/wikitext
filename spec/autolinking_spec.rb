@@ -32,7 +32,6 @@ describe Wikitext::Parser, 'autolinking' do
     end
 
     it 'should convert HTTPS URIs into hyperlinks' do
-      pending
       uri = 'https://example.com/'
       @parser.parse(uri).should == %Q{<p><a href="https://example.com/" class="external">https://example.com/</a></p>\n}
     end

@@ -27,7 +27,6 @@ describe Wikitext::Parser, 'external links' do
   end
 
   it 'should format valid external HTTPS links' do
-    pending
     expected = %Q{<p><a href="https://google.com/" class="external">Google</a></p>\n}
     @parser.parse('[https://google.com/ Google]').should == expected
   end
