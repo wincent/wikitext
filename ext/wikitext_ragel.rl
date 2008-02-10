@@ -200,7 +200,11 @@
 
         '#'
         {
-            if (out->column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1              ||
+                last_token_type == OL               ||
+                last_token_type == UL               ||
+                last_token_type == BLOCKQUOTE       ||
+                last_token_type == BLOCKQUOTE_START)
                 EMIT(OL);
             else
                 EMIT(PRINTABLE);
@@ -209,7 +213,11 @@
 
         '*'
         {
-            if (out->column_start == 1 || last_token_type == OL || last_token_type == UL || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1              ||
+                last_token_type == OL               ||
+                last_token_type == UL               ||
+                last_token_type == BLOCKQUOTE       ||
+                last_token_type == BLOCKQUOTE_START)
                 EMIT(UL);
             else
                 EMIT(PRINTABLE);
@@ -218,7 +226,7 @@
 
         '='+ @mark ' '*
         {
-            if (out->column_start == 1 || last_token_type == BLOCKQUOTE)
+            if (out->column_start == 1 || last_token_type == BLOCKQUOTE || last_token_type == BLOCKQUOTE_START)
             {
                 REWIND();
                 if (DISTANCE() == 1)
@@ -262,6 +270,7 @@
             }
             else
             {
+                // note that a H*_END token will never match before a BLOCKQUOTE_END
                 REWIND();
                 EMIT(PRINTABLE);
             }
