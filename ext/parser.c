@@ -615,17 +615,16 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 
 // encodes the input string according to RFCs 2396 and 2718
 // leading and trailing whitespace trimmed
-// input is the pointer to the string, and len is its length in characters (not in bytes)
 // note that the first character of the target link is not case-sensitive
 // (this is a recommended application-level constraint; it is not imposed at this level)
 // this is to allow links like:
 //         ...the [[foo]] is...
 // to be equivalent to:
 //         thing. [[Foo]] was...
-// TODO: this is probably the right place to check if treat_slash_as_special is true and act accordingly
-inline static VALUE _Wikitext_parser_encode_link_target(VALUE in)
+// this is also where we check treat_slash_as_special is true and act accordingly
+inline static void _Wikitext_parser_encode_link_target(parser_t *parser)
 {
-    in                      = StringValue(in);
+    VALUE in                = StringValue(parser->link_target);
     char        *input      = RSTRING_PTR(in);
     char        *start      = input;            // remember this so we can check if we're at the start
     long        len         = RSTRING_LEN(in);
@@ -689,14 +688,16 @@ inline static VALUE _Wikitext_parser_encode_link_target(VALUE in)
         dest_len = non_space - dest_ptr;
     else
         dest_len = dest - dest_ptr;
-    VALUE out = rb_str_new(dest_ptr, dest_len);
+    parser->link_target = rb_str_new(dest_ptr, dest_len);
     free(dest_ptr);
-    return out;
 }
 
 VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 {
-    return _Wikitext_parser_encode_link_target(in);
+    parser_t parser;
+    parser.link_target = in;
+    _Wikitext_parser_encode_link_target(&parser);
+    return parser.link_target;
 }
 
 // not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
@@ -1711,7 +1712,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         parser->link_text = _Wikitext_parser_sanitize_link_target(parser->link_target, Qtrue);
                     else
                         parser->link_text = _Wikitext_parser_trim_link_target(parser->link_text);
-                    parser->link_target = _Wikitext_parser_encode_link_target(parser->link_target);
+                    _Wikitext_parser_encode_link_target(parser);
                     _Wikitext_pop_from_stack_up_to(parser, i, LINK_START, Qtrue);
                     parser->capture     = Qnil;
                     i = _Wikitext_hyperlink(prefix, parser->link_target, parser->link_text, Qnil); // link target, link text, link class
