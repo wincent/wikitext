@@ -624,7 +624,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 // to be equivalent to:
 //         thing. [[Foo]] was...
 // this is also where we check treat_slash_as_special is true and act accordingly
-// basically any link target which consists only of letters, numbers and slashes is flagged as special
+// basically any link target matching /\A[a-z]+\/\d+\z/ is flagged as special
 inline static void _Wikitext_parser_encode_link_target(parser_t *parser)
 {
     VALUE in                = StringValue(parser->link_target);
@@ -640,23 +640,22 @@ inline static void _Wikitext_parser_encode_link_target(parser_t *parser)
     parser->special_link = Qfalse;
     if (parser->treat_slash_as_special == Qtrue)
     {
-        parser->special_link = Qtrue;
-        for (int i = 0; i < len; i++)
+        char *c = input;                                    // \A
+        while (c < end && *c >= 'a' && *c <= 'z')           // [a-z]
+            c++;                                            // +
+        if (c > start && c < end && *c++ == '/')            // \/
         {
-            if ((input[i] >= 'a' && input[i] <= 'z') ||
-                (input[i] >= 'A' && input[i] <= 'Z') ||
-                (input[i] >= '0' && input[i] <= '9') ||
-                input[i] == '/')
-                continue;
-            else
+            while (c < end && *c >= '0' && *c <= '9')       // \d
             {
-                parser->special_link = Qfalse;
-                break;
+                c++;                                        // +
+                if (c == end)                               // \z
+                {
+                    // matches /\A[a-z]+\/\d+\z/ so no transformation required
+                    parser->special_link = Qtrue;
+                    return;
+                }
             }
         }
-        if (parser->special_link == Qtrue)
-            // only contains letters, numbers and slashes, so no transformation required
-            return;
     }
 
     // to avoid most reallocations start with a destination buffer twice the size of the source
