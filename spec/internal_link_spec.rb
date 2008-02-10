@@ -266,6 +266,33 @@ describe Wikitext::Parser, 'internal links' do
     end
   end
 
+  describe 'special links' do
+    it 'should recognize links of the form "bug/10" as special links' do
+      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/bug/10">bug/10</a></p>\n}
+      @parser.parse('[[issue/25]]').should == %Q{<p><a href="/issue/25">issue/25</a></p>\n}
+      @parser.parse('[[post/7]]').should == %Q{<p><a href="/post/7">post/7</a></p>\n}
+    end
+
+    it 'should accept custom link text in conjunction with special links' do
+      @parser.parse('[[bug/10|bug #10]]').should == %Q{<p><a href="/bug/10">bug #10</a></p>\n}
+    end
+
+    it 'should ignore link prefix overrides when emitting special links' do
+      @parser.internal_link_prefix = '/custom/'
+      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/bug/10">bug/10</a></p>\n}
+    end
+
+    it 'should not classify links as special merely because of the presence of a slash' do
+      # we want the syntax to be tight to minimize false positives
+      @parser.parse('[[foo/bar]]').should == %Q{<p><a href="/wiki/foo%2fbar">foo/bar</a></p>\n}
+    end
+
+    it 'should not accept special links which have a leading forward slash' do
+      # this is a syntax error
+      @parser.parse('[[/bug/10]]').should == %Q{<p><a href="/wiki/%2fbug%2f10">/bug/10</a></p>\n}
+    end
+  end
+
   describe 'invalid links' do
     it 'should not allow entities in the link text' do
       @parser.parse('[[a &euro; b]]').should == "<p>[[a &euro; b]]</p>\n"
