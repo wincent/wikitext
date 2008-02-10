@@ -76,8 +76,9 @@ module Wikitext
   # == +treat_slash_as_special+ (boolean)
   #
   # Whether "slash" in link text is treated specially. When true, any link
-  # containing a slash is considered to be a relative link _within_ the current
-  # site, but _outside_ the wiki. In other words, while:
+  # containing a slash and matching <tt>\A[a-z]+\/\d+\z</tt> is considered to
+  # be a relative link _within_ the current site, but _outside_ the wiki. In
+  # other words, while:
   #     [[interesting article]]
   # is a wiki link (assuming the internal_link_prefix of "/wiki/"):
   #     <a href="/wiki/interesting+article">interesting article</a>
