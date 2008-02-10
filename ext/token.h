@@ -36,6 +36,8 @@ enum token_types {
     LI,             // imaginary token (never explicitly marked up)
     NESTED_LIST,    // imaginary token (never explicitly marked up)
     PRE,
+    PRE_START,
+    PRE_END,
     NO_WIKI_START,
     NO_WIKI_END,
     BLOCKQUOTE,

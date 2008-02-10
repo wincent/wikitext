@@ -88,6 +88,18 @@
             fbreak;
         };
 
+        '<pre>'i
+        {
+            EMIT(PRE_START);
+            fbreak;
+        };
+
+        '</pre>'i
+        {
+            EMIT(PRE_END);
+            fbreak;
+        };
+
         "'"{1,5}
         {
             if (DISTANCE() == 5)
