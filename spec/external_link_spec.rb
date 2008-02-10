@@ -21,9 +21,32 @@ describe Wikitext::Parser, 'external links' do
     @parser = Wikitext::Parser.new
   end
 
-  it 'should format valid external links' do
+  it 'should format valid external HTTP links' do
     expected = %Q{<p><a href="http://google.com/" class="external">Google</a></p>\n}
     @parser.parse('[http://google.com/ Google]').should == expected
+  end
+
+  it 'should format valid external HTTPS links' do
+    pending
+    expected = %Q{<p><a href="https://google.com/" class="external">Google</a></p>\n}
+    @parser.parse('[https://google.com/ Google]').should == expected
+  end
+
+  it 'should format valid external FTP links' do
+    expected = %Q{<p><a href="ftp://google.com/" class="external">Google</a></p>\n}
+    @parser.parse('[ftp://google.com/ Google]').should == expected
+  end
+
+  it 'should format valid external SVN links' do
+    expected = %Q{<p><a href="svn://google.com/" class="external">Google</a></p>\n}
+    @parser.parse('[svn://google.com/ Google]').should == expected
+  end
+
+  it 'should format valid external mailto links' do
+    # although note in this case the CSS class is "external" rather than "mailto"
+    # this is because we're matching this as a (generic) URI rather than an email address
+    expected = %Q{<p><a href="mailto:user@example.com" class="external">john</a></p>\n}
+    @parser.parse('[mailto:user@example.com john]').should == expected
   end
 
   it 'should treat runs of spaces after the link target as a single space' do

@@ -63,15 +63,16 @@
             (*p & 0x3f);
     }
 
-    uri_chars           = (alnum | [@$&'(\*\+=%_~/#] | '-')+ ;
-    special_uri_chars   = ([:!),;\.\?])+ ;
-    uri                 = (/http:\/\//i | /ftp:\/\//i | /svn:\/\//i) uri_chars (special_uri_chars uri_chars)* ;
-
     # simple approximation for matching email addresses; not quite RFC 2822!
     user                = (alnum | [_.] | '-')+ ;
     tld                 = alpha{2,5} ;
     domain              = (alnum+ '.')+ tld ;
     mail                = user '@' domain ;
+
+    uri_chars           = (alnum | [@$&'(\*\+=%_~/#] | '-')+ ;
+    special_uri_chars   = ([:!),;\.\?])+ ;
+    uri                 = (/mailto:/i mail) |
+                          ((/http:\/\//i | /ftp:\/\//i | /svn:\/\//i) uri_chars (special_uri_chars uri_chars)*) ;
 
     main := |*
 

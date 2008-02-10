@@ -26,9 +26,30 @@ describe Wikitext::Parser, 'autolinking' do
   end
 
   describe 'on' do
-    it 'should convert URIs into hyperlinks' do
+    it 'should convert HTTP URIs into hyperlinks' do
       uri = 'http://example.com/'
       @parser.parse(uri).should == %Q{<p><a href="http://example.com/" class="external">http://example.com/</a></p>\n}
+    end
+
+    it 'should convert HTTPS URIs into hyperlinks' do
+      pending
+      uri = 'https://example.com/'
+      @parser.parse(uri).should == %Q{<p><a href="https://example.com/" class="external">https://example.com/</a></p>\n}
+    end
+
+    it 'should convert FTP URIs into hyperlinks' do
+      uri = 'ftp://example.com/'
+      @parser.parse(uri).should == %Q{<p><a href="ftp://example.com/" class="external">ftp://example.com/</a></p>\n}
+    end
+
+    it 'should convert mailto URIs into hyperlinks' do
+      uri = 'mailto:user@example.com'
+      @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com" class="external">mailto:user@example.com</a></p>\n}
+    end
+
+    it 'should convert SVN URIs into hyperlinks' do
+      uri = 'svn://example.com/'
+      @parser.parse(uri).should == %Q{<p><a href="svn://example.com/" class="external">svn://example.com/</a></p>\n}
     end
 
     it 'should apple the external_link_class CSS class if set' do
