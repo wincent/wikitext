@@ -109,6 +109,7 @@ const char quot_entity[]            = "&quot;";
 const char amp_entity[]             = "&amp;";
 const char lt_entity[]              = "&lt;";
 const char gt_entity[]              = "&gt;";
+const char escaped_blockquote[]     = "&gt; ";
 const char ext_link_end[]           = "]";
 
 // for testing and debugging only
@@ -997,7 +998,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case BLOCKQUOTE:
                 if (IN(NO_WIKI_START) || IN(PRE_START))
                     // no need to check for <pre>; can never appear inside it
-                    rb_str_cat(parser->output, token->start, TOKEN_LEN(token));
+                    rb_str_cat(parser->output, escaped_blockquote, TOKEN_LEN(token) + 3); // will either emit "&gt;" or "&gt; "
                 else
                 {
                     ary_push(parser->line, BLOCKQUOTE);

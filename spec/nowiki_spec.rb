@@ -48,6 +48,14 @@ describe Wikitext::Parser, 'parsing <nowiki> spans' do
     @parser.parse(' <nowiki>foo</nowiki>').should == "<pre>&lt;nowiki&gt;foo&lt;/nowiki&gt;</pre>\n"
   end
 
+  it 'should pass short BLOCKQUOTE tokens through without any special meaning' do
+    @parser.parse("<nowiki>\n></nowiki>").should == "<p>\n&gt;</p>\n"
+  end
+
+  it 'should pass long BLOCKQUOTE tokens through without any special meaning' do
+    @parser.parse("<nowiki>\n> </nowiki>").should == "<p>\n&gt; </p>\n"
+  end
+
   it 'should pass <tt> and </tt> tags through without any special meaning' do
     @parser.parse('<nowiki>foo <tt>bar</tt></nowiki>').should == "<p>foo &lt;tt&gt;bar&lt;/tt&gt;</p>\n"
   end
