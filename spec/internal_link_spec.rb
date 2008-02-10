@@ -273,6 +273,13 @@ describe Wikitext::Parser, 'internal links' do
       @parser.parse('[[post/7]]').should == %Q{<p><a href="/post/7">post/7</a></p>\n}
     end
 
+    it 'should not recognize special links when "treat_slash_as_special" is set to false' do
+      @parser.treat_slash_as_special = false
+      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/wiki/bug%2f10">bug/10</a></p>\n}
+      @parser.parse('[[issue/25]]').should == %Q{<p><a href="/wiki/issue%2f25">issue/25</a></p>\n}
+      @parser.parse('[[post/7]]').should == %Q{<p><a href="/wiki/post%2f7">post/7</a></p>\n}
+    end
+
     it 'should accept custom link text in conjunction with special links' do
       @parser.parse('[[bug/10|bug #10]]').should == %Q{<p><a href="/bug/10">bug #10</a></p>\n}
     end
