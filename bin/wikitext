@@ -14,13 +14,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require File.join(File.dirname(__FILE__), '..', 'ext', 'wikitext')
+require 'rubygems'
+require 'highline'
 
+highline = HighLine.new
 parser = Wikitext::Parser.new
 begin
   while true
-    puts "(Ctrl+D to process, Ctrl+C to exit)>>"
+    puts highline.color('(Ctrl+D to process, Ctrl+C to exit)>>', :bold)
     input = STDIN.read
+    puts '-' * highline.output_cols
     puts parser.parse(input)
+    puts '-' * highline.output_cols
   end
 rescue Interrupt
 end
