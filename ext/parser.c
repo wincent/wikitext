@@ -1455,10 +1455,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, literal_h6, sizeof(literal_h6) - 1);
                 else
                 {
-                    if (ary_includes(parser->scope, EXT_LINK_START))
-                        // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser);
-
+                    _Wikitext_rollback_failed_external_link(parser); // if any
                     if (!ary_includes(parser->scope, H6_START))
                     {
                         // literal output only if not in h6 scope (we stay silent in that case)
@@ -1474,10 +1471,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, literal_h5, sizeof(literal_h5) - 1);
                 else
                 {
-                    if (ary_includes(parser->scope, EXT_LINK_START))
-                        // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser);
-
+                    _Wikitext_rollback_failed_external_link(parser); // if any
                     if (!ary_includes(parser->scope, H5_START))
                     {
                         // literal output only if not in h5 scope (we stay silent in that case)
@@ -1493,10 +1487,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, literal_h4, sizeof(literal_h4) - 1);
                 else
                 {
-                    if (ary_includes(parser->scope, EXT_LINK_START))
-                        // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser);
-
+                    _Wikitext_rollback_failed_external_link(parser); // if any
                     if (!ary_includes(parser->scope, H4_START))
                     {
                         // literal output only if not in h4 scope (we stay silent in that case)
@@ -1512,10 +1503,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, literal_h3, sizeof(literal_h3) - 1);
                 else
                 {
-                    if (ary_includes(parser->scope, EXT_LINK_START))
-                        // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser);
-
+                    _Wikitext_rollback_failed_external_link(parser); // if any
                     if (!ary_includes(parser->scope, H3_START))
                     {
                         // literal output only if not in h3 scope (we stay silent in that case)
@@ -1531,10 +1519,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, literal_h2, sizeof(literal_h2) - 1);
                 else
                 {
-                    if (ary_includes(parser->scope, EXT_LINK_START))
-                        // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser);
-
+                    _Wikitext_rollback_failed_external_link(parser); // if any
                     if (!ary_includes(parser->scope, H2_START))
                     {
                         // literal output only if not in h2 scope (we stay silent in that case)
@@ -1550,10 +1535,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, literal_h1, sizeof(literal_h1) - 1);
                 else
                 {
-                    if (ary_includes(parser->scope, EXT_LINK_START))
-                        // syntax error: an unclosed external link
-                        _Wikitext_rollback_failed_external_link(parser);
-
+                    _Wikitext_rollback_failed_external_link(parser); // if any
                     if (!ary_includes(parser->scope, H1_START))
                     {
                         // literal output only if not in h1 scope (we stay silent in that case)
@@ -1944,16 +1926,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case CRLF:
                 parser->pending_crlf = Qfalse;
-                if (ary_includes(parser->scope, LINK_START))
-                    // syntax error: an unclosed external link
-                    _Wikitext_rollback_failed_link(parser);
-                else if (ary_includes(parser->scope, EXT_LINK_START))
-                    // syntax error: an unclosed external link
-                    _Wikitext_rollback_failed_external_link(parser);
-
-                if (ary_includes(parser->scope, NO_WIKI_START))
+                _Wikitext_rollback_failed_link(parser);             // if any
+                _Wikitext_rollback_failed_external_link(parser);    // if any
+                if (ary_includes(parser->scope, NO_WIKI_START) || ary_includes(parser->scope, PRE_START))
                 {
-                    // <nowiki> spans are unique; CRLFs are blindly echoed
                     ary_clear(parser->line_buffer);
                     rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
                     break;
@@ -2036,12 +2012,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case END_OF_FILE:
                 // close any open scopes on hitting EOF
-                if (ary_includes(parser->scope, EXT_LINK_START))
-                    // syntax error: an unclosed external link
-                    _Wikitext_rollback_failed_external_link(parser);
-                else if (ary_includes(parser->scope, LINK_START))
-                    // syntax error: an unclosed internal link
-                    _Wikitext_rollback_failed_link(parser);
+                _Wikitext_rollback_failed_external_link(parser);    // if any
+                _Wikitext_rollback_failed_link(parser);             // if any
                 for (i = 0, j = parser->scope->count; i < j; i++)
                     _Wikitext_pop_from_stack(parser, Qnil);
                 goto return_output; // break not enough here (want to break out of outer while loop, not inner switch statement)
