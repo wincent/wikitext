@@ -741,6 +741,8 @@ VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in)
 // not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
 inline void _Wikitext_rollback_failed_link(parser_t *parser)
 {
+    if (!ary_includes(parser->scope, LINK_START))
+        return; // nothing to do!
     int scope_includes_separator = ary_includes(parser->scope, SEPARATOR);
     _Wikitext_pop_from_stack_up_to(parser, Qnil, LINK_START, Qtrue);
     rb_str_cat(parser->output, link_start, sizeof(link_start) - 1);
@@ -762,6 +764,8 @@ inline void _Wikitext_rollback_failed_link(parser_t *parser)
 
 inline void _Wikitext_rollback_failed_external_link(parser_t *parser)
 {
+    if (!ary_includes(parser->scope, EXT_LINK_START))
+        return; // nothing to do!
     int scope_includes_space = ary_includes(parser->scope, SPACE);
     _Wikitext_pop_from_stack_up_to(parser, Qnil, EXT_LINK_START, Qtrue);
     rb_str_cat(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
