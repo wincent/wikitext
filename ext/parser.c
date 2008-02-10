@@ -33,6 +33,8 @@ typedef struct
     ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
     VALUE   pending_crlf;           // boolean (Qtrue or Qfalse)
     VALUE   autolink;               // boolean (Qtrue or Qfalse)
+    VALUE   treat_slash_as_special; // boolean (Qtrue or Qfalse)
+    VALUE   special_link;           // boolean (Qtrue or Qfalse): is the current link_target a "special" link?
     str_t   *line_ending;
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
     int     current_indent;         // fluctuates according to currently nested structures
@@ -622,14 +624,40 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 // to be equivalent to:
 //         thing. [[Foo]] was...
 // this is also where we check treat_slash_as_special is true and act accordingly
+// basically any link target which consists only of letters, numbers and slashes is flagged as special
 inline static void _Wikitext_parser_encode_link_target(parser_t *parser)
 {
     VALUE in                = StringValue(parser->link_target);
     char        *input      = RSTRING_PTR(in);
     char        *start      = input;            // remember this so we can check if we're at the start
     long        len         = RSTRING_LEN(in);
+    if (!(len > 0))
+        return;
     char        *end        = input + len;
     static char hex[]       = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+    // this potential shortcut requires an (admittedly cheap) prescan, so only do it when treat_slash_as_special is true
+    parser->special_link = Qfalse;
+    if (parser->treat_slash_as_special == Qtrue)
+    {
+        parser->special_link = Qtrue;
+        for (int i = 0; i < len; i++)
+        {
+            if ((input[i] >= 'a' && input[i] <= 'z') ||
+                (input[i] >= 'A' && input[i] <= 'Z') ||
+                (input[i] >= '0' && input[i] <= '9') ||
+                input[i] == '/')
+                continue;
+            else
+            {
+                parser->special_link = Qfalse;
+                break;
+            }
+        }
+        if (parser->special_link == Qtrue)
+            // only contains letters, numbers and slashes, so no transformation required
+            return;
+    }
 
     // to avoid most reallocations start with a destination buffer twice the size of the source
     // this handles the most common case (where most chars are in the ASCII range and don't require more storage, but there are
@@ -752,6 +780,7 @@ VALUE Wikitext_parser_initialize(VALUE self)
     rb_iv_set(self, "@external_link_class",     rb_str_new2("external"));
     rb_iv_set(self, "@mailto_class",            rb_str_new2("mailto"));
     rb_iv_set(self, "@internal_link_prefix",    rb_str_new2("/wiki/"));
+    rb_iv_set(self, "@treat_slash_as_special",  Qtrue);
     return self;
 }
 
@@ -799,21 +828,23 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     // set up parser struct to make passing parameters a little easier
     // eventually this will encapsulate most or all of the variables above
     parser_t _parser;
-    parser_t *parser            = &_parser;
-    parser->output              = rb_str_new2("");
-    parser->capture             = Qnil;
-    parser->link_target         = Qnil;
-    parser->link_text           = Qnil;
-    parser->external_link_class = link_class;
-    parser->scope               = ary_new();
-    parser->line                = ary_new();
-    parser->line_buffer         = ary_new();
-    parser->pending_crlf        = Qfalse;
-    parser->autolink            = rb_iv_get(self, "@autolink");
-    parser->line_ending         = str_new_from_string(line_ending);
-    parser->base_indent         = base_indent;
-    parser->current_indent      = 0;
-    parser->tabulation          = NULL;
+    parser_t *parser                = &_parser;
+    parser->output                  = rb_str_new2("");
+    parser->capture                 = Qnil;
+    parser->link_target             = Qnil;
+    parser->link_text               = Qnil;
+    parser->external_link_class     = link_class;
+    parser->scope                   = ary_new();
+    parser->line                    = ary_new();
+    parser->line_buffer             = ary_new();
+    parser->pending_crlf            = Qfalse;
+    parser->autolink                = rb_iv_get(self, "@autolink");
+    parser->treat_slash_as_special  = rb_iv_get(self, "@treat_slash_as_special");
+    parser->special_link            = Qfalse;
+    parser->line_ending             = str_new_from_string(line_ending);
+    parser->base_indent             = base_indent;
+    parser->current_indent          = 0;
+    parser->tabulation              = NULL;
 
     token_t _token;
     _token.type = NO_TOKEN;
