@@ -76,13 +76,13 @@
 
     main := |*
 
-        /<nowiki>/i
+        '<nowiki>'i
         {
             EMIT(NO_WIKI_START);
             fbreak;
         };
 
-        /<\/nowiki>/i   # this comment because the Ragel TextMate bundle miscolorizes without it /
+        '</nowiki>'i
         {
             EMIT(NO_WIKI_END);
             fbreak;
@@ -106,25 +106,25 @@
             fbreak;
         };
 
-        /<strong>/i
+        '<strong>'i
         {
             EMIT(STRONG_START);
             fbreak;
         };
 
-        /<\/strong>/i   # this comment because the Ragel TextMate bundle miscolorizes without it /
+        '</strong>'i
         {
             EMIT(STRONG_END);
             fbreak;
         };
 
-        /<em>/i
+        '<em>'i
         {
             EMIT(EM_START);
             fbreak;
         };
 
-        /<\/em>/i   # this comment because the Ragel TextMate bundle miscolorizes without it /
+        '</em>'i
         {
             EMIT(EM_END);
             fbreak;
@@ -136,13 +136,13 @@
             fbreak;
         };
 
-        /<tt>/i
+        '<tt>'i
         {
             EMIT(TT_START);
             fbreak;
         };
 
-        /<\/tt>/i   # this comment because the Ragel TextMate bundle miscolorizes without it /
+        '</tt>'i
         {
             EMIT(TT_END);
             fbreak;
