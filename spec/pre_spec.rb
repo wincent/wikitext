@@ -16,7 +16,7 @@
 require File.join(File.dirname(__FILE__), 'spec_helper.rb')
 require 'wikitext'
 
-describe Wikitext::Parser, 'parsing <pre> blocks' do
+describe Wikitext::Parser, 'parsing PRE blocks' do
   before do
     @parser = Wikitext::Parser.new
   end
@@ -100,5 +100,293 @@ END
 
   it 'should convert non-ASCII characters to numeric entities' do
     @parser.parse(' €').should == "<pre>&#x20ac;</pre>\n"
+  end
+end
+
+describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
+  before do
+    @parser = Wikitext::Parser.new
+  end
+
+  it 'should accept PRE_START/PRE_END as an alternative to the standard syntax' do
+    @parser.parse('<pre>foo</pre>').should == "<pre>foo</pre>\n"
+  end
+
+  it 'should pass through PRE unchanged in PRE_START/PRE_END blocks' do
+    input = <<-END
+<pre>line 1
+ next line</pre>
+END
+    expected = <<-END
+<pre>line 1
+ next line</pre>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should pass through short BLOCKQUOTE tokens as named entities in PRE_START/PRE_END blocks' do
+    input = <<-END
+<pre>line 1
+>next line</pre>
+END
+    expected = <<-END
+<pre>line 1
+&gt;next line</pre>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should pass through long BLOCKQUOTE tokens as named entities in PRE_START/PRE_END blocks' do
+    input = <<-END
+<pre>line 1
+> next line</pre>
+END
+    expected = <<-END
+<pre>line 1
+&gt; next line</pre>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should pass through EM unchanged in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre>''</pre>").should == "<pre>''</pre>\n"
+  end
+
+  it 'should pass through STRONG unchanged in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre>'''</pre>").should == "<pre>'''</pre>\n"
+  end
+
+  it 'should pass through STRONG_EM unchanged in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre>'''''</pre>").should == "<pre>'''''</pre>\n"
+  end
+
+  it 'should pass through EM_START escaped in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre><em></pre>").should == "<pre>&lt;em&gt;</pre>\n"
+  end
+
+  it 'should pass through EM_END escaped in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre></em></pre>").should == "<pre>&lt;/em&gt;</pre>\n"
+  end
+
+  it 'should pass through STRONG_START escaped in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre><strong></pre>").should == "<pre>&lt;strong&gt;</pre>\n"
+  end
+
+  it 'should pass through STRONG_END escaped in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre></strong></pre>").should == "<pre>&lt;/strong&gt;</pre>\n"
+  end
+
+  it 'should pass through TT unchanged in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre>`</pre>").should == "<pre>`</pre>\n"
+  end
+
+  it 'should pass through TT_START escaped in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre><tt></pre>").should == "<pre>&lt;tt&gt;</pre>\n"
+  end
+
+  it 'should pass through TT_END escaped in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre></tt></pre>").should == "<pre>&lt;/tt&gt;</pre>\n"
+  end
+
+  it 'should pass through UL unchanged in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre>\n#</pre>").should == "<pre>\n#</pre>\n"
+  end
+
+  it 'should pass through OL unchanged in PRE_START/PRE_END blocks' do
+    @parser.parse("<pre>\n*</pre>").should == "<pre>\n*</pre>\n"
+  end
+
+  it 'should ignore PRE_START inside <nowiki> spans' do
+    @parser.parse('<nowiki><pre></nowiki>').should == "<p>&lt;pre&gt;</p>\n"
+  end
+
+  it 'should ignore PRE_END inside <nowiki> spans' do
+    @parser.parse('<nowiki></pre></nowiki>').should == "<p>&lt;/pre&gt;</p>\n"
+  end
+
+  it 'should ignore PRE_START inside standard PRE blocks' do
+    @parser.parse(' <pre>').should == "<pre>&lt;pre&gt;</pre>\n"
+  end
+
+  it 'should ignore PRE_END inside standard PRE blocks' do
+    @parser.parse(' </pre>').should == "<pre>&lt;/pre&gt;</pre>\n"
+  end
+
+  it 'should ignore PRE_START inside already open PRE_START blocks' do
+    @parser.parse('<pre><pre></pre>').should == "<pre>&lt;pre&gt;</pre>\n"
+  end
+
+  it 'should ignore PRE_START inside BLOCKQUOTE blocks' do
+    @parser.parse('> <pre>').should == <<-END
+<blockquote>
+  <p>&lt;pre&gt;</p>
+</blockquote>
+END
+  end
+
+  it 'should ignore PRE_END inside BLOCKQUOTE blocks' do
+    @parser.parse('> </pre>').should == <<-END
+<blockquote>
+  <p>&lt;/pre&gt;</p>
+</blockquote>
+END
+  end
+
+  it 'should ignore PRE_START inside UL blocks' do
+    @parser.parse('* <pre>').should == <<-END
+<ul>
+  <li>&lt;pre&gt;</li>
+</ul>
+END
+  end
+
+  it 'should ignore PRE_END inside UL blocks' do
+    @parser.parse('* </pre>').should == <<-END
+<ul>
+  <li>&lt;/pre&gt;</li>
+</ul>
+END
+  end
+
+  it 'should ignore PRE_START inside OL blocks' do
+    @parser.parse('# <pre>').should == <<-END
+<ol>
+  <li>&lt;pre&gt;</li>
+</ol>
+END
+  end
+
+  it 'should ignore PRE_END inside OL blocks' do
+    @parser.parse('# </pre>').should == <<-END
+<ol>
+  <li>&lt;/pre&gt;</li>
+</ol>
+END
+  end
+
+  it 'should ignore PRE_START inside H1 blocks' do
+    @parser.parse('= <pre> =').should == "<h1>&lt;pre&gt;</h1>\n"
+  end
+
+  it 'should ignore PRE_END inside H1 blocks' do
+    @parser.parse('= </pre> =').should == "<h1>&lt;/pre&gt;</h1>\n"
+  end
+
+  it 'should ignore PRE_START inside H2 blocks' do
+    @parser.parse('== <pre> ==').should == "<h2>&lt;pre&gt;</h2>\n"
+  end
+
+  it 'should ignore PRE_END inside H2 blocks' do
+    @parser.parse('== </pre> ==').should == "<h2>&lt;/pre&gt;</h2>\n"
+  end
+
+  it 'should ignore PRE_START inside H3 blocks' do
+    @parser.parse('=== <pre> ===').should == "<h3>&lt;pre&gt;</h3>\n"
+  end
+
+  it 'should ignore PRE_END inside H3 blocks' do
+    @parser.parse('=== </pre> ===').should == "<h3>&lt;/pre&gt;</h3>\n"
+  end
+
+  it 'should ignore PRE_START inside H4 blocks' do
+    @parser.parse('==== <pre> ====').should == "<h4>&lt;pre&gt;</h4>\n"
+  end
+
+  it 'should ignore PRE_END inside H4 blocks' do
+    @parser.parse('==== </pre> ====').should == "<h4>&lt;/pre&gt;</h4>\n"
+  end
+
+  it 'should ignore PRE_START inside H5 blocks' do
+    @parser.parse('===== <pre> =====').should == "<h5>&lt;pre&gt;</h5>\n"
+  end
+
+  it 'should ignore PRE_END inside H5 blocks' do
+    @parser.parse('===== </pre> =====').should == "<h5>&lt;/pre&gt;</h5>\n"
+  end
+
+  it 'should ignore PRE_START inside H6 blocks' do
+    @parser.parse('====== <pre> ======').should == "<h6>&lt;pre&gt;</h6>\n"
+  end
+
+  it 'should ignore PRE_END inside H6 blocks' do
+    @parser.parse('====== </pre> ======').should == "<h6>&lt;/pre&gt;</h6>\n"
+  end
+
+  it 'should start a <pre> block on seeing PRE_START partway through a P block' do
+    # the trailing space after "hello" is preserved just like it would be if the input were "hello " and nothing else
+    @parser.parse('hello <pre>world</pre>').should == <<-END
+<p>hello </p>
+<pre>world</pre>
+END
+  end
+
+  it 'should close any open spans while starting a <pre> block on seeing PRE_START partway through a P block' do
+    # ''
+    @parser.parse("hello ''my <pre>world</pre>").should == <<-END
+<p>hello <em>my </em></p>
+<pre>world</pre>
+END
+
+    # '''
+    @parser.parse("hello '''my <pre>world</pre>").should == <<-END
+<p>hello <strong>my </strong></p>
+<pre>world</pre>
+END
+
+    # '''''
+    @parser.parse("hello '''''my <pre>world</pre>").should == <<-END
+<p>hello <strong><em>my </em></strong></p>
+<pre>world</pre>
+END
+
+    # `
+    @parser.parse("hello `my <pre>world</pre>").should == <<-END
+<p>hello <tt>my </tt></p>
+<pre>world</pre>
+END
+
+    # <em>
+    @parser.parse("hello <em>my <pre>world</pre>").should == <<-END
+<p>hello <em>my </em></p>
+<pre>world</pre>
+END
+
+    # <strong>
+    @parser.parse("hello <strong>my <pre>world</pre>").should == <<-END
+<p>hello <strong>my </strong></p>
+<pre>world</pre>
+END
+
+    # <strong><em>
+    @parser.parse("hello <strong><em>my <pre>world</pre>").should == <<-END
+<p>hello <strong><em>my </em></strong></p>
+<pre>world</pre>
+END
+
+    # <tt>
+    @parser.parse("hello <tt>my <pre>world</pre>").should == <<-END
+<p>hello <tt>my </tt></p>
+<pre>world</pre>
+END
+  end
+
+  it 'should rollback open internal link spans on encountering a PRE_START in the link target' do
+    @parser.parse('[[hello <pre>world</pre>]]').should == <<-END
+<p>[[hello </p>
+<pre>world</pre>
+<p>]]</p>
+END
+  end
+
+  it 'should rollback open internal link spans on encountering a PRE_START in the link text' do
+    @parser.parse('[[hello | there<pre>world</pre>]]').should == <<-END
+<p>[[hello | there</p>
+<pre>world</pre>
+<p>]]</p>
+END
+  end
+
+  it 'should automatically close open PRE_START blocks on hitting the end-of-file' do
+    @parser.parse('<pre>foo').should == "<pre>foo</pre>\n"
   end
 end
