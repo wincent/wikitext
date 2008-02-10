@@ -790,7 +790,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     // access these once per parse
     VALUE line_ending   = rb_iv_get(self, "@line_ending");
     line_ending         = StringValue(line_ending);
-    VALUE autolink      = rb_iv_get(self, "@autolink");
     VALUE link_class    = rb_iv_get(self, "@external_link_class");
     link_class          = NIL_P(link_class) ? Qnil : StringValue(link_class);
     VALUE mailto_class  = rb_iv_get(self, "@mailto_class");
@@ -810,7 +809,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->line                = ary_new();
     parser->line_buffer         = ary_new();
     parser->pending_crlf        = Qfalse;
-    parser->autolink            = autolink;
+    parser->autolink            = rb_iv_get(self, "@autolink");
     parser->line_ending         = str_new_from_string(line_ending);
     parser->base_indent         = base_indent;
     parser->current_indent      = 0;
@@ -1529,7 +1528,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
                     i = TOKEN_TEXT(token);
-                    if (autolink == Qtrue)
+                    if (parser->autolink == Qtrue)
                         i = _Wikitext_hyperlink(rb_str_new2("mailto:"), i, i, mailto_class);
                     rb_str_append(parser->output, i);
                 }
@@ -1545,7 +1544,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // if the URI were allowed it would have been handled already in LINK_START
                     _Wikitext_rollback_failed_link(parser);
                     i = TOKEN_TEXT(token);
-                    if (autolink == Qtrue)
+                    if (parser->autolink == Qtrue)
                         i = _Wikitext_hyperlink(Qnil, i, i, parser->external_link_class); // link target, link text
                     rb_str_append(parser->output, i);
                 }
@@ -1571,7 +1570,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             _Wikitext_pop_excess_elements(parser);
                             _Wikitext_start_para_if_necessary(parser);
                             rb_str_cat(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
-                            if (autolink == Qtrue)
+                            if (parser->autolink == Qtrue)
                                 i = _Wikitext_hyperlink(Qnil, i, i, parser->external_link_class); // link target, link text
                             rb_str_append(parser->output, i);
                         }
@@ -1592,7 +1591,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
                     i = TOKEN_TEXT(token);
-                    if (autolink == Qtrue)
+                    if (parser->autolink == Qtrue)
                         i = _Wikitext_hyperlink(Qnil, i, i, parser->external_link_class); // link target, link text
                     rb_str_append(parser->output, i);
                 }
