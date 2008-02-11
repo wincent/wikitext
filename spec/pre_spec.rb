@@ -37,35 +37,37 @@ describe Wikitext::Parser, 'parsing PRE blocks' do
     @parser.parse(">  foo\n>  bar").should == "<blockquote>\n  <pre>foo\nbar</pre>\n</blockquote>\n"
 
     # nesting inside double blockquotes
-    @parser.parse("> >  foo").should == <<-END
-<blockquote>
-  <blockquote>
-    <pre>foo</pre>
-  </blockquote>
-</blockquote>
-END
+    expected = dedent 6, <<-END
+      <blockquote>
+        <blockquote>
+          <pre>foo</pre>
+        </blockquote>
+      </blockquote>
+    END
+    @parser.parse("> >  foo").should == expected
 
     # same, but continued over multiple lines
-    @parser.parse("> >  foo\n> >  bar").should == <<-END
-<blockquote>
-  <blockquote>
-    <pre>foo
-bar</pre>
-  </blockquote>
-</blockquote>
-END
+    expected = dedent 6, <<-END
+      <blockquote>
+        <blockquote>
+          <pre>foo
+      bar</pre>
+        </blockquote>
+      </blockquote>
+    END
+    @parser.parse("> >  foo\n> >  bar").should == expected
   end
 
   it 'should automatically close preceding blocks at the same depth' do
     @parser.parse("> foo\n bar").should == "<blockquote>\n  <p>foo</p>\n</blockquote>\n<pre>bar</pre>\n"
-    expected = <<-END
-<blockquote>
-  <blockquote>
-    <p>foo</p>
-  </blockquote>
-</blockquote>
-<pre>bar</pre>
-END
+    expected = dedent 6, <<-END
+      <blockquote>
+        <blockquote>
+          <p>foo</p>
+        </blockquote>
+      </blockquote>
+      <pre>bar</pre>
+    END
     @parser.parse("> > foo\n bar").should == expected
   end
 
@@ -113,38 +115,38 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should pass through PRE unchanged in PRE_START/PRE_END blocks' do
-    input = <<-END
-<pre>line 1
- next line</pre>
-END
-    expected = <<-END
-<pre>line 1
- next line</pre>
-END
+    input = dedent 6, <<-END
+      <pre>line 1
+       next line</pre>
+    END
+    expected = dedent 6, <<-END
+      <pre>line 1
+       next line</pre>
+    END
     @parser.parse(input).should == expected
   end
 
   it 'should pass through short BLOCKQUOTE tokens as named entities in PRE_START/PRE_END blocks' do
-    input = <<-END
-<pre>line 1
->next line</pre>
-END
-    expected = <<-END
-<pre>line 1
-&gt;next line</pre>
-END
+    input = dedent 6, <<-END
+      <pre>line 1
+      >next line</pre>
+    END
+    expected = dedent 6, <<-END
+      <pre>line 1
+      &gt;next line</pre>
+    END
     @parser.parse(input).should == expected
   end
 
   it 'should pass through long BLOCKQUOTE tokens as named entities in PRE_START/PRE_END blocks' do
-    input = <<-END
-<pre>line 1
-> next line</pre>
-END
-    expected = <<-END
-<pre>line 1
-&gt; next line</pre>
-END
+    input = dedent 6, <<-END
+      <pre>line 1
+      > next line</pre>
+    END
+    expected = dedent 6, <<-END
+      <pre>line 1
+      &gt; next line</pre>
+    END
     @parser.parse(input).should == expected
   end
 
@@ -217,51 +219,57 @@ END
   end
 
   it 'should ignore PRE_START inside BLOCKQUOTE blocks' do
-    @parser.parse('> <pre>').should == <<-END
-<blockquote>
-  <p>&lt;pre&gt;</p>
-</blockquote>
-END
+    expected = dedent 6, <<-END
+      <blockquote>
+        <p>&lt;pre&gt;</p>
+      </blockquote>
+    END
+    @parser.parse('> <pre>').should == expected
   end
 
   it 'should ignore PRE_END inside BLOCKQUOTE blocks' do
-    @parser.parse('> </pre>').should == <<-END
-<blockquote>
-  <p>&lt;/pre&gt;</p>
-</blockquote>
-END
+    expected = dedent 6, <<-END
+      <blockquote>
+        <p>&lt;/pre&gt;</p>
+      </blockquote>
+    END
+    @parser.parse('> </pre>').should == expected
   end
 
   it 'should ignore PRE_START inside UL blocks' do
-    @parser.parse('* <pre>').should == <<-END
-<ul>
-  <li>&lt;pre&gt;</li>
-</ul>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>&lt;pre&gt;</li>
+      </ul>
+    END
+    @parser.parse('* <pre>').should == expected
   end
 
   it 'should ignore PRE_END inside UL blocks' do
-    @parser.parse('* </pre>').should == <<-END
-<ul>
-  <li>&lt;/pre&gt;</li>
-</ul>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>&lt;/pre&gt;</li>
+      </ul>
+    END
+    @parser.parse('* </pre>').should == expected
   end
 
   it 'should ignore PRE_START inside OL blocks' do
-    @parser.parse('# <pre>').should == <<-END
-<ol>
-  <li>&lt;pre&gt;</li>
-</ol>
-END
+    expected = dedent 6, <<-END
+      <ol>
+        <li>&lt;pre&gt;</li>
+      </ol>
+    END
+    @parser.parse('# <pre>').should == expected
   end
 
   it 'should ignore PRE_END inside OL blocks' do
-    @parser.parse('# </pre>').should == <<-END
-<ol>
-  <li>&lt;/pre&gt;</li>
-</ol>
-END
+    expected = dedent 6, <<-END
+      <ol>
+        <li>&lt;/pre&gt;</li>
+      </ol>
+    END
+    @parser.parse('# </pre>').should == expected
   end
 
   it 'should ignore PRE_START inside H1 blocks' do
@@ -314,76 +322,87 @@ END
 
   it 'should start a <pre> block on seeing PRE_START partway through a P block' do
     # the trailing space after "hello" is preserved just like it would be if the input were "hello " and nothing else
-    @parser.parse('hello <pre>world</pre>').should == <<-END
-<p>hello </p>
-<pre>world</pre>
-END
+    expected = dedent 6, <<-END
+      <p>hello </p>
+      <pre>world</pre>
+    END
+    @parser.parse('hello <pre>world</pre>').should == expected
   end
 
   it 'should close any open spans while starting a <pre> block on seeing PRE_START partway through a P block' do
     # ''
-    @parser.parse("hello ''my <pre>world</pre>").should == <<-END
-<p>hello <em>my </em></p>
-<pre>world</pre>
-END
+    expected = dedent 6, <<-END
+      <p>hello <em>my </em></p>
+      <pre>world</pre>
+    END
+    @parser.parse("hello ''my <pre>world</pre>").should == expected
 
     # '''
-    @parser.parse("hello '''my <pre>world</pre>").should == <<-END
-<p>hello <strong>my </strong></p>
-<pre>world</pre>
-END
+    expected = dedent 6, <<-END
+      <p>hello <strong>my </strong></p>
+      <pre>world</pre>
+    END
+    @parser.parse("hello '''my <pre>world</pre>").should == expected
 
     # '''''
-    @parser.parse("hello '''''my <pre>world</pre>").should == <<-END
-<p>hello <strong><em>my </em></strong></p>
-<pre>world</pre>
-END
+    expected = dedent 6, <<-END
+      <p>hello <strong><em>my </em></strong></p>
+      <pre>world</pre>
+    END
+    @parser.parse("hello '''''my <pre>world</pre>").should == expected
 
     # `
-    @parser.parse("hello `my <pre>world</pre>").should == <<-END
-<p>hello <tt>my </tt></p>
-<pre>world</pre>
-END
+    expected = dedent 6, <<-END
+      <p>hello <tt>my </tt></p>
+      <pre>world</pre>
+    END
+    @parser.parse("hello `my <pre>world</pre>").should == expected
 
     # <em>
-    @parser.parse("hello <em>my <pre>world</pre>").should == <<-END
-<p>hello <em>my </em></p>
-<pre>world</pre>
-END
+    expected = dedent 6, <<-END
+      <p>hello <em>my </em></p>
+      <pre>world</pre>
+    END
+    @parser.parse("hello <em>my <pre>world</pre>").should == expected
 
     # <strong>
-    @parser.parse("hello <strong>my <pre>world</pre>").should == <<-END
-<p>hello <strong>my </strong></p>
-<pre>world</pre>
-END
+    expected = dedent 6, <<-END
+      <p>hello <strong>my </strong></p>
+      <pre>world</pre>
+    END
+    @parser.parse("hello <strong>my <pre>world</pre>").should == expected
 
     # <strong><em>
-    @parser.parse("hello <strong><em>my <pre>world</pre>").should == <<-END
-<p>hello <strong><em>my </em></strong></p>
-<pre>world</pre>
-END
+    expected = dedent 6, <<-END
+      <p>hello <strong><em>my </em></strong></p>
+      <pre>world</pre>
+    END
+    @parser.parse("hello <strong><em>my <pre>world</pre>").should == expected
 
     # <tt>
-    @parser.parse("hello <tt>my <pre>world</pre>").should == <<-END
-<p>hello <tt>my </tt></p>
-<pre>world</pre>
-END
+    expected = dedent 6, <<-END
+      <p>hello <tt>my </tt></p>
+      <pre>world</pre>
+    END
+    @parser.parse("hello <tt>my <pre>world</pre>").should == expected
   end
 
   it 'should rollback open internal link spans on encountering a PRE_START in the link target' do
-    @parser.parse('[[hello <pre>world</pre>]]').should == <<-END
-<p>[[hello </p>
-<pre>world</pre>
-<p>]]</p>
-END
+    expected = dedent 6, <<-END
+      <p>[[hello </p>
+      <pre>world</pre>
+      <p>]]</p>
+    END
+    @parser.parse('[[hello <pre>world</pre>]]').should == expected
   end
 
   it 'should rollback open internal link spans on encountering a PRE_START in the link text' do
-    @parser.parse('[[hello | there<pre>world</pre>]]').should == <<-END
-<p>[[hello | there</p>
-<pre>world</pre>
-<p>]]</p>
-END
+    expected = dedent 6, <<-END
+      <p>[[hello | there</p>
+      <pre>world</pre>
+      <p>]]</p>
+    END
+    @parser.parse('[[hello | there<pre>world</pre>]]').should == expected
   end
 
   it 'should automatically close open PRE_START blocks on hitting the end-of-file' do
