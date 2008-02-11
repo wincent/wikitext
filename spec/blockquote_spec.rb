@@ -535,4 +535,31 @@ inner 2</pre>
 END
     @parser.parse(input).should == expected
   end
+
+  it 'should support nesting of H1 spans' do
+    input = dedent 6, <<-END
+      <blockquote>
+      = foo =
+      bar
+      </blockquote>
+    END
+
+    expected = dedent 6, <<-END
+      <blockquote>
+        <h1>foo</h1>
+        <p>bar</p>
+      </blockquote>
+    END
+    @parser.parse(input).should == expected
+
+    # but note that this won't work
+    # the second "=" is not recognized as an H1_END because the scanner has no lookahead at the token level
+    input = '<blockquote>= foo =</blockquote>'
+    expected = dedent 6, <<-END
+      <blockquote>
+        <h1>foo =</h1>
+      </blockquote>
+    END
+    @parser.parse(input).should == expected
+  end
 end
