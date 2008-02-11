@@ -24,22 +24,22 @@ describe Wikitext::Parser, 'regressions' do
 
   it 'should correctly transform example #1' do
     # turns out that this was never a bug in wikitext: it was a bug in the host application
-    input = <<-END
-= Leopard =
-
-* punto 1
-* punto 2
-
-Y [[otro articulo]].
-END
-    expected = <<-END
-<h1>Leopard</h1>
-<ul>
-  <li>punto 1</li>
-  <li>punto 2</li>
-</ul>
-<p>Y <a href="/wiki/otro%20articulo">otro articulo</a>.</p>
-END
+    input = dedent 6, <<-END
+      = Leopard =
+      
+      * punto 1
+      * punto 2
+      
+      Y [[otro articulo]].
+    END
+    expected = dedent 6, <<-END
+      <h1>Leopard</h1>
+      <ul>
+        <li>punto 1</li>
+        <li>punto 2</li>
+      </ul>
+      <p>Y <a href="/wiki/otro%20articulo">otro articulo</a>.</p>
+    END
     @parser.parse(input).should == expected
   end
 end
