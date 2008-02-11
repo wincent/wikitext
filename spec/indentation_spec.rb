@@ -26,7 +26,7 @@ describe Wikitext::Parser, 'indentation' do
   before do
     @parser         = Wikitext::Parser.new
     @input          = '* foo'
-    @default_output = dedent 6, <<-END
+    @default_output = dedent <<-END
       <ul>
         <li>foo</li>
       </ul>

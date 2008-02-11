@@ -39,7 +39,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should recognize <ul> markers nested inside blockquote blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <ul>
           <li>foo</li>
@@ -56,7 +56,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should recognize a multi-item, single-level list' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>foo</li>
         <li>bar</li>
@@ -72,7 +72,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
     # and at other times it has to act like p (doesn't emit before dedent)
     # so basically when nested we need to do an emitting dedent
     # and when not we need to do a non-emitting one
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>foo
           <ul>
@@ -85,7 +85,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should recognize a multi-item, nested list (three levels)' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>foo
           <ul>
@@ -102,7 +102,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should recognize lists in which nesting level increases and then is maintained' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>foo
           <ul>
@@ -116,7 +116,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should recognize lists in which nesting level increases and then decreases' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>foo
           <ul>
@@ -130,7 +130,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should be terminated by subsequent paragraph at the same level' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>foo</li>
       </ul>
@@ -140,7 +140,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should be terminated by subsequent blockquote at the same level' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>foo</li>
       </ul>
@@ -177,7 +177,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should recognize lists which contain nested ordered lists' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>foo
           <ol>
@@ -188,12 +188,12 @@ describe Wikitext::Parser, 'parsing unordered lists' do
     END
     @parser.parse("* foo\n*# bar").should == expected
 
-    input = dedent 6, <<-END
+    input = dedent <<-END
       * foo
       *# bar
       *# baz
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>foo
           <ol>
@@ -208,11 +208,11 @@ describe Wikitext::Parser, 'parsing unordered lists' do
 
   it 'should automatically close open TT_START elements on reaching the end of the line' do
     # this (and the same for all other span-level elements) was a bug
-    input = dedent 6, <<-END
+    input = dedent <<-END
       * <tt>hello
       * world
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li><tt>hello</tt></li>
         <li>world</li>
@@ -222,11 +222,11 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should automatically close open TT elements on reaching the end of the line' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       * `hello
       * world
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li><tt>hello</tt></li>
         <li>world</li>
@@ -236,11 +236,11 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should automatically close open EM_START elements on reaching the end of the line' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       * <em>hello
       * world
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li><em>hello</em></li>
         <li>world</li>
@@ -250,11 +250,11 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should automatically close open EM elements on reaching the end of the line' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       * ''hello
       * world
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li><em>hello</em></li>
         <li>world</li>
@@ -264,11 +264,11 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should automatically close open STRONG_START elements on reaching the end of the line' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       * <strong>hello
       * world
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li><strong>hello</strong></li>
         <li>world</li>
@@ -278,11 +278,11 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should automatically close open STRONG elements on reaching the end of the line' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       * '''hello
       * world
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li><strong>hello</strong></li>
         <li>world</li>
@@ -292,11 +292,11 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should automatically close open STRONG_EM elements on reaching the end of the line' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       * '''''hello
       * world
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li><strong><em>hello</em></strong></li>
         <li>world</li>

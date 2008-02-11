@@ -24,7 +24,7 @@ describe Wikitext::Parser, 'regressions' do
 
   it 'should correctly transform example #1' do
     # turns out that this was never a bug in wikitext: it was a bug in the host application
-    input = dedent 6, <<-END
+    input = dedent <<-END
       = Leopard =
       
       * punto 1
@@ -32,7 +32,7 @@ describe Wikitext::Parser, 'regressions' do
       
       Y [[otro articulo]].
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <h1>Leopard</h1>
       <ul>
         <li>punto 1</li>

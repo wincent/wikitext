@@ -120,7 +120,7 @@ describe Wikitext::Parser, 'tokenizing' do
   end
 
   it 'should be able to tokenize large blocks of text' do
-    large_block_of_text = dedent 6, <<-END
+    large_block_of_text = dedent <<-END
       paragraph
       second line
       

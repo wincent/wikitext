@@ -23,7 +23,7 @@ describe Wikitext::Parser, 'with large slab of input text' do
 
   # the integration spec is designed to test all aspects of the parser at once
   it 'should handle complex input containing nested structures, syntax errors, and exercising a wide variety features' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       paragraph
       second line
       
@@ -143,7 +143,7 @@ describe Wikitext::Parser, 'with large slab of input text' do
       # new list
     END
 
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>paragraph second line</p>
       <p>new paragraph</p>
       <p>literal &quot; HTML &copy; entities</p>

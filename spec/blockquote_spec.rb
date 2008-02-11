@@ -22,7 +22,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should treat ">" in first column as a blockquote marker' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo</p>
       </blockquote>
@@ -31,7 +31,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should accept (and ignore) one optional space after the ">"' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo</p>
       </blockquote>
@@ -40,7 +40,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should recognize consecutive ">" as continuance of blockquote section' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo bar</p>
       </blockquote>
@@ -53,7 +53,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow nesting of blockquotes' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <blockquote>
           <p>foo</p>
@@ -64,7 +64,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow opening of a nested blockquote after other content' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo</p>
         <blockquote>
@@ -76,7 +76,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow opening of a nested blockquote before other content' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <blockquote>
           <p>foo</p>
@@ -88,7 +88,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should accept an empty blockquote' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
       </blockquote>
     END
@@ -96,7 +96,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should jump out of blockquote mode on seeing a normal line of text' do
-    expected =  dedent 6, <<-END
+    expected =  dedent <<-END
       <blockquote>
         <p>foo</p>
       </blockquote>
@@ -106,7 +106,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow nesting of h1 blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <h1>foo</h1>
       </blockquote>
@@ -115,7 +115,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow nesting of h2 blocks' do
-    expected =  dedent 6, <<-END
+    expected =  dedent <<-END
       <blockquote>
         <h2>foo</h2>
       </blockquote>
@@ -124,7 +124,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow nesting of h3 blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <h3>foo</h3>
       </blockquote>
@@ -133,7 +133,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow nesting of h4 blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <h4>foo</h4>
       </blockquote>
@@ -142,7 +142,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow nesting of h5 blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <h5>foo</h5>
       </blockquote>
@@ -151,7 +151,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow nesting of h6 blocks' do
-     expected = dedent 6, <<-END
+     expected = dedent <<-END
       <blockquote>
         <h6>foo</h6>
       </blockquote>
@@ -161,7 +161,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
 
   it 'should allow alternating nested paragraphs and pre blocks' do
     # was a bug
-    input = dedent 6, <<-END
+    input = dedent <<-END
       > para 1
       >
       >  pre 1
@@ -169,7 +169,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
       >
       > para 2
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>para 1</p>
         <pre>pre 1
@@ -181,11 +181,11 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   end
 
   it 'should allow nesting of styled spans inside blockquotes' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       > link to [[something]], and ''other''
       > `styled` '''spans'''.
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>link to <a href="/wiki/something">something</a>, and <em>other</em> <tt>styled</tt> <strong>spans</strong>.</p>
       </blockquote>
@@ -195,7 +195,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
 
   it 'should allow complex nestings inside blockquotes' do
     # was a bug: further reduced in the following example, "should handle TT spans inside blockquotes"
-    input = dedent 6, <<-END
+    input = dedent <<-END
        code block
       
       a normal para
@@ -222,7 +222,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
       
       follow-up para
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <pre>code block</pre>
       <p>a normal para</p>
       <blockquote>
@@ -255,11 +255,11 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
 
   it 'should handle TT spans inside blockquotes' do
     # was a bug: this is a minimally reduced test case extracted from the integration tests
-    input = dedent 6, <<-END
+    input = dedent <<-END
       > some
       > `styled`
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>some <tt>styled</tt></p>
       </blockquote>
@@ -270,11 +270,11 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
 
   it 'should handled nested lists which immediately follow paragraphs' do
     # was a bug: this is a minimally reduced test case extracted from the integration tests
-    input = dedent 6, <<-END
+    input = dedent <<-END
       > Finally
       > # Which
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>Finally</p>
         <ol>
@@ -295,7 +295,7 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
 
   it 'should accept literal BLOCKQUOTE_START/BLOCKQUOTE_END tags as an alternative to the standard syntax' do
     input = '<blockquote>hello</blockquote>'
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>hello</p>
       </blockquote>
@@ -303,12 +303,12 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
     @parser.parse(input).should == expected
 
     # alternative 1
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>
       hello
       </blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>hello</p>
       </blockquote>
@@ -316,11 +316,11 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
     @parser.parse(input).should == expected
 
     # alternative 2
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>hello
       </blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>hello</p>
       </blockquote>
@@ -328,11 +328,11 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
     @parser.parse(input).should == expected
 
     # alternative 3
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>
       hello</blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>hello</p>
       </blockquote>
@@ -341,12 +341,12 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
 
     # note what happens if we indent (whitespace gets carried through; it is not identified as a PRE block
     # in reality you'd never indent when editing wikitext anyway; the idea is to free yourself from details like that
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>
         hello
       </blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>  hello</p>
       </blockquote>
@@ -355,12 +355,12 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
   end
 
   it 'should merge consecutive lines into a single paragraph' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>foo
       bar
       baz</blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo bar baz</p>
       </blockquote>
@@ -369,12 +369,12 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
   end
 
   it 'should process paragraph breaks' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>foo
       
       baz</blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo</p>
         <p>baz</p>
@@ -384,13 +384,13 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
   end
 
   it 'should pass through PRE tokens unaltered' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>foo
        bar</blockquote>
     END
 
     # note the extra space: one for the CRLF and another for the PRE token
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo  bar</p>
       </blockquote>
@@ -400,11 +400,11 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
 
   it 'should terminate open span-level elements on hitting the newline' do
     # for now just test with EM; potentially add more examples later
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>foo ''bar
       baz</blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo <em>bar</em> baz</p>
       </blockquote>
@@ -413,12 +413,12 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
   end
 
   it 'should pass through BLOCKQUOTE tokens escaped' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>foo
       > bar
       baz</blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo &gt; bar baz</p>
       </blockquote>
@@ -428,7 +428,7 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
 
   it 'should be able to nest single-item unordered lists' do
     input = '<blockquote>* foo</blockquote>'
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <ul>
           <li>foo</li>
@@ -439,14 +439,14 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
   end
 
   it 'should be able to nest multi-item unordered lists' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>
       * foo
       * bar
       * baz
       </blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <ul>
           <li>foo</li>
@@ -459,14 +459,14 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
   end
 
   it 'should be able to nest nested unordered lists' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>
       * foo
       ** bar
       * baz
       </blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <ul>
           <li>foo
@@ -481,7 +481,7 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
     @parser.parse(input).should == expected
 
     # note that the exact placement of the closing tag doesn't matter
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>
       * foo
       ** bar
@@ -490,7 +490,7 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
     @parser.parse(input).should == expected
 
     # likewise for the opening tag
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>* foo
       ** bar
       * baz
@@ -500,7 +500,7 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
   end
 
   it 'should be able to nest blockquotes' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>
       foo
       <blockquote>
@@ -509,7 +509,7 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
       baz
       </blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>foo</p>
         <blockquote>
@@ -522,7 +522,7 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
   end
 
   it 'should be able to nest pre blocks' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>
       outer 1
       <pre>inner 1
@@ -530,7 +530,7 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
       outer 2
       </blockquote>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>outer 1</p>
         <pre>inner 1
@@ -542,14 +542,14 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
   end
 
   it 'should support nesting of H1 spans' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <blockquote>
       = foo =
       bar
       </blockquote>
     END
 
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <h1>foo</h1>
         <p>bar</p>
@@ -560,7 +560,7 @@ describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
     # but note that this won't work
     # the second "=" is not recognized as an H1_END because the scanner has no lookahead at the token level
     input = '<blockquote>= foo =</blockquote>'
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <h1>foo =</h1>
       </blockquote>

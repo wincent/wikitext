@@ -37,7 +37,7 @@ describe Wikitext::Parser, 'parsing PRE blocks' do
     @parser.parse(">  foo\n>  bar").should == "<blockquote>\n  <pre>foo\nbar</pre>\n</blockquote>\n"
 
     # nesting inside double blockquotes
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <blockquote>
           <pre>foo</pre>
@@ -47,7 +47,7 @@ describe Wikitext::Parser, 'parsing PRE blocks' do
     @parser.parse("> >  foo").should == expected
 
     # same, but continued over multiple lines
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <blockquote>
           <pre>foo
@@ -60,7 +60,7 @@ describe Wikitext::Parser, 'parsing PRE blocks' do
 
   it 'should automatically close preceding blocks at the same depth' do
     @parser.parse("> foo\n bar").should == "<blockquote>\n  <p>foo</p>\n</blockquote>\n<pre>bar</pre>\n"
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <blockquote>
           <p>foo</p>
@@ -115,11 +115,11 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should pass through PRE unchanged in PRE_START/PRE_END blocks' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <pre>line 1
        next line</pre>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <pre>line 1
        next line</pre>
     END
@@ -127,11 +127,11 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should pass through short BLOCKQUOTE tokens as named entities in PRE_START/PRE_END blocks' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <pre>line 1
       >next line</pre>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <pre>line 1
       &gt;next line</pre>
     END
@@ -139,11 +139,11 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should pass through long BLOCKQUOTE tokens as named entities in PRE_START/PRE_END blocks' do
-    input = dedent 6, <<-END
+    input = dedent <<-END
       <pre>line 1
       > next line</pre>
     END
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <pre>line 1
       &gt; next line</pre>
     END
@@ -219,7 +219,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should ignore PRE_START inside BLOCKQUOTE blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>&lt;pre&gt;</p>
       </blockquote>
@@ -228,7 +228,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should ignore PRE_END inside BLOCKQUOTE blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <blockquote>
         <p>&lt;/pre&gt;</p>
       </blockquote>
@@ -237,7 +237,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should ignore PRE_START inside UL blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>&lt;pre&gt;</li>
       </ul>
@@ -246,7 +246,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should ignore PRE_END inside UL blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ul>
         <li>&lt;/pre&gt;</li>
       </ul>
@@ -255,7 +255,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should ignore PRE_START inside OL blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ol>
         <li>&lt;pre&gt;</li>
       </ol>
@@ -264,7 +264,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should ignore PRE_END inside OL blocks' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <ol>
         <li>&lt;/pre&gt;</li>
       </ol>
@@ -322,7 +322,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
 
   it 'should start a <pre> block on seeing PRE_START partway through a P block' do
     # the trailing space after "hello" is preserved just like it would be if the input were "hello " and nothing else
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>hello </p>
       <pre>world</pre>
     END
@@ -331,56 +331,56 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
 
   it 'should close any open spans while starting a <pre> block on seeing PRE_START partway through a P block' do
     # ''
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>hello <em>my </em></p>
       <pre>world</pre>
     END
     @parser.parse("hello ''my <pre>world</pre>").should == expected
 
     # '''
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>hello <strong>my </strong></p>
       <pre>world</pre>
     END
     @parser.parse("hello '''my <pre>world</pre>").should == expected
 
     # '''''
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>hello <strong><em>my </em></strong></p>
       <pre>world</pre>
     END
     @parser.parse("hello '''''my <pre>world</pre>").should == expected
 
     # `
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>hello <tt>my </tt></p>
       <pre>world</pre>
     END
     @parser.parse("hello `my <pre>world</pre>").should == expected
 
     # <em>
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>hello <em>my </em></p>
       <pre>world</pre>
     END
     @parser.parse("hello <em>my <pre>world</pre>").should == expected
 
     # <strong>
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>hello <strong>my </strong></p>
       <pre>world</pre>
     END
     @parser.parse("hello <strong>my <pre>world</pre>").should == expected
 
     # <strong><em>
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>hello <strong><em>my </em></strong></p>
       <pre>world</pre>
     END
     @parser.parse("hello <strong><em>my <pre>world</pre>").should == expected
 
     # <tt>
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>hello <tt>my </tt></p>
       <pre>world</pre>
     END
@@ -388,7 +388,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should rollback open internal link spans on encountering a PRE_START in the link target' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>[[hello </p>
       <pre>world</pre>
       <p>]]</p>
@@ -397,7 +397,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   end
 
   it 'should rollback open internal link spans on encountering a PRE_START in the link text' do
-    expected = dedent 6, <<-END
+    expected = dedent <<-END
       <p>[[hello | there</p>
       <pre>world</pre>
       <p>]]</p>
