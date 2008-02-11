@@ -16,7 +16,7 @@
 require File.join(File.dirname(__FILE__), 'spec_helper.rb')
 require 'wikitext'
 
-describe Wikitext::Parser, 'parsing blockquotes' do
+describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
   before do
     @parser = Wikitext::Parser.new
   end
@@ -275,4 +275,208 @@ EXPECTED
   end
 
   # TODO: tests for nesting other types of blocks
+end
+
+describe Wikitext::Parser, 'literal BLOCKQUOTE_START/BLOCKQUOTE_END tags' do
+  before do
+    @parser = Wikitext::Parser.new
+  end
+
+  it 'should accept literal BLOCKQUOTE_START/BLOCKQUOTE_END tags as an alternative to the standard syntax' do
+    input = '<blockquote>hello</blockquote>'
+
+    expected = <<-END
+<blockquote>
+  <p>hello</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+
+    # alternative 1
+    input = <<-END
+<blockquote>
+hello
+</blockquote>
+END
+
+    expected = <<-END
+<blockquote>
+  <p>hello</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+
+    # alternative 2
+    input = <<-END
+<blockquote>hello
+</blockquote>
+END
+
+    expected = <<-END
+<blockquote>
+  <p>hello</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+
+    # alternative 3
+    input = <<-END
+<blockquote>
+hello</blockquote>
+END
+
+    expected = <<-END
+<blockquote>
+  <p>hello</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+
+    # note what happens if we indent (whitespace gets carried through; it is not identified as a PRE block
+    # in reality you'd never indent when editing wikitext anyway; the idea is to free yourself from details like that
+    input = <<-END
+<blockquote>
+  hello
+</blockquote>
+END
+
+    expected = <<-END
+<blockquote>
+  <p>  hello</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should merge consecutive lines into a single paragraph' do
+    input = <<-END
+<blockquote>foo
+bar
+baz</blockquote>
+END
+    expected = <<-END
+<blockquote>
+  <p>foo bar baz</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should process paragraph breaks' do
+    input = <<-END
+<blockquote>foo
+
+baz</blockquote>
+END
+    expected = <<-END
+<blockquote>
+  <p>foo</p>
+  <p>baz</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should pass through PRE tokens unaltered' do
+    input = <<-END
+<blockquote>foo
+ bar</blockquote>
+END
+
+    # note the extra space: one for the CRLF and another for the PRE token
+    expected = <<-END
+<blockquote>
+  <p>foo  bar</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should terminate open span-level elements on hitting the newline' do
+    # for now just test with EM; potentially add more examples later
+    input = <<-END
+<blockquote>foo ''bar
+baz</blockquote>
+END
+    expected = <<-END
+<blockquote>
+  <p>foo <em>bar</em> baz</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should pass through BLOCKQUOTE tokens escaped' do
+    input = <<-END
+<blockquote>foo
+> bar
+baz</blockquote>
+END
+
+    expected = <<-END
+<blockquote>
+  <p>foo &gt; bar baz</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should be able to nest single-item unordered lists' do
+    input = '<blockquote>* foo</blockquote>'
+    expected = <<-END
+<blockquote>
+  <ul>
+    <li>foo</li>
+  </ul>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should be able to nest multi-item unordered lists' do
+    input = <<-END
+<blockquote>
+* foo
+* bar
+* baz
+</blockquote>
+END
+    expected = <<-END
+<blockquote>
+  <ul>
+    <li>foo</li>
+    <li>bar</li>
+    <li>baz</li>
+  </ul>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should be able to nest nested unordered lists' do
+    input = <<-END
+<blockquote>
+* foo
+** bar
+* baz
+</blockquote>
+END
+    expected = <<-END
+<blockquote>
+  <ul>
+    <li>foo
+      <ul>
+        <li>bar</li>
+      </ul>
+    </li>
+    <li>baz</li>
+  </ul>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
+
+
+
+
 end

@@ -43,74 +43,76 @@ typedef struct
     str_t   *tabulation;            // caching buffer for emitting indentation
 } parser_t;
 
-const char escaped_no_wiki_start[]  = "&lt;nowiki&gt;";
-const char escaped_no_wiki_end[]    = "&lt;/nowiki&gt;";
-const char literal_strong_em[]      = "'''''";
-const char literal_strong[]         = "'''";
-const char literal_em[]             = "''";
-const char escaped_em_start[]       = "&lt;em&gt;";
-const char escaped_em_end[]         = "&lt;/em&gt;";
-const char escaped_strong_start[]   = "&lt;strong&gt;";
-const char escaped_strong_end[]     = "&lt;/strong&gt;";
-const char escaped_tt_start[]       = "&lt;tt&gt;";
-const char escaped_tt_end[]         = "&lt;/tt&gt;";
-const char literal_h6[]             = "======";
-const char literal_h5[]             = "=====";
-const char literal_h4[]             = "====";
-const char literal_h3[]             = "===";
-const char literal_h2[]             = "==";
-const char literal_h1[]             = "=";
-const char pre_start[]              = "<pre>";
-const char pre_end[]                = "</pre>";
-const char escaped_pre_start[]      = "&lt;pre&gt;";
-const char escaped_pre_end[]        = "&lt;/pre&gt;";
-const char blockquote_start[]       = "<blockquote>";
-const char blockquote_end[]         = "</blockquote>";
-const char strong_em_start[]        = "<strong><em>";
-const char strong_start[]           = "<strong>";
-const char strong_end[]             = "</strong>";
-const char em_start[]               = "<em>";
-const char em_end[]                 = "</em>";
-const char tt_start[]               = "<tt>";
-const char tt_end[]                 = "</tt>";
-const char ol_start[]               = "<ol>";
-const char ol_end[]                 = "</ol>";
-const char ul_start[]               = "<ul>";
-const char ul_end[]                 = "</ul>";
-const char li_start[]               = "<li>";
-const char li_end[]                 = "</li>";
-const char h6_start[]               = "<h6>";
-const char h6_end[]                 = "</h6>";
-const char h5_start[]               = "<h5>";
-const char h5_end[]                 = "</h5>";
-const char h4_start[]               = "<h4>";
-const char h4_end[]                 = "</h4>";
-const char h3_start[]               = "<h3>";
-const char h3_end[]                 = "</h3>";
-const char h2_start[]               = "<h2>";
-const char h2_end[]                 = "</h2>";
-const char h1_start[]               = "<h1>";
-const char h1_end[]                 = "</h1>";
-const char p_start[]                = "<p>";
-const char p_end[]                  = "</p>";
-const char space[]                  = " ";
-const char a_start[]                = "<a href=\"";
-const char a_class[]                = "\" class=\"";
-const char a_start_close[]          = "\">";
-const char a_end[]                  = "</a>";
-const char link_start[]             = "[[";
-const char link_end[]               = "]]";
-const char separator[]              = "|";
-const char ext_link_start[]         = "[";
-const char backtick[]               = "`";
-const char quote[]                  = "\"";
-const char ampersand[]              = "&";
-const char quot_entity[]            = "&quot;";
-const char amp_entity[]             = "&amp;";
-const char lt_entity[]              = "&lt;";
-const char gt_entity[]              = "&gt;";
-const char escaped_blockquote[]     = "&gt; ";
-const char ext_link_end[]           = "]";
+const char escaped_no_wiki_start[]      = "&lt;nowiki&gt;";
+const char escaped_no_wiki_end[]        = "&lt;/nowiki&gt;";
+const char literal_strong_em[]          = "'''''";
+const char literal_strong[]             = "'''";
+const char literal_em[]                 = "''";
+const char escaped_em_start[]           = "&lt;em&gt;";
+const char escaped_em_end[]             = "&lt;/em&gt;";
+const char escaped_strong_start[]       = "&lt;strong&gt;";
+const char escaped_strong_end[]         = "&lt;/strong&gt;";
+const char escaped_tt_start[]           = "&lt;tt&gt;";
+const char escaped_tt_end[]             = "&lt;/tt&gt;";
+const char literal_h6[]                 = "======";
+const char literal_h5[]                 = "=====";
+const char literal_h4[]                 = "====";
+const char literal_h3[]                 = "===";
+const char literal_h2[]                 = "==";
+const char literal_h1[]                 = "=";
+const char pre_start[]                  = "<pre>";
+const char pre_end[]                    = "</pre>";
+const char escaped_pre_start[]          = "&lt;pre&gt;";
+const char escaped_pre_end[]            = "&lt;/pre&gt;";
+const char blockquote_start[]           = "<blockquote>";
+const char blockquote_end[]             = "</blockquote>";
+const char escaped_blockquote_start[]   = "&lt;blockquote&gt;";
+const char escaped_blockquote_end[]     = "&lt;/blockquote&gt;";
+const char strong_em_start[]            = "<strong><em>";
+const char strong_start[]               = "<strong>";
+const char strong_end[]                 = "</strong>";
+const char em_start[]                   = "<em>";
+const char em_end[]                     = "</em>";
+const char tt_start[]                   = "<tt>";
+const char tt_end[]                     = "</tt>";
+const char ol_start[]                   = "<ol>";
+const char ol_end[]                     = "</ol>";
+const char ul_start[]                   = "<ul>";
+const char ul_end[]                     = "</ul>";
+const char li_start[]                   = "<li>";
+const char li_end[]                     = "</li>";
+const char h6_start[]                   = "<h6>";
+const char h6_end[]                     = "</h6>";
+const char h5_start[]                   = "<h5>";
+const char h5_end[]                     = "</h5>";
+const char h4_start[]                   = "<h4>";
+const char h4_end[]                     = "</h4>";
+const char h3_start[]                   = "<h3>";
+const char h3_end[]                     = "</h3>";
+const char h2_start[]                   = "<h2>";
+const char h2_end[]                     = "</h2>";
+const char h1_start[]                   = "<h1>";
+const char h1_end[]                     = "</h1>";
+const char p_start[]                    = "<p>";
+const char p_end[]                      = "</p>";
+const char space[]                      = " ";
+const char a_start[]                    = "<a href=\"";
+const char a_class[]                    = "\" class=\"";
+const char a_start_close[]              = "\">";
+const char a_end[]                      = "</a>";
+const char link_start[]                 = "[[";
+const char link_end[]                   = "]]";
+const char separator[]                  = "|";
+const char ext_link_start[]             = "[";
+const char backtick[]                   = "`";
+const char quote[]                      = "\"";
+const char ampersand[]                  = "&";
+const char quot_entity[]                = "&quot;";
+const char amp_entity[]                 = "&amp;";
+const char lt_entity[]                  = "&lt;";
+const char gt_entity[]                  = "&gt;";
+const char escaped_blockquote[]         = "&gt; ";
+const char ext_link_end[]               = "]";
 
 // for testing and debugging only
 VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
@@ -238,6 +240,7 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
             break;
 
         case BLOCKQUOTE:
+        case BLOCKQUOTE_START:
             _Wikitext_dedent(parser, Qtrue);
             rb_str_cat(target, blockquote_end, sizeof(blockquote_end) - 1);
             rb_str_cat(target, parser->line_ending->ptr, parser->line_ending->len);
@@ -385,8 +388,10 @@ inline void _Wikitext_start_para_if_necessary(parser_t *parser)
     if (!NIL_P(parser->capture))    // we don't do anything if in capturing mode
         return;
 
-    // if no block open yet, or top of stack is BLOCKQUOTE (with nothing in it yet)
-    if (parser->scope->count == 0 || ary_entry(parser->scope, -1) == BLOCKQUOTE)
+    // if no block open yet, or top of stack is BLOCKQUOTE/BLOCKQUOTE_START (with nothing in it yet)
+    if (parser->scope->count == 0 ||
+        ary_entry(parser->scope, -1) == BLOCKQUOTE ||
+        ary_entry(parser->scope, -1) == BLOCKQUOTE_START)
     {
         _Wikitext_indent(parser);
         rb_str_cat(parser->output, p_start, sizeof(p_start) - 1);
@@ -407,17 +412,31 @@ inline void _Wikitext_start_para_if_necessary(parser_t *parser)
 
 // Helper function that pops any excess elements off scope (pushing is already handled in the respective rules).
 // For example, given input like:
+//
 //      > > foo
 //      bar
+//
 // Upon seeing "bar", we want to pop two BLOCKQUOTE elements from the scope.
 // The reverse case (shown below) is handled from inside the BLOCKQUOTE rule itself:
+//
 //      foo
 //      > > bar
+//
+// Things are made slightly more complicated by the fact that there is one block-level tag that can be on the scope
+// but not on the line scope:
+//
+//      <blockquote>foo
+//      bar</blockquote>
+//
+// Here on seeing "bar" we have one item on the scope (BLOCKQUOTE_START) which we don't want to pop, but we have nothing
+// on the line scope.
+// Luckily, BLOCKQUOTE_START tokens can only appear at the start of the scope array, so we can check for them first before
+// entering the for loop.
 void inline _Wikitext_pop_excess_elements(parser_t *parser)
 {
-    if (!NIL_P(parser->capture)) // we don't pop anything if capturing mode
+    if (!NIL_P(parser->capture)) // we don't pop anything if in capturing mode
         return;
-    for (int i = parser->scope->count, j = parser->line->count; i > j; i--)
+    for (int i = parser->scope->count - ary_count(parser->scope, BLOCKQUOTE_START), j = parser->line->count; i > j; i--)
     {
         // special case for last item on scope
         if (i - j == 1)
@@ -930,6 +949,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, space, sizeof(space) - 1);
                     break;
                 }
+                else if (IN(BLOCKQUOTE_START))
+                {
+                    // this kind of nesting not allowed (to avoid user confusion)
+                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_start_para_if_necessary(parser);
+                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
+                    rb_str_cat(i, space, sizeof(space) - 1);
+                    break;
+                }
 
                 // count number of BLOCKQUOTE tokens in line buffer and in scope stack
                 ary_push(parser->line, PRE);
@@ -955,13 +983,21 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case PRE_START:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                     rb_str_cat(parser->output, escaped_pre_start, sizeof(escaped_pre_start) - 1);
-                else if (parser->scope->count == 0 || (IN(P) && !IN(BLOCKQUOTE)))
+                else if (IN(BLOCKQUOTE_START))
                 {
-                    // TODO: later, will need to add BLOCKQUOTE_START here
                     _Wikitext_rollback_failed_link(parser);             // if any
                     _Wikitext_rollback_failed_external_link(parser);    // if any
-
-                    // NOTE: may need a parser->pending_crlf = Qfalse; here
+                    _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE_START, Qtrue);
+                    _Wikitext_indent(parser);
+                    rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
+                    ary_push(parser->scope, PRE_START);
+                    ary_push(parser->line, PRE_START);
+                }
+                else if (parser->scope->count == 0 || (IN(P) && !IN(BLOCKQUOTE)))
+                {
+                    // would be nice to eliminate the repetition here but it's probably the clearest way
+                    _Wikitext_rollback_failed_link(parser);             // if any
+                    _Wikitext_rollback_failed_external_link(parser);    // if any
                     _Wikitext_pop_from_stack_up_to(parser, Qnil, P, Qtrue);
                     _Wikitext_indent(parser);
                     rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
@@ -999,6 +1035,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 if (IN(NO_WIKI_START) || IN(PRE_START))
                     // no need to check for <pre>; can never appear inside it
                     rb_str_cat(parser->output, escaped_blockquote, TOKEN_LEN(token) + 3); // will either emit "&gt;" or "&gt; "
+                else if (IN(BLOCKQUOTE_START))
+                {
+                    // this kind of nesting not allowed (to avoid user confusion)
+                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_start_para_if_necessary(parser);
+                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
+                    rb_str_cat(i, escaped_blockquote, TOKEN_LEN(token) + 3); // will either emit "&gt;" or "&gt; "
+                    break;
+                }
                 else
                 {
                     ary_push(parser->line, BLOCKQUOTE);
@@ -1036,6 +1081,60 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
                     // jump to top of the loop to process token we scanned during lookahead
                     continue;
+                }
+                break;
+
+            case BLOCKQUOTE_START:
+                if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
+                    rb_str_cat(parser->output, escaped_blockquote_start, sizeof(escaped_blockquote_start) - 1);
+                else if (IN(BLOCKQUOTE_START))
+                {
+                    // nesting is fine here
+                    _Wikitext_rollback_failed_link(parser);             // if any
+                    _Wikitext_rollback_failed_external_link(parser);    // if any
+                    _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE_START, Qfalse);
+                    _Wikitext_indent(parser);
+                    rb_str_cat(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
+                    rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
+                    ary_push(parser->scope, BLOCKQUOTE_START);
+                    ary_push(parser->line, BLOCKQUOTE_START);
+                }
+                else if (parser->scope->count == 0 || (IN(P) && !IN(BLOCKQUOTE)))
+                {
+                    // would be nice to eliminate the repetition here but it's probably the clearest way
+                    _Wikitext_rollback_failed_link(parser);             // if any
+                    _Wikitext_rollback_failed_external_link(parser);    // if any
+                    _Wikitext_pop_from_stack_up_to(parser, Qnil, P, Qtrue);
+                    _Wikitext_indent(parser);
+                    rb_str_cat(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
+                    rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
+                    ary_push(parser->scope, BLOCKQUOTE_START);
+                    ary_push(parser->line, BLOCKQUOTE_START);
+                }
+                else
+                {
+                    // everywhere else, BLOCKQUOTE_START is illegal (in LI, BLOCKQUOTE, H1_START etc)
+                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
+                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_start_para_if_necessary(parser);
+                    rb_str_cat(i, escaped_blockquote_start, sizeof(escaped_blockquote_start) - 1);
+                }
+                break;
+
+            case BLOCKQUOTE_END:
+                if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
+                    rb_str_cat(parser->output, escaped_blockquote_end, sizeof(escaped_blockquote_end) - 1);
+                else
+                {
+                    if (IN(BLOCKQUOTE_START))
+                        _Wikitext_pop_from_stack_up_to(parser, parser->output, BLOCKQUOTE_START, Qtrue);
+                    else
+                    {
+                        i = NIL_P(parser->capture) ? parser->output : parser->capture;
+                        _Wikitext_pop_excess_elements(parser);
+                        _Wikitext_start_para_if_necessary(parser);
+                        rb_str_cat(i, escaped_blockquote_end, sizeof(escaped_blockquote_end) - 1);
+                    }
                 }
                 break;
 
@@ -1321,8 +1420,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
 
                 // count number of tokens in line and scope stacks
-                i = parser->line->count;
-                j = parser->scope->count;
+                int bq_count = ary_count(parser->scope, BLOCKQUOTE_START);
+                i = parser->line->count - ary_count(parser->line, BLOCKQUOTE_START);
+                j = parser->scope->count - bq_count;
                 k = i;
 
                 // list tokens can be nested so look ahead for any more which might affect the decision to push or pop
@@ -1345,7 +1445,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         // want to compare line with scope but can only do so if scope has enough items on it
                         if (j >= i)
                         {
-                            if (ary_entry(parser->scope, i - 2) == type && ary_entry(parser->scope, i - 1) == LI)
+                            if (ary_entry(parser->scope, i + bq_count - 2) == type && ary_entry(parser->scope, i + bq_count - 1) == LI)
                             {
                                 // line and scope match at this point: do nothing yet
                             }
@@ -1392,8 +1492,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         ary_push(parser->scope, NESTED_LIST);
                     }
                     else
+                    {
                         // this is a new list
-                        _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qfalse);
+                        if (IN(BLOCKQUOTE_START))
+                            _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE_START, Qfalse);
+                        else
+                            _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qfalse);
+                    }
 
                     // emit
                     _Wikitext_indent(parser);
@@ -1448,7 +1553,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
 
                 // pop up to but not including the last BLOCKQUOTE on the scope stack
-                _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qfalse);
+                if (IN(BLOCKQUOTE_START))
+                    _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE_START, Qfalse);
+                else
+                    _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qfalse);
 
                 // count number of BLOCKQUOTE tokens in line buffer and in scope stack
                 ary_push(parser->line, type);
@@ -1993,7 +2101,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // count number of BLOCKQUOTE tokens in line buffer (can be zero) and pop back to that level
                     // as a side effect, this handles any open span-level elements and unclosed blocks
                     // (with special handling for P blocks and LI elements)
-                    i = ary_count(parser->line, BLOCKQUOTE);
+                    i = ary_count(parser->line, BLOCKQUOTE) + ary_count(parser->scope, BLOCKQUOTE_START);
                     for (j = parser->scope->count; j > i; j--)
                     {
                         if (parser->scope->count > 0 && ary_entry(parser->scope, -1) == LI)
@@ -2006,7 +2114,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         if ((j - i == 1) && ary_entry(parser->scope, -1) == P)
                         {
                             // if nothing or BLOCKQUOTE on line buffer (not line stack!) prior to CRLF, this must be a paragraph break
-                            if (NO_ITEM(ary_entry(parser->line_buffer, -2)) || ary_entry(parser->line_buffer, -2) == BLOCKQUOTE)
+                            // (note that we have to make sure we're not inside a BLOCKQUOTE_START block
+                            // because in those blocks BLOCKQUOTE tokens have no special meaning)
+                            if (NO_ITEM(ary_entry(parser->line_buffer, -2)) ||
+                                (ary_entry(parser->line_buffer, -2) == BLOCKQUOTE && !IN(BLOCKQUOTE_START)))
                                 // paragraph break
                                 parser->pending_crlf = Qfalse;
                             else
