@@ -16,15 +16,21 @@
 require File.join(File.dirname(__FILE__), 'spec_helper.rb')
 require 'wikitext'
 
+# this is the inverse of the dedent method in spec_helper.rb
+# it's only in this file because it isn't needed anywhere else
+def indent spaces, string
+  string.gsub /^/, ' ' * spaces
+end
+
 describe Wikitext::Parser, 'indentation' do
   before do
     @parser         = Wikitext::Parser.new
     @input          = '* foo'
-    @default_output = <<-END
-<ul>
-  <li>foo</li>
-</ul>
-END
+    @default_output = dedent 6, <<-END
+      <ul>
+        <li>foo</li>
+      </ul>
+    END
   end
 
   it 'should default to no additional indentation' do
@@ -32,26 +38,12 @@ END
   end
 
   it 'should add additional indentation as indicated by the "indent" option' do
-    # 2 extra spaces
-    @parser.parse('* foo', :indent => 2).should == <<-END
-  <ul>
-    <li>foo</li>
-  </ul>
-END
-
-    # 4 extra spaces
-    @parser.parse('* foo', :indent => 4).should == <<-END
-    <ul>
-      <li>foo</li>
-    </ul>
-END
-
-    # 6 extra spaces
-    @parser.parse('* foo', :indent => 6).should == <<-END
-      <ul>
-        <li>foo</li>
-      </ul>
-END
+    @parser.parse('* foo', :indent => 1).should == indent(1, @default_output)
+    @parser.parse('* foo', :indent => 2).should == indent(2, @default_output)
+    @parser.parse('* foo', :indent => 3).should == indent(3, @default_output)
+    @parser.parse('* foo', :indent => 4).should == indent(4, @default_output)
+    @parser.parse('* foo', :indent => 5).should == indent(5, @default_output)
+    @parser.parse('* foo', :indent => 6).should == indent(6, @default_output)
   end
 
   it 'should complain if the "indent" option is nil' do
