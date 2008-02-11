@@ -120,71 +120,70 @@ describe Wikitext::Parser, 'tokenizing' do
   end
 
   it 'should be able to tokenize large blocks of text' do
-    large_block_of_text = <<SLAB
-paragraph
-second line
-
-new paragraph
-
-= a heading =
-
-> a blockquote
-> second line of blockquote
->
-> new paragraph within blockquote
-
-== another heading ==
-
-paragraph within ''multiple '''styles''''' and <tt>tt span</tt>
-
-similar, but with '''styles in ''different'' order'''
-
-again, a '''different ''order'''''
-
-* list item 1
-** nested list item 1
-** nested list item 2
-** nested list item 3
-* list item 2
-
- // this is a code block
- notice how it can contain ''markup''
- which would '''otherwise''' have <tt>special</tt> meaning
- although explicit entities &copy; are passed through unchanged
-
-a normal paragraph again
-
-This is where we show a link to an article on [[GCC]].
-Related to that, [[GCC|a link]] to the same
-article but with custom link text.
-
-External links [http://example.com work too].
-As well as autolinks as seen http://example.com/
-here.
-
-Look at how we handle bad syntax. [[This is an unterminated
-link. And [http://example.com/ is another.
-
-# this is an ordered list
-# which continues
-## and has another ordered list
-## nested inside it
-# and then falls back
-#* and then nests another list
-#* this time an unordered one
-#** itself containing a nested list
-#** which continues
-#**# and finally nests yet another ordered list
-#**# which continues
-#* drops back quite a way
-# and finally all the way
-#****** and finishes with an invalid item
-
-=== heading with missing closing tag
-* list
-# new list
-SLAB
-
+    large_block_of_text = dedent 6, <<-END
+      paragraph
+      second line
+      
+      new paragraph
+      
+      = a heading =
+      
+      > a blockquote
+      > second line of blockquote
+      >
+      > new paragraph within blockquote
+      
+      == another heading ==
+      
+      paragraph within ''multiple '''styles''''' and <tt>tt span</tt>
+      
+      similar, but with '''styles in ''different'' order'''
+      
+      again, a '''different ''order'''''
+      
+      * list item 1
+      ** nested list item 1
+      ** nested list item 2
+      ** nested list item 3
+      * list item 2
+      
+       // this is a code block
+       notice how it can contain ''markup''
+       which would '''otherwise''' have <tt>special</tt> meaning
+       although explicit entities &copy; are passed through unchanged
+      
+      a normal paragraph again
+      
+      This is where we show a link to an article on [[GCC]].
+      Related to that, [[GCC|a link]] to the same
+      article but with custom link text.
+      
+      External links [http://example.com work too].
+      As well as autolinks as seen http://example.com/
+      here.
+      
+      Look at how we handle bad syntax. [[This is an unterminated
+      link. And [http://example.com/ is another.
+      
+      # this is an ordered list
+      # which continues
+      ## and has another ordered list
+      ## nested inside it
+      # and then falls back
+      #* and then nests another list
+      #* this time an unordered one
+      #** itself containing a nested list
+      #** which continues
+      #**# and finally nests yet another ordered list
+      #**# which continues
+      #* drops back quite a way
+      # and finally all the way
+      #****** and finishes with an invalid item
+      
+      === heading with missing closing tag
+      * list
+      # new list
+    END
     @tokens = @parser.tokenize(large_block_of_text)
     @tokens.length.should > 0
   end
