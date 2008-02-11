@@ -39,13 +39,14 @@ describe Wikitext::Parser, 'parsing unordered lists' do
   end
 
   it 'should recognize <ul> markers nested inside blockquote blocks' do
-    @parser.parse('> * foo').should == <<-END
-<blockquote>
-  <ul>
-    <li>foo</li>
-  </ul>
-</blockquote>
-END
+    expected = dedent 6, <<-END
+      <blockquote>
+        <ul>
+          <li>foo</li>
+        </ul>
+      </blockquote>
+    END
+    @parser.parse('> * foo').should == expected
   end
 
   it 'should display excess <ul> markers as literals' do
@@ -55,12 +56,13 @@ END
   end
 
   it 'should recognize a multi-item, single-level list' do
-    @parser.parse("* foo\n* bar").should == <<-END
-<ul>
-  <li>foo</li>
-  <li>bar</li>
-</ul>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>foo</li>
+        <li>bar</li>
+      </ul>
+    END
+    @parser.parse("* foo\n* bar").should == expected
   end
 
   it 'should recognize a multi-item, nested list (two levels)' do
@@ -70,77 +72,83 @@ END
     # and at other times it has to act like p (doesn't emit before dedent)
     # so basically when nested we need to do an emitting dedent
     # and when not we need to do a non-emitting one
-    @parser.parse("* foo\n** bar").should == <<-END
-<ul>
-  <li>foo
-    <ul>
-      <li>bar</li>
-    </ul>
-  </li>
-</ul>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>foo
+          <ul>
+            <li>bar</li>
+          </ul>
+        </li>
+      </ul>
+    END
+  @parser.parse("* foo\n** bar").should == expected
   end
 
   it 'should recognize a multi-item, nested list (three levels)' do
-    @parser.parse("* foo\n** bar\n*** baz").should == <<-END
-<ul>
-  <li>foo
-    <ul>
-      <li>bar
-        <ul>
-          <li>baz</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-</ul>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>foo
+          <ul>
+            <li>bar
+              <ul>
+                <li>baz</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    END
+    @parser.parse("* foo\n** bar\n*** baz").should == expected
   end
 
   it 'should recognize lists in which nesting level increases and then is maintained' do
-    @parser.parse("* foo\n** bar\n** baz").should == <<-END
-<ul>
-  <li>foo
-    <ul>
-      <li>bar</li>
-      <li>baz</li>
-    </ul>
-  </li>
-</ul>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>foo
+          <ul>
+            <li>bar</li>
+            <li>baz</li>
+          </ul>
+        </li>
+      </ul>
+    END
+    @parser.parse("* foo\n** bar\n** baz").should == expected
   end
 
   it 'should recognize lists in which nesting level increases and then decreases' do
-    @parser.parse("* foo\n** bar\n* baz").should == <<-END
-<ul>
-  <li>foo
-    <ul>
-      <li>bar</li>
-    </ul>
-  </li>
-  <li>baz</li>
-</ul>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>foo
+          <ul>
+            <li>bar</li>
+          </ul>
+        </li>
+        <li>baz</li>
+      </ul>
+    END
+    @parser.parse("* foo\n** bar\n* baz").should == expected
   end
 
   it 'should be terminated by subsequent paragraph at the same level' do
-    @parser.parse("* foo\nbar").should == <<-END
-<ul>
-  <li>foo</li>
-</ul>
-<p>bar</p>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>foo</li>
+      </ul>
+      <p>bar</p>
+    END
+    @parser.parse("* foo\nbar").should == expected
   end
 
   it 'should be terminated by subsequent blockquote at the same level' do
-    @parser.parse("* foo\n> bar").should == <<-END
-<ul>
-  <li>foo</li>
-</ul>
-<blockquote>
-  <p>bar</p>
-</blockquote>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>foo</li>
+      </ul>
+      <blockquote>
+        <p>bar</p>
+      </blockquote>
+    END
+    @parser.parse("* foo\n> bar").should == expected
   end
 
   it 'should be terminated by subsequent heading at the same level' do
@@ -157,155 +165,143 @@ END
   end
 
   it 'should be terminated by subsequent ordered list at the same level' do
-    @parser.parse("* foo\n# bar").should == <<-END
-<ul>
-  <li>foo</li>
-</ul>
-<ol>
-  <li>bar</li>
-</ol>
-END
+    expected = dedent 6,<<-END
+      <ul>
+        <li>foo</li>
+      </ul>
+      <ol>
+        <li>bar</li>
+      </ol>
+    END
+    @parser.parse("* foo\n# bar").should == expected
   end
 
   it 'should recognize lists which contain nested ordered lists' do
-    @parser.parse("* foo\n*# bar").should == <<-END
-<ul>
-  <li>foo
-    <ol>
-      <li>bar</li>
-    </ol>
-  </li>
-</ul>
-END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>foo
+          <ol>
+            <li>bar</li>
+          </ol>
+        </li>
+      </ul>
+    END
+    @parser.parse("* foo\n*# bar").should == expected
 
-    input = <<-END
-* foo
-*# bar
-*# baz
-END
-
-    @parser.parse(input).should == <<-END
-<ul>
-  <li>foo
-    <ol>
-      <li>bar</li>
-      <li>baz</li>
-    </ol>
-  </li>
-</ul>
-END
+    input = dedent 6, <<-END
+      * foo
+      *# bar
+      *# baz
+    END
+    expected = dedent 6, <<-END
+      <ul>
+        <li>foo
+          <ol>
+            <li>bar</li>
+            <li>baz</li>
+          </ol>
+        </li>
+      </ul>
+    END
+    @parser.parse(input).should == expected
   end
 
   it 'should automatically close open TT_START elements on reaching the end of the line' do
     # this (and the same for all other span-level elements) was a bug
-    input = <<-END
-* <tt>hello
-* world
-END
-
-    expected = <<-END
-<ul>
-  <li><tt>hello</tt></li>
-  <li>world</li>
-</ul>
-END
-
+    input = dedent 6, <<-END
+      * <tt>hello
+      * world
+    END
+    expected = dedent 6, <<-END
+      <ul>
+        <li><tt>hello</tt></li>
+        <li>world</li>
+      </ul>
+    END
     @parser.parse(input).should == expected
   end
 
   it 'should automatically close open TT elements on reaching the end of the line' do
-    input = <<-END
-* `hello
-* world
-END
-
-    expected = <<-END
-<ul>
-  <li><tt>hello</tt></li>
-  <li>world</li>
-</ul>
-END
-
+    input = dedent 6, <<-END
+      * `hello
+      * world
+    END
+    expected = dedent 6, <<-END
+      <ul>
+        <li><tt>hello</tt></li>
+        <li>world</li>
+      </ul>
+    END
     @parser.parse(input).should == expected
   end
 
   it 'should automatically close open EM_START elements on reaching the end of the line' do
-    input = <<-END
-* <em>hello
-* world
-END
-
-    expected = <<-END
-<ul>
-  <li><em>hello</em></li>
-  <li>world</li>
-</ul>
-END
-
+    input = dedent 6, <<-END
+      * <em>hello
+      * world
+    END
+    expected = dedent 6, <<-END
+      <ul>
+        <li><em>hello</em></li>
+        <li>world</li>
+      </ul>
+    END
     @parser.parse(input).should == expected
   end
 
   it 'should automatically close open EM elements on reaching the end of the line' do
-    input = <<-END
-* ''hello
-* world
-END
-
-    expected = <<-END
-<ul>
-  <li><em>hello</em></li>
-  <li>world</li>
-</ul>
-END
-
+    input = dedent 6, <<-END
+      * ''hello
+      * world
+    END
+    expected = dedent 6, <<-END
+      <ul>
+        <li><em>hello</em></li>
+        <li>world</li>
+      </ul>
+    END
     @parser.parse(input).should == expected
   end
 
   it 'should automatically close open STRONG_START elements on reaching the end of the line' do
-    input = <<-END
-* <strong>hello
-* world
-END
-
-    expected = <<-END
-<ul>
-  <li><strong>hello</strong></li>
-  <li>world</li>
-</ul>
-END
-
+    input = dedent 6, <<-END
+      * <strong>hello
+      * world
+    END
+    expected = dedent 6, <<-END
+      <ul>
+        <li><strong>hello</strong></li>
+        <li>world</li>
+      </ul>
+    END
     @parser.parse(input).should == expected
   end
 
   it 'should automatically close open STRONG elements on reaching the end of the line' do
-    input = <<-END
-* '''hello
-* world
-END
-
-    expected = <<-END
-<ul>
-  <li><strong>hello</strong></li>
-  <li>world</li>
-</ul>
-END
-
+    input = dedent 6, <<-END
+      * '''hello
+      * world
+    END
+    expected = dedent 6, <<-END
+      <ul>
+        <li><strong>hello</strong></li>
+        <li>world</li>
+      </ul>
+    END
     @parser.parse(input).should == expected
   end
 
   it 'should automatically close open STRONG_EM elements on reaching the end of the line' do
-    input = <<-END
-* '''''hello
-* world
-END
-
-    expected = <<-END
-<ul>
-  <li><strong><em>hello</em></strong></li>
-  <li>world</li>
-</ul>
-END
-
+    input = dedent 6, <<-END
+      * '''''hello
+      * world
+    END
+    expected = dedent 6, <<-END
+      <ul>
+        <li><strong><em>hello</em></strong></li>
+        <li>world</li>
+      </ul>
+    END
     @parser.parse(input).should == expected
   end
 end
