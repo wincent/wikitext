@@ -18,7 +18,22 @@ require 'spec'
 
 # allow indenting of multiline spec data for better readability
 # but must dedent it before actually doing the comparison
-def dedent spaces, string
+def dedent spaces, string = nil
+  if spaces.kind_of? String
+    if not string.nil?
+      raise 'When first argument is a String, second argument must be nil'
+    else
+      # default use: single String parameter, dedent by 6
+      string = spaces
+      spaces = 6
+    end
+  elsif spaces.kind_of? Integer
+    if string.nil? or not string.kind_of?(String)
+      raise 'When first argument is a number, second must be a String'
+    end
+  else
+    raise 'Invalid argument'
+  end
   string.each do |line|
     if not line =~ /\A {#{spaces.to_i}}/
       raise "Underlength indent for line: #{line.inspect}"
