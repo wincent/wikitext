@@ -16,6 +16,17 @@ require 'pathname'
 require 'rubygems'
 require 'spec'
 
+# allow indenting of multiline spec data for better readability
+# but must dedent it before actually doing the comparison
+def dedent spaces, string
+  string.each do |line|
+    if not line =~ /\A {#{spaces.to_i}}/
+      raise "Underlength indent for line: #{line.inspect}"
+    end
+  end
+  string.gsub /^ {#{spaces.to_i}}/, ''
+end
+
 module Wikitext
   if not const_defined? 'EXTDIR'
     # append the local "ext" directory to search path if not already present
