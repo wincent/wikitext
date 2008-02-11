@@ -474,9 +474,65 @@ END
 </blockquote>
 END
     @parser.parse(input).should == expected
+
+    # note that the exact placement of the closing tag doesn't matter
+    input = <<-END
+<blockquote>
+* foo
+** bar
+* baz</blockquote>
+END
+    @parser.parse(input).should == expected
+
+    # likewise for the opening tag
+    input = <<-END
+<blockquote>* foo
+** bar
+* baz
+</blockquote>
+END
+    @parser.parse(input).should == expected
   end
 
+  it 'should be able to nest blockquotes' do
+    input = <<-END
+<blockquote>
+foo
+<blockquote>
+bar
+</blockquote>
+baz
+</blockquote>
+END
+    expected = <<-END
+<blockquote>
+  <p>foo</p>
+  <blockquote>
+    <p>bar</p>
+  </blockquote>
+  <p>baz</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
 
-
-
+  it 'should be able to nest pre blocks' do
+    input = <<-END
+<blockquote>
+outer 1
+<pre>inner 1
+inner 2</pre>
+outer 2
+</blockquote>
+END
+    expected = <<-END
+<blockquote>
+  <p>outer 1</p>
+  <pre>inner 1
+inner 2</pre>
+  <p>outer 2</p>
+</blockquote>
+END
+    @parser.parse(input).should == expected
+  end
 end

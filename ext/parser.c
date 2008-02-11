@@ -987,7 +987,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     _Wikitext_rollback_failed_link(parser);             // if any
                     _Wikitext_rollback_failed_external_link(parser);    // if any
-                    _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE_START, Qtrue);
+                    _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE_START, Qfalse);
                     _Wikitext_indent(parser);
                     rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
                     ary_push(parser->scope, PRE_START);

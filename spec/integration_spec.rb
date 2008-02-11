@@ -46,6 +46,29 @@ characters which have <special> meaning in "HTML" & all that
 > Note how the optional space following the blockquote marker
 >has no effect.
 
+Now check out the alternative blockquote syntax:
+
+<blockquote>
+This type of syntax is useful for
+when you have a large number of lines
+in the blockquote and it would be tedious
+to prefix every line with a ">".
+
+Note that I can divide things up into
+paragraphs.
+
+<blockquote>And I can nest other
+blockquotes</blockquote>
+* and
+*# nest
+*# lists
+* too
+
+<pre>and include pre blocks as well.
+This uses the alternative pre block
+syntax as you can see.</pre>
+</blockquote>
+
 == another heading ==
 
 paragraph within ''multiple '''styles''''' and <tt>tt span</tt>
@@ -131,6 +154,26 @@ INPUT
   <p>a blockquote second line of blockquote</p>
   <p>new paragraph within blockquote. this one features <em>an</em> unclosed em span (should be automatically closed).</p>
   <p>Note how the optional space following the blockquote marker has no effect.</p>
+</blockquote>
+<p>Now check out the alternative blockquote syntax:</p>
+<blockquote>
+  <p>This type of syntax is useful for when you have a large number of lines in the blockquote and it would be tedious to prefix every line with a &quot;&gt;&quot;.</p>
+  <p>Note that I can divide things up into paragraphs.</p>
+  <blockquote>
+    <p>And I can nest other blockquotes</p>
+  </blockquote>
+  <ul>
+    <li>and
+      <ol>
+        <li>nest</li>
+        <li>lists</li>
+      </ol>
+    </li>
+    <li>too</li>
+  </ul>
+  <pre>and include pre blocks as well.
+This uses the alternative pre block
+syntax as you can see.</pre>
 </blockquote>
 <h2>another heading</h2>
 <p>paragraph within <em>multiple <strong>styles</strong></em> and <tt>tt span</tt></p>
