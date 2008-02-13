@@ -22,7 +22,8 @@ of design goals flowed on from this:
   translator had to sanitize or reject unsafe input
 * <em>easy to use</em>: for end users, the translator should provide a
   simple, familiar markup as close as possible to what they already know
-  from other applications
+  from other applications (such as MediaWiki, the wiki software that
+  powers Wikipedia)
 * _forgiving_: wikitext is presentation markup, not source code, so the
   translator should do a reasonable job of formatting even the most
   invalid markup rather than giving up
@@ -37,6 +38,10 @@ of design goals flowed on from this:
 * <em>well tested</em>: the translator should have a comprehensive test
   suite to ensure that its behaviour is not only correct but also stable
   over time
+
+Some notable things that were _not_ design goals:
+
+* implement _all_ of the MediaWiki syntax (tables, images etc)
 
 = Markup
 
@@ -113,6 +118,9 @@ force the alternative interpretation you can do one of the following:
  ''<nowiki></nowiki>'''foo''' bar'' baz (ie. insert an empty nowiki span)
  <em>'''foo''' bar</em> baz (ie. use explicit HTML tags instead)
 
+Note that to avoid ambiguity, the translator will not let you intermix
+the shorthand style with the literal HTML tag style.
+
 == Teletype
 
 The translator recognizes both standard HTML +tt+ tags and the
@@ -125,6 +133,9 @@ If you need to insert a literal backtick in your text you use a +nowiki+
 span:
 
   here follows a literal <nowiki>`</nowiki> backtick
+
+To avoid ambiguity, the translator will not let you intermix the two
+styles.
 
 == +nowiki+ spans
 
@@ -194,6 +205,24 @@ Would become:
 
 See the Parser attributes documentation for how you can override the
 default link prefix (<em>/wiki/</em> as shown in the example).
+
+== Alternative blockquote and preformatted block syntax
+
+For +blockquote+ and +pre+ blocks that go on for many lines it may be
+more convenient to use the alternative syntax which uses standard
+HTML tags rather than special prefixes at the beginning of each line.
+
+  <blockquote>This is
+  a blockquote!</blockquote>
+  
+  <pre>And this is
+  preformatted text</pre>
+
++blockquote+ and +pre+ blocks may nest inside other +blockquote+
+blocks.
+
+Note that to avoid ambiguity, the translator will not let you intermix
+the two styles (HTML markup and wikitext markup).
 
 == External links
 
