@@ -549,8 +549,9 @@ inline VALUE _Wikitext_parser_trim_link_target(VALUE string)
 
 // - non-printable (non-ASCII) characters converted to numeric entities
 // - QUOT and AMP characters converted to named entities
-// - leading and trailing whitespace trimmed if trim is Qtrue
-inline VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, VALUE trim)
+// - if rollback is Qtrue, there is no special treatment of spaces
+// - if rollback is Qfalse, leading and trailing whitespace trimmed if trimmed
+inline VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, VALUE rollback)
 {
     VALUE string        = StringValue(parser->link_target); // raises if string is nil or doesn't quack like a string
     char    *src        = RSTRING_PTR(string);
@@ -606,7 +607,7 @@ inline VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, VALUE trim)
             free(dest_ptr);
             rb_raise(rb_eRangeError, "invalid link text (\">\" may not appear in link text)");
         }
-        else if (*src == ' ' && src == start && trim == Qtrue)
+        else if (*src == ' ' && src == start && rollback == Qfalse)
             start++;                // we eat leading space
         else if (*src >= 0x20 && *src <= 0x7e)    // printable ASCII
         {
@@ -631,7 +632,7 @@ inline VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, VALUE trim)
     }
 
     // trim trailing space if necessary
-    if (trim == Qtrue && non_space > dest_ptr && dest != non_space)
+    if (rollback == Qfalse && non_space > dest_ptr && dest != non_space)
         len = non_space - dest_ptr;
     else
         len = dest - dest_ptr;
@@ -645,7 +646,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
     parser_t parser;
     parser.link_target          = string;
     parser.space_to_underscore  = Qfalse;
-    return _Wikitext_parser_sanitize_link_target(&parser, Qtrue);
+    return _Wikitext_parser_sanitize_link_target(&parser, Qfalse);
 }
 
 // encodes the input string according to RFCs 2396 and 2718
@@ -781,7 +782,7 @@ inline void _Wikitext_rollback_failed_link(parser_t *parser)
     rb_str_cat(parser->output, link_start, sizeof(link_start) - 1);
     if (!NIL_P(parser->link_target))
     {
-        VALUE sanitized = _Wikitext_parser_sanitize_link_target(parser, Qfalse);
+        VALUE sanitized = _Wikitext_parser_sanitize_link_target(parser, Qtrue);
         rb_str_append(parser->output, sanitized);
         if (scope_includes_separator)
         {
@@ -1878,7 +1879,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // in internal link scope!
                     if (NIL_P(parser->link_text) || RSTRING_LEN(parser->link_text) == 0)
                         // use link target as link text
-                        parser->link_text = _Wikitext_parser_sanitize_link_target(parser, Qtrue);
+                        parser->link_text = _Wikitext_parser_sanitize_link_target(parser, Qfalse);
                     else
                         parser->link_text = _Wikitext_parser_trim_link_target(parser->link_text);
                     _Wikitext_parser_encode_link_target(parser);
