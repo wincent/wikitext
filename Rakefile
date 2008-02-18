@@ -108,6 +108,7 @@ SPEC = Gem::Specification.new do |s|
   s.extensions        = ['ext/extconf.rb']
 end
 
+task :package => [:clobber, :all, :gem]
 Rake::GemPackageTask.new(SPEC) do |t|
   t.need_tar      = true
 end
