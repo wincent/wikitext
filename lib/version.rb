@@ -13,5 +13,5 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 module Wikitext
-  VERSION = '0.2'
+  VERSION = '0.2.1'
 end # module Wikitext
