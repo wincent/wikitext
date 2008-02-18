@@ -27,7 +27,7 @@ void Init_wikitext()
 
     // Wikitext::Parser
     cWikitextParser = rb_define_class_under(mWikitext, "Parser", rb_cObject);
-    rb_define_method(cWikitextParser, "initialize", Wikitext_parser_initialize, 0);
+    rb_define_method(cWikitextParser, "initialize", Wikitext_parser_initialize, -1);
     rb_define_method(cWikitextParser, "parse", Wikitext_parser_parse, -1);
     rb_define_method(cWikitextParser, "profiling_parse", Wikitext_parser_profiling_parse, 1);
     rb_define_method(cWikitextParser, "tokenize", Wikitext_parser_tokenize, 1);

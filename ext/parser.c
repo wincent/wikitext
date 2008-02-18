@@ -823,16 +823,44 @@ inline void _Wikitext_rollback_failed_external_link(parser_t *parser)
     parser->link_text   = Qnil;
 }
 
-VALUE Wikitext_parser_initialize(VALUE self)
+VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
 {
+    // process arguments
+    VALUE options;
+    if (rb_scan_args(argc, argv, "01", &options) == 0) // 0 mandatory arguments, 1 optional argument
+        options = Qnil;
+
+    // defaults
+    VALUE autolink                  = Qtrue;
+    VALUE line_ending               = rb_str_new2("\n");
+    VALUE external_link_class       = rb_str_new2("external");
+    VALUE mailto_class              = rb_str_new2("mailto");
+    VALUE internal_link_prefix      = rb_str_new2("/wiki/");
+    VALUE space_to_underscore       = Qfalse;
+    VALUE treat_slash_as_special    = Qtrue;
+
+    // process options hash (override defaults)
+    if (!NIL_P(options) && TYPE(options) == T_HASH)
+    {
+#define OVERRIDE_IF_SET(name) \
+NIL_P(rb_hash_aref(options, ID2SYM(rb_intern(#name)))) ? name : rb_hash_aref(options, ID2SYM(rb_intern(#name)))
+        autolink                = OVERRIDE_IF_SET(autolink);
+        line_ending             = OVERRIDE_IF_SET(line_ending);
+        external_link_class     = OVERRIDE_IF_SET(external_link_class);
+        mailto_class            = OVERRIDE_IF_SET(mailto_class);
+        internal_link_prefix    = OVERRIDE_IF_SET(internal_link_prefix);
+        space_to_underscore     = OVERRIDE_IF_SET(space_to_underscore);
+        treat_slash_as_special  = OVERRIDE_IF_SET(treat_slash_as_special);
+    }
+
     // no need to call super here; rb_call_super()
-    rb_iv_set(self, "@autolink",                Qtrue);
-    rb_iv_set(self, "@line_ending",             rb_str_new2("\n"));
-    rb_iv_set(self, "@external_link_class",     rb_str_new2("external"));
-    rb_iv_set(self, "@mailto_class",            rb_str_new2("mailto"));
-    rb_iv_set(self, "@internal_link_prefix",    rb_str_new2("/wiki/"));
-    rb_iv_set(self, "@space_to_underscore",     Qfalse);
-    rb_iv_set(self, "@treat_slash_as_special",  Qtrue);
+    rb_iv_set(self, "@autolink",                autolink);
+    rb_iv_set(self, "@line_ending",             line_ending);
+    rb_iv_set(self, "@external_link_class",     external_link_class);
+    rb_iv_set(self, "@mailto_class",            mailto_class);
+    rb_iv_set(self, "@internal_link_prefix",    internal_link_prefix);
+    rb_iv_set(self, "@space_to_underscore",     space_to_underscore);
+    rb_iv_set(self, "@treat_slash_as_special",  treat_slash_as_special);
     return self;
 }
 

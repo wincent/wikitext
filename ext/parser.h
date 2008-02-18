@@ -14,7 +14,7 @@
 
 #include <ruby/ruby.h>
 
-VALUE Wikitext_parser_initialize(VALUE self);
+VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self);
 
 VALUE Wikitext_parser_tokenize(VALUE self, VALUE string);
 
