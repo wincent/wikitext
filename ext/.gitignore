@@ -1,5 +1,6 @@
 *.o
 *.bundle
+*.so
 .built
 Makefile
 mkmf.log
