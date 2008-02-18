@@ -733,6 +733,8 @@ inline static void _Wikitext_parser_encode_link_target(parser_t *parser)
         }
         else if (*input == ' ' && input == start)
             start++;                    // we eat leading space
+        else if (*input == ' ' && parser->space_to_underscore == Qtrue)
+            *dest++     = '_';
         else    // everything else gets URL-encoded
         {
             *dest++     = '%';
