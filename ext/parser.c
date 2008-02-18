@@ -192,20 +192,15 @@ inline void _Wikitext_indent(parser_t *parser)
     {
         char *old_end, *new_end;
         if (!parser->tabulation)
-        {
             parser->tabulation = str_new_size(space_count);
-            old_end = parser->tabulation->ptr;
-        }
         else if (parser->tabulation->len < space_count)
-        {
-            old_end = parser->tabulation->ptr;
-            str_grow(parser->tabulation, space_count);
-        }
-        else
-            old_end = parser->tabulation->ptr;
+            str_grow(parser->tabulation, space_count); // reallocates if necessary
+        old_end = parser->tabulation->ptr + parser->tabulation->len;
         new_end = parser->tabulation->ptr + space_count;
         while (old_end < new_end)
             *old_end++ = ' ';
+        if (space_count > parser->tabulation->len)
+            parser->tabulation->len = space_count;
         rb_str_cat(parser->output, parser->tabulation->ptr, space_count);
     }
     parser->current_indent += 2;
