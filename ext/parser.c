@@ -607,17 +607,9 @@ inline VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, VALUE rollb
             free(dest_ptr);
             rb_raise(rb_eRangeError, "invalid link text (\">\" may not appear in link text)");
         }
-        else if (*src == ' ')
-        {
-            if (src == start && rollback == Qfalse)
-                start++;                // we eat leading space
-            else
-            {
-                *dest = (rollback == Qfalse && parser->space_to_underscore == Qtrue) ? '_' : *src;
-                dest++;
-            }
-        }
-        else if (*src > 0x20 && *src <= 0x7e)   // printable ASCII not already handled above
+        else if (*src == ' ' && src == start && rollback == Qfalse)
+            start++;                // we eat leading space
+        else if (*src >= 0x20 && *src <= 0x7e)    // printable ASCII
         {
             *dest = *src;
             dest++;
