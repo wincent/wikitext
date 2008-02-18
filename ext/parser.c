@@ -823,6 +823,7 @@ VALUE Wikitext_parser_initialize(VALUE self)
     rb_iv_set(self, "@external_link_class",     rb_str_new2("external"));
     rb_iv_set(self, "@mailto_class",            rb_str_new2("mailto"));
     rb_iv_set(self, "@internal_link_prefix",    rb_str_new2("/wiki/"));
+    rb_iv_set(self, "@space_to_underscore",     Qfalse);
     rb_iv_set(self, "@treat_slash_as_special",  Qtrue);
     return self;
 }
