@@ -746,7 +746,7 @@ inline static void _Wikitext_parser_encode_link_target(parser_t *parser)
     }
 
     // trim trailing space if necessary
-    if (non_space > dest_ptr && dest - 1 != non_space)
+    if (non_space > dest_ptr && dest != non_space)
         dest_len = non_space - dest_ptr;
     else
         dest_len = dest - dest_ptr;
