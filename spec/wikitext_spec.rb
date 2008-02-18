@@ -16,6 +16,16 @@
 require File.join(File.dirname(__FILE__), 'spec_helper.rb')
 require 'wikitext'
 
+describe Wikitext::Parser do
+  before do
+    @parser = Wikitext::Parser.new
+  end
+
+  it 'should turn space-to-underscore off by default' do
+    @parser.space_to_underscore.should == false
+  end
+end
+
 describe Wikitext::Parser, 'parsing non-ASCII input' do
   before do
     @parser = Wikitext::Parser.new
