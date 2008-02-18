@@ -1,0 +1,11 @@
+* Emphasis: `<nowiki>''word''</nowiki>` or `<nowiki><em>word</em></nowiki>`
+* Strong: `<nowiki>'''word'''</nowiki>` or `<nowiki><strong>word</strong></nowiki>`
+* Teletype: <tt>`word`</tt> or `<tt>word</tt>`
+* Headings: `= Level 1 =`, `== Level 2 ==` and so on (up to level 6)
+* Blockquotes: lines starting with `>` or literal `<nowiki><blockquote></blockquote></nowiki>` tags
+* Preformatted: lines starting with `&nbsp;` (space) or literal `<nowiki><pre></pre></nowiki>` tags
+* Unordered lists: lines starting with `*`
+* Ordered lists: lines starting with `#`
+* Internal wiki links: `<nowiki>[[target article]]</nowiki>` or `<nowiki>[[target article | link text]]</nowiki>`
+* External links: `<nowiki>[http://example.com/ link text]</nowiki>` or `<nowiki>[mailto:user@example.com link text]</nowiki>`
+* Automatic hyperlinking: `<nowiki>http://example.com/</nowiki>` or `<nowiki>user@example.com</nowiki>`

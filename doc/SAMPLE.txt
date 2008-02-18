@@ -1,0 +1,199 @@
+This is a sample telling you all about [[wikitext markup]], itself written in wikitext markup. As such it is a nice demonstration of what can be done.
+
+= Inline markup =
+
+== Emphasis ==
+
+You can mark up this as emphasized using either double apostrophes like <nowiki>''this''</nowiki>, or literal [[HTML]] `em` tags like <nowiki><em>this</em></nowiki>. In both cases the output will look like this when rendered in the browser:
+
+> ''this''
+
+== Strong ==
+
+ Both '''this''' and <strong>that</strong> will be marked up as strong.
+
+Yields:
+
+> Both '''this''' and <strong>that</strong> will be marked up as strong.
+
+== Strong and emphasis combined ==
+
+ '''''this'''''
+
+Yields:
+
+> '''''this'''''
+
+Note that <nowiki>'''''</nowiki> is interpreted to mean "strong ''then'' em", so  you can also do things like:
+
+ '''''inner'' outer'''
+
+Which would yield:
+
+> '''''inner'' outer'''
+
+When you really mean "em ''then'' strong" rather than "strong ''then'' em" you can indicate it using literal [[HTML]] tags:
+
+ <em>foo <strong>bar</strong> baz</em>
+
+Which would produce:
+
+> <em>foo <strong>bar</strong> baz</em>
+
+== Teletype ==
+
+ `this` and <tt>this</tt> are both marked up with a teletype font
+
+Would produce:
+
+> `this` and <tt>this</tt> are both marked up with a teletype font
+
+To include a literal backtick in the output, enclose it in a &lt;nowiki&gt;/&lt;/nowiki&gt; span like this:
+
+ input with a literal <nowiki>`</nowiki>...
+
+Would produce:
+
+> input with a literal <nowiki>`</nowiki>...
+
+= Headings =
+
+<pre>= Level one heading =
+
+Content
+
+== Level two heading ==
+
+Content</pre>
+
+Produces:
+
+<blockquote>= Level one heading =
+
+Content
+
+== Level two heading ==
+
+Content</blockquote>
+
+And so on for `=== Level 3 headings ===`, `=== Level 4 headings ===`, `=== Level 5 headings ===` and `=== Level 6 headings ===`.
+
+= Lists =
+
+Simple unordered list:
+
+<pre>* foo
+* bar
+* baz</pre>
+
+Would produce:
+
+<blockquote>* foo
+* bar
+* baz</blockquote>
+
+Ordered lists:
+
+<pre># foo
+# bar
+# baz</pre>
+
+Would produce:
+
+<blockquote># foo
+# bar
+# baz</blockquote>
+
+You can also nest lists in complex ways:
+
+<pre>* foo
+** bar
+**# baz
+**# bing
+**## one
+**## two
+** almost
+* there</pre>
+
+Would produce:
+
+<blockquote>* foo
+** bar
+**# baz
+**# bing
+**## one
+**## two
+** almost
+* there</blockquote>
+
+= Blockquotes =
+
+There are two syntaxes for enclosing text in a blockquote span. One is to precede each line with a greater-than sign:
+
+ > line one of the blockquote.
+ > line two of the blockquote.
+
+Will be converted into the following HTML:
+
+ <blockquote>line one of the blockquote. line two of the blockquote.</blockquote>
+
+And displayed in the browser like this:
+
+> line one of the blockquote.
+> line two of the blockquote.
+
+The alternative syntax is to use literal HTML tags like this:
+
+<pre><blockquote>line one of the blockquote.
+line two of the blockquote.</blockquote></pre>
+
+This produces exactly the same display in the browser.
+
+You can nest blockquotes within blockquotes:
+
+ > outer
+ >> inner
+
+Would yield:
+
+> outer
+>> inner
+
+The same can be done using literal tags:
+
+ <blockquote>outer<blockquote>inner</blockquote></blockquote>
+
+Or if you prefer:
+
+<pre><blockquote>
+  outer
+  <blockquote>
+    inner
+  </blockquote>
+</blockquote></pre>
+
+= Preformatted text =
+
+Just like blockquotes, there are two syntaxes you can use to enclose text inside a <nowiki><pre></pre></nowiki> span:
+
+ <pre>this is a pre span using literal tags</pre>
+
+And:
+
+  this is a pre span using an initial space
+
+As you can see, any line which starts with a space is also interpreted to be part of a <nowiki><pre></pre></nowiki> span. In both cases the output looks like this in the browser:
+
+ this is a pre span
+
+You can nest these spans inside blockquote spans of the same type:
+
+ <blockquote><pre>foo</pre></blockquote>
+
+Would yield:
+
+<blockquote><pre>foo</pre></blockquote>
+
+As would:
+
+ >  foo
