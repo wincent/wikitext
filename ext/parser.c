@@ -645,7 +645,6 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 {
     parser_t parser;
     parser.link_target          = string;
-    parser.space_to_underscore  = Qfalse;
     return _Wikitext_parser_sanitize_link_target(&parser, Qfalse);
 }
 
@@ -758,6 +757,7 @@ VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
     parser_t parser;
     parser.link_target              = in;
     parser.treat_slash_as_special   = Qfalse;
+    parser.space_to_underscore      = Qfalse;
     _Wikitext_parser_encode_link_target(&parser);
     return parser.link_target;
 }
@@ -768,6 +768,7 @@ VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in)
     parser_t parser;
     parser.link_target              = in;
     parser.treat_slash_as_special   = Qtrue;
+    parser.space_to_underscore      = Qfalse;
     _Wikitext_parser_encode_link_target(&parser);
     return parser.link_target;
 }
