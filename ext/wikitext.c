@@ -41,6 +41,7 @@ void Init_wikitext()
     rb_define_attr(cWikitextParser, "mailto_class", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "autolink", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "treat_slash_as_special", Qtrue, Qtrue);
+    rb_define_attr(cWikitextParser, "space_to_underscore", Qtrue, Qtrue);
 
     // Wikitext::Parser::Error
     eWikitextParserError = rb_define_class_under(cWikitextParser, "Error", rb_eException);
