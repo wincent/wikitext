@@ -550,9 +550,9 @@ inline VALUE _Wikitext_parser_trim_link_target(VALUE string)
 // - non-printable (non-ASCII) characters converted to numeric entities
 // - QUOT and AMP characters converted to named entities
 // - leading and trailing whitespace trimmed if trim is Qtrue
-inline VALUE _Wikitext_parser_sanitize_link_target(VALUE string, VALUE trim)
+inline VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, VALUE trim)
 {
-    string              = StringValue(string);  // raises if string is nil or doesn't quack like a string
+    VALUE string        = StringValue(parser->link_target); // raises if string is nil or doesn't quack like a string
     char    *src        = RSTRING_PTR(string);
     char    *start      = src;                  // remember this so we can check if we're at the start
     long    len         = RSTRING_LEN(string);
@@ -642,7 +642,10 @@ inline VALUE _Wikitext_parser_sanitize_link_target(VALUE string, VALUE trim)
 
 VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 {
-    return (_Wikitext_parser_sanitize_link_target(string, Qtrue));
+    parser_t parser;
+    parser.link_target          = string;
+    parser.space_to_underscore  = Qfalse;
+    return _Wikitext_parser_sanitize_link_target(&parser, Qtrue);
 }
 
 // encodes the input string according to RFCs 2396 and 2718
@@ -778,7 +781,7 @@ inline void _Wikitext_rollback_failed_link(parser_t *parser)
     rb_str_cat(parser->output, link_start, sizeof(link_start) - 1);
     if (!NIL_P(parser->link_target))
     {
-        VALUE sanitized = _Wikitext_parser_sanitize_link_target(parser->link_target, Qfalse);
+        VALUE sanitized = _Wikitext_parser_sanitize_link_target(parser, Qfalse);
         rb_str_append(parser->output, sanitized);
         if (scope_includes_separator)
         {
@@ -1875,7 +1878,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // in internal link scope!
                     if (NIL_P(parser->link_text) || RSTRING_LEN(parser->link_text) == 0)
                         // use link target as link text
-                        parser->link_text = _Wikitext_parser_sanitize_link_target(parser->link_target, Qtrue);
+                        parser->link_text = _Wikitext_parser_sanitize_link_target(parser, Qtrue);
                     else
                         parser->link_text = _Wikitext_parser_trim_link_target(parser->link_text);
                     _Wikitext_parser_encode_link_target(parser);
