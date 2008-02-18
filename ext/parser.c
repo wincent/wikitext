@@ -36,6 +36,7 @@ typedef struct
     VALUE   pending_crlf;           // boolean (Qtrue or Qfalse)
     VALUE   autolink;               // boolean (Qtrue or Qfalse)
     VALUE   treat_slash_as_special; // boolean (Qtrue or Qfalse)
+    VALUE   space_to_underscore;    // boolean (Qtrue or Qfalse)
     VALUE   special_link;           // boolean (Qtrue or Qfalse): is the current link_target a "special" link?
     str_t   *line_ending;
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
@@ -884,6 +885,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->pending_crlf            = Qfalse;
     parser->autolink                = rb_iv_get(self, "@autolink");
     parser->treat_slash_as_special  = rb_iv_get(self, "@treat_slash_as_special");
+    parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore");
     parser->special_link            = Qfalse;
     parser->line_ending             = str_new_from_string(line_ending);
     parser->base_indent             = base_indent;
