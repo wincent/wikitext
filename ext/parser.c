@@ -850,8 +850,8 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     // process options hash (override defaults)
     if (!NIL_P(options) && TYPE(options) == T_HASH)
     {
-#define OVERRIDE_IF_SET(name) \
-NIL_P(rb_hash_aref(options, ID2SYM(rb_intern(#name)))) ? name : rb_hash_aref(options, ID2SYM(rb_intern(#name)))
+#define OVERRIDE_IF_SET(name)   rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern(#name))) == Qtrue ? \
+                                rb_hash_aref(options, ID2SYM(rb_intern(#name))) : name
         autolink                = OVERRIDE_IF_SET(autolink);
         line_ending             = OVERRIDE_IF_SET(line_ending);
         external_link_class     = OVERRIDE_IF_SET(external_link_class);
