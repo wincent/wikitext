@@ -86,6 +86,8 @@ enum token_types {
     GREATER,
     IMG_START,
     IMG_END,
+    LEFT_CURLY,
+    RIGHT_CURLY,
     CRLF,
     PRINTABLE,
     DEFAULT,
