@@ -22,11 +22,11 @@ describe Wikitext::Parser, 'embedding img tags' do
   end
 
   it 'should convert valid markup into inline image tags' do
-    @parser.parse('{{foo.png}}').should == %Q{<p><img src="foo.png" alt="foo.png" /></p>\n}
+    @parser.parse('{{foo.png}}').should == %Q{<p><img src="/images/foo.png" alt="foo.png" /></p>\n}
   end
 
   it 'should appear embedded in an inline flow' do
-    @parser.parse('before {{foo.png}} after').should == %Q{<p>before <img src="foo.png" alt="foo.png" /> after</p>\n}
+    @parser.parse('before {{foo.png}} after').should == %Q{<p>before <img src="/images/foo.png" alt="foo.png" /> after</p>\n}
   end
 
   it 'should pass single curly braces through unaltered' do
@@ -54,7 +54,7 @@ describe Wikitext::Parser, 'embedding img tags' do
   end
 
   it 'should not be allowed as an external link target' do
-    expected = %Q{<p>[<img src="foo.png" alt="foo.png" /> the link]</p>\n}
+    expected = %Q{<p>[<img src="/images/foo.png" alt="foo.png" /> the link]</p>\n}
     @parser.parse('[{{foo.png}} the link]').should == expected
   end
 
@@ -73,5 +73,35 @@ describe Wikitext::Parser, 'embedding img tags' do
 
   it 'should not allow characters beyond printable ASCII' do
     @parser.parse('{{500€.png}}').should == %Q{<p>{{500&#x20ac;.png}}</p>\n}
+  end
+
+  it 'should allow overrides of the image prefix at initialization time' do
+    parser = Wikitext::Parser.new(:img_prefix => '/gfx/')
+    parser.parse('{{foo.png}}').should == %Q{<p><img src="/gfx/foo.png" alt="foo.png" /></p>\n}
+  end
+
+  it 'should suppress the image prefix if passed an empty string at initialization time' do
+    parser = Wikitext::Parser.new(:img_prefix => '')
+    parser.parse('{{foo.png}}').should == %Q{<p><img src="foo.png" alt="foo.png" /></p>\n}
+  end
+
+  it 'should suppress image prefix if passed nil at initialization time' do
+    parser = Wikitext::Parser.new(:img_prefix => nil)
+    parser.parse('{{foo.png}}').should == %Q{<p><img src="foo.png" alt="foo.png" /></p>\n}
+  end
+
+  it 'should allow overrides of the image prefix after initialization' do
+    @parser.img_prefix = '/gfx/'
+    @parser.parse('{{foo.png}}').should == %Q{<p><img src="/gfx/foo.png" alt="foo.png" /></p>\n}
+  end
+
+  it 'should suppress image if prefix set to an empty string after initialization' do
+    @parser.img_prefix = ''
+    @parser.parse('{{foo.png}}').should == %Q{<p><img src="foo.png" alt="foo.png" /></p>\n}
+  end
+
+  it 'should suppress image if prefix set to nil after initialization' do
+    @parser.img_prefix = nil
+    @parser.parse('{{foo.png}}').should == %Q{<p><img src="foo.png" alt="foo.png" /></p>\n}
   end
 end

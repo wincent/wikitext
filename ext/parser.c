@@ -30,6 +30,7 @@ typedef struct
     VALUE   link_target;            // short term "memory" for parsing links
     VALUE   link_text;              // short term "memory" for parsing links
     VALUE   external_link_class;    // CSS class applied to external links
+    VALUE   img_prefix;             // path prepended when emitting img tags
     ary_t   *scope;                 // stack for tracking scope
     ary_t   *line;                  // stack for tracking scope as implied by current line
     ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
@@ -189,6 +190,8 @@ inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE lin
 inline void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_len)
 {
     rb_str_cat(parser->output, img_start, sizeof(img_start) - 1);   // <img src="
+    if (!NIL_P(parser->img_prefix))
+        rb_str_append(parser->output, parser->img_prefix);
     rb_str_cat(parser->output, token_ptr, token_len);
     rb_str_cat(parser->output, img_alt, sizeof(img_alt) - 1);       // " alt="
     rb_str_cat(parser->output, token_ptr, token_len);
@@ -844,6 +847,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     VALUE external_link_class       = rb_str_new2("external");
     VALUE mailto_class              = rb_str_new2("mailto");
     VALUE internal_link_prefix      = rb_str_new2("/wiki/");
+    VALUE img_prefix                = rb_str_new2("/images/");
     VALUE space_to_underscore       = Qfalse;
     VALUE treat_slash_as_special    = Qtrue;
 
@@ -857,6 +861,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
         external_link_class     = OVERRIDE_IF_SET(external_link_class);
         mailto_class            = OVERRIDE_IF_SET(mailto_class);
         internal_link_prefix    = OVERRIDE_IF_SET(internal_link_prefix);
+        img_prefix              = OVERRIDE_IF_SET(img_prefix);
         space_to_underscore     = OVERRIDE_IF_SET(space_to_underscore);
         treat_slash_as_special  = OVERRIDE_IF_SET(treat_slash_as_special);
     }
@@ -867,6 +872,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     rb_iv_set(self, "@external_link_class",     external_link_class);
     rb_iv_set(self, "@mailto_class",            mailto_class);
     rb_iv_set(self, "@internal_link_prefix",    internal_link_prefix);
+    rb_iv_set(self, "@img_prefix",              img_prefix);
     rb_iv_set(self, "@space_to_underscore",     space_to_underscore);
     rb_iv_set(self, "@treat_slash_as_special",  treat_slash_as_special);
     return self;
@@ -922,6 +928,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->link_target             = Qnil;
     parser->link_text               = Qnil;
     parser->external_link_class     = link_class;
+    parser->img_prefix              = rb_iv_get(self, "@img_prefix");
     parser->scope                   = ary_new();
     parser->line                    = ary_new();
     parser->line_buffer             = ary_new();

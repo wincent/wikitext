@@ -37,6 +37,7 @@ void Init_wikitext()
     rb_define_singleton_method(cWikitextParser, "encode_special_link_target", Wikitext_parser_encode_special_link_target, 1);
     rb_define_attr(cWikitextParser, "line_ending", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "internal_link_prefix", Qtrue, Qtrue);
+    rb_define_attr(cWikitextParser, "img_prefix", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "external_link_class", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "mailto_class", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "autolink", Qtrue, Qtrue);
