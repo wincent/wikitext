@@ -41,6 +41,10 @@ describe Wikitext::Parser do
     @parser.internal_link_prefix.should == '/wiki/'
   end
 
+  it 'should use "/images/" as default img prefix' do
+    @parser.img_prefix.should == '/images/'
+  end
+
   it 'should turn space-to-underscore off by default' do
     @parser.space_to_underscore.should == false
   end
@@ -68,6 +72,12 @@ describe Wikitext::Parser do
 
     it 'should allow overriding of internal link prefix' do
       Wikitext::Parser.new(:internal_link_prefix => '/baz/').internal_link_prefix.should == '/baz/'
+    end
+
+    it 'should allow overriding of the img prefix' do
+      Wikitext::Parser.new(:img_prefix => '/bar/').img_prefix.should == '/bar/'
+      Wikitext::Parser.new(:img_prefix => '').img_prefix.should == ''
+      Wikitext::Parser.new(:img_prefix => nil).img_prefix.should == nil
     end
 
     it 'should allow overriding of space-to-underscore' do
