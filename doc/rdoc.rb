@@ -238,7 +238,7 @@ module Wikitext
     # of Token instances.
     #
     # This class exists purely for testing and diagnostic purposes; it
-    # it is actually just a wrapper for the real token structure that is
+    # is actually just a wrapper for the real token structure that is
     # used internally.  (In actual use the Wikitext extension doesn't
     # even use this class; it instead uses lightweight C structs under
     # the hood for maximum speed and memory efficiency.)

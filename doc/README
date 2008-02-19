@@ -35,7 +35,7 @@ of design goals flowed on from this:
 * _attractive_: the emitted HTML source should be consistent and attractively
 * <em>valid output</em>: regardless of the input, the translator should
   always produce valid XHTML output
-* <em>well tested</em>: the translator should have a comprehensive test
+* <em>well-tested</em>: the translator should have a comprehensive test
   suite to ensure that its behaviour is not only correct but also stable
   over time
 
