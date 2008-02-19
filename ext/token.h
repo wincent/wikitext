@@ -84,6 +84,8 @@ enum token_types {
     AMP,
     LESS,
     GREATER,
+    IMG_START,
+    IMG_END,
     CRLF,
     PRINTABLE,
     DEFAULT,
