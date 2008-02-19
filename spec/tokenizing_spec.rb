@@ -101,9 +101,10 @@ describe Wikitext::Parser, 'tokenizing' do
 
   it 'should be able to tokenize strings containing "}"' do
     # was a bug: we were throwing an exception "failed before finding a token" because our PRINTABLE rule omitted this code point
+    # later on the "}" became the RIGHT_CURLY token, so the spec has been modified accordingly
     lambda { @tokens = @parser.tokenize('}') }.should_not raise_error
     @tokens.length.should == 2
-    @tokens[0].token_type.should    == :printable
+    @tokens[0].token_type.should    == :right_curly # was PRINTABLE
     @tokens[0].string_value.should  == '}'
     @tokens[0].line_start.should    == 1
     @tokens[0].column_start.should  == 1
