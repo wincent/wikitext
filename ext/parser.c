@@ -114,6 +114,10 @@ const char lt_entity[]                  = "&lt;";
 const char gt_entity[]                  = "&gt;";
 const char escaped_blockquote[]         = "&gt; ";
 const char ext_link_end[]               = "]";
+const char literal_img_start[]          = "{{";
+const char img_start[]                  = "<img src=\"";
+const char img_end[]                    = "\" />";
+const char img_alt[]                    = "\" alt=\"";
 
 // for testing and debugging only
 VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
@@ -180,6 +184,15 @@ inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE lin
     rb_str_append(string, link_text);
     rb_str_cat(string, a_end, sizeof(a_end) - 1);
     return string;
+}
+
+inline void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_len)
+{
+    rb_str_cat(parser->output, img_start, sizeof(img_start) - 1);   // <img src="
+    rb_str_cat(parser->output, token_ptr, token_len);
+    rb_str_cat(parser->output, img_alt, sizeof(img_alt) - 1);       // " alt="
+    rb_str_cat(parser->output, token_ptr, token_len);
+    rb_str_cat(parser->output, img_end, sizeof(img_end) - 1);       // " />
 }
 
 // will emit indentation only if we are about to emit any of:
@@ -1854,7 +1867,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             type == QUOT        ||
                             type == QUOT_ENTITY ||
                             type == AMP         ||
-                            type == AMP_ENTITY)
+                            type == AMP_ENTITY  ||
+                            type == IMG_START   ||
+                            type == IMG_END     ||
+                            type == LEFT_CURLY  ||
+                            type == RIGHT_CURLY)
                         {
                             // accumulate these tokens into link_target
                             if (NIL_P(parser->link_target))
@@ -2091,6 +2108,49 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 rb_str_cat(i, gt_entity, sizeof(gt_entity) - 1);
                 break;
 
+            case IMG_START:
+                if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
+                    rb_str_cat(parser->output, token->start, TOKEN_LEN(token));
+                else if (!NIL_P(parser->capture))
+                    rb_str_cat(parser->capture, token->start, TOKEN_LEN(token));
+                else
+                {
+                    // not currently capturing: will be emitting something on success or failure, so get ready
+                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_start_para_if_necessary(parser);
+
+                    // peek ahead to see next token
+                    NEXT_TOKEN();
+                    if (token->type != PRINTABLE)
+                        // failure
+                        rb_str_cat(parser->output, literal_img_start, sizeof(literal_img_start) - 1);
+                    else
+                    {
+                        // remember the PRINTABLE
+                        char    *token_ptr  = token->start;
+                        int     token_len   = TOKEN_LEN(token);
+
+                        // peek ahead once more
+                        NEXT_TOKEN();
+                        if (token->type == IMG_END)
+                        {
+                            // success
+                            _Wikitext_append_img(parser, token_ptr, token_len);
+                            token = NULL;
+                        }
+                        else
+                        {
+                            // failure
+                            rb_str_cat(parser->output, literal_img_start, sizeof(literal_img_start) - 1);
+                            rb_str_cat(parser->output, token_ptr, token_len);
+                        }
+                    }
+
+                    // jump to top of the loop to process token we scanned during lookahead
+                    continue;
+                }
+                break;
+
             case CRLF:
                 parser->pending_crlf = Qfalse;
                 _Wikitext_rollback_failed_link(parser);             // if any
@@ -2167,6 +2227,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 break;
 
             case PRINTABLE:
+            case IMG_END:
+            case LEFT_CURLY:
+            case RIGHT_CURLY:
                 i = NIL_P(parser->capture) ? parser->output : parser->capture;
                 _Wikitext_pop_excess_elements(parser);
                 _Wikitext_start_para_if_necessary(parser);
