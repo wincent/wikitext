@@ -59,6 +59,14 @@ module Wikitext
   # would be transformed into:
   #     <a class="mailto" href="mailto:user@example.com">user@example.com</a>
   #
+  # == +img_prefix+ (String)
+  #
+  # The prefix to be prepended to image tags (defaults to "/images/").
+  # For example, given this image markup:
+  #     {{foo.png}}
+  # The following +img+ tag would be produced:
+  #     <img src="/images/foo.png" alt="foo.png" />
+  #
   # == +autolink+ (boolean)
   #
   # Whether to autolink URIs found in the plain scope.
@@ -92,6 +100,25 @@ module Wikitext
   #     [[issue/400|issue #400]]
   # which in turn would be transformed into:
   #     <a href="/issue/400">issue #400</a>
+  #
+  # == +space_to_underscore+ (boolean)
+  #
+  # Whether spaces in link targets should be encoded normally or transformed
+  # into underscores.
+  #
+  # When false (the default), an internal link like:
+  #   [[foo bar]]
+  # Would be converted into:
+  #   <a href="/wiki/foo%20bar">foo bar</a>
+  # But when true, it would be converted into:
+  #   <a href="/wiki/foo_bar">foo bar</a>
+  #
+  # Converting spaces to underscores makes most URLs prettier, but it comes at
+  # a cost: when this mode is true the articles "foo bar" and "foo_bar" can no
+  # longer be disambiguated, and a link to "foo_bar" will actually resolve to
+  # "foo bar"; it is therefore recommended that you explicitly disallow
+  # underscores in titles at the application level so as to avoid this kind of
+  # confusion.
   class Parser
 
     # Sanitizes an internal link target for inclusion within the HTML
@@ -135,8 +162,18 @@ module Wikitext
     #
     # There are a number of attributes that you can set on the returned
     # parser to customize its behaviour. See the attributes documentation
-    # in the Parser class.
-    def initialize
+    # in the Parser class. You also have the option of overriding the
+    # attributes at initialization time passing in the attribute name in
+    # symbol form together with the overridden value.
+    #
+    # In other words, both:
+    #     parser = Wikitext::Parser.new
+    #     parser.autolink = false
+    #     parser.mailto_class = 'mail'
+    # And:
+    #     parser = Wikitext::Parser.new(:autolink => false, :mailto_class => 'mail')
+    # Are equivalent.
+    def initialize options = {}
       # This is just a placeholder.
       # See parser.c for the C source code to this method.
     end
