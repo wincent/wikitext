@@ -90,6 +90,8 @@ describe Wikitext::Parser, 'with large slab of input text' do
        
       a normal paragraph again
       
+      {{an_image.png}}
+      
       > This is another blockquote which demonstrates that we
       > can nest other structures inside of it. For example, here
       > we have a code sample:
@@ -194,6 +196,7 @@ describe Wikitext::Parser, 'with large slab of input text' do
       which would '''otherwise''' have &lt;tt&gt;special&lt;/tt&gt; meaning
       although explicit entities &copy; are passed through unchanged</pre>
       <p>a normal paragraph again</p>
+      <p><img src="/images/an_image.png" alt="an_image.png" /></p>
       <blockquote>
         <p>This is another blockquote which demonstrates that we can nest other structures inside of it. For example, here we have a code sample:</p>
         <pre>line 1

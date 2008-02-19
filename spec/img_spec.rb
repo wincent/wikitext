@@ -29,6 +29,75 @@ describe Wikitext::Parser, 'embedding img tags' do
     @parser.parse('before {{foo.png}} after').should == %Q{<p>before <img src="/images/foo.png" alt="foo.png" /> after</p>\n}
   end
 
+  it 'should allow images in subdirectories' do
+    @parser.parse('{{foo/bar.png}}').should == %Q{<p><img src="/images/foo/bar.png" alt="foo/bar.png" /></p>\n}
+  end
+
+  it 'should work in BLOCKQUOTE blocks' do
+    expected = dedent <<-END
+      <blockquote>
+        <p><img src="/images/foo.png" alt="foo.png" /></p>
+      </blockquote>
+    END
+    @parser.parse('> {{foo.png}}').should == expected
+  end
+
+  it 'should work in unordered lists' do
+    input = dedent <<-END
+      * {{foo.png}}
+      * {{bar.png}}
+      * {{baz.png}}
+    END
+    expected = dedent <<-END
+      <ul>
+        <li><img src="/images/foo.png" alt="foo.png" /></li>
+        <li><img src="/images/bar.png" alt="bar.png" /></li>
+        <li><img src="/images/baz.png" alt="baz.png" /></li>
+      </ul>
+    END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should work in ordered lists' do
+    input = dedent <<-END
+      # {{foo.png}}
+      # {{bar.png}}
+      # {{baz.png}}
+    END
+    expected = dedent <<-END
+      <ol>
+        <li><img src="/images/foo.png" alt="foo.png" /></li>
+        <li><img src="/images/bar.png" alt="bar.png" /></li>
+        <li><img src="/images/baz.png" alt="baz.png" /></li>
+      </ol>
+    END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should work in <h1> headings' do
+    @parser.parse('= {{foo.png}} =').should == %Q{<h1><img src="/images/foo.png" alt="foo.png" /></h1>\n}
+  end
+
+  it 'should work in <h2> headings' do
+    @parser.parse('== {{foo.png}} ==').should == %Q{<h2><img src="/images/foo.png" alt="foo.png" /></h2>\n}
+  end
+
+  it 'should work in <h3> headings' do
+    @parser.parse('=== {{foo.png}} ===').should == %Q{<h3><img src="/images/foo.png" alt="foo.png" /></h3>\n}
+  end
+
+  it 'should work in <h4> headings' do
+    @parser.parse('==== {{foo.png}} ====').should == %Q{<h4><img src="/images/foo.png" alt="foo.png" /></h4>\n}
+  end
+
+  it 'should work in <h5> headings' do
+    @parser.parse('===== {{foo.png}} =====').should == %Q{<h5><img src="/images/foo.png" alt="foo.png" /></h5>\n}
+  end
+
+  it 'should work in <h6> headings' do
+    @parser.parse('====== {{foo.png}} ======').should == %Q{<h6><img src="/images/foo.png" alt="foo.png" /></h6>\n}
+  end
+
   it 'should pass single curly braces through unaltered' do
     @parser.parse('{foo.png}').should == %Q{<p>{foo.png}</p>\n}
   end
