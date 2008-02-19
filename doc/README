@@ -38,10 +38,12 @@ of design goals flowed on from this:
 * <em>well-tested</em>: the translator should have a comprehensive test
   suite to ensure that its behaviour is not only correct but also stable
   over time
+* <em>cross-platform</em>: should work identically on Mac OS X, Linux
+  (explicitly tested platforms) and perhaps others as well
 
 Some notable things that were _not_ design goals:
 
-* implement _all_ of the MediaWiki syntax (tables, images etc)
+* implement _all_ of the MediaWiki syntax (tables etc)
 
 = Markup
 
@@ -234,6 +236,17 @@ Would become:
 
 See the Parser attributes documentation for information on overriding
 the default external link class (+external+ in this example).
+
+== Images
+
+  {{foo.png}}
+
+Would become:
+
+  <img src="/images/foo.png" alt="foo.png" />
+
+You can override the "/images/" prefix using the +img_prefix+ attribute
+of the Parser.
 
 = Links
 

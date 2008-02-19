@@ -153,6 +153,13 @@ module Wikitext
     # When combined with sanitize_link_target this method can be used to emit
     # the following link for the example article:
     #     <a href="foo%2c%20%22bar%22%20%26%20baz%e2%82%ac">foo, &quot;bar&quot; &amp; baz &#x20ac;</a>
+    #
+    # Note that when +space_to_underscore+ is +true+ spaces are treated specially,
+    # and are converted to "_" rather than "%20". For the majority of links this
+    # yields much prettier URLs at the cost of some reduction in the namespace of
+    # possible titles (this is because when using +space_to_underscore+ you should
+    # disallow underscores in article titles to avoid ambiguity between titles like
+    # "foo bar" and "foo_bar").
     def self.encode_link_target string
       # This is just a placeholder.
       # See parser.c for the C source code to this method.
