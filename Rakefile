@@ -102,9 +102,9 @@ SPEC = Gem::Specification.new do |s|
   s.description       = <<-ENDDESC
     Wikitext is a fast wikitext-to-HTML translator written in C.
   ENDDESC
-  s.require_paths     = ['ext']
+  s.require_paths     = ['ext', 'lib']
   s.has_rdoc          = true
-  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}', 'ext/depend'].to_a
+  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}', 'ext/depend', 'lib/wikitext/*'].to_a
   s.extensions        = ['ext/extconf.rb']
 end
 
