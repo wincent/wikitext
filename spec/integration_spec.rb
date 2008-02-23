@@ -265,4 +265,13 @@ describe Wikitext::Parser, 'with large slab of input text' do
 
     @parser.parse(input).should == expected
   end
+
+  # Without something like this it is possible to complete the entire spec suite without
+  # triggering garbage collection at all, or at least enough to expose memory-related bugs.
+  # So add one long-running spec to hopefully catch any GC and memory-related bugs.
+  it 'should work correctly during long runs (when Garbage Collection runs)' do
+    input     = "a <strong>simple</strong> ''test'' of the [[wikitext parser]]"
+    expected  = %Q{<p>a <strong>simple</strong> <em>test</em> of the <a href="/wiki/wikitext%20parser">wikitext parser</a></p>\n}
+    100_000.times { @parser.parse(input).should == expected }
+  end
 end
