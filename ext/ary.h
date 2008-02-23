@@ -35,11 +35,8 @@ inline ary_t *ary_new(void)
     return ary;
 }
 
-inline void ary_free(ary_t *ary)
-{
-    free(ary->entries);
-    free(ary);
-}
+// this method not inlined so its address can be passed to the Data_Wrap_Struct function.
+void ary_free(ary_t *ary);
 
 inline int ary_entry(ary_t *ary, int idx)
 {

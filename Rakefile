@@ -34,6 +34,7 @@ built_extension     = "ext/wikitext.#{Config::CONFIG['DLEXT']}" # wikitext.bundl
 extension_files     = FileList[
   'ext/Makefile',
   'ext/ary.h',
+  'ext/ary.c',
   'ext/parser.c',
   'ext/parser.h',
   'ext/str.h',
