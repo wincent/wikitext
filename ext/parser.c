@@ -930,8 +930,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->external_link_class     = link_class;
     parser->img_prefix              = rb_iv_get(self, "@img_prefix");
     parser->scope                   = ary_new();
+    volatile VALUE scope_gc         = Data_Wrap_Struct(rb_cObject, 0, ary_free, parser->scope);
     parser->line                    = ary_new();
+    volatile VALUE line_gc          = Data_Wrap_Struct(rb_cObject, 0, ary_free, parser->line);
     parser->line_buffer             = ary_new();
+    volatile VALUE line_buffer_gc   = Data_Wrap_Struct(rb_cObject, 0, ary_free, parser->line_buffer);
     parser->pending_crlf            = Qfalse;
     parser->autolink                = rb_iv_get(self, "@autolink");
     parser->treat_slash_as_special  = rb_iv_get(self, "@treat_slash_as_special");
@@ -2267,9 +2270,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     } while (1);
 return_output:
     // BUG: these will leak if we exit this function by raising an exception; need to investigate using Data_Wrap_Struct
-    ary_free(parser->scope);
-    ary_free(parser->line);
-    ary_free(parser->line_buffer);
     str_free(parser->line_ending);
     if (parser->tabulation)
         str_free(parser->tabulation);
