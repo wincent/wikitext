@@ -127,9 +127,5 @@ inline void str_clear(str_t *str)
     str->len = 0;
 }
 
-inline void str_free(str_t *str)
-{
-    if (str->ptr)
-        free(str->ptr);
-    free(str);
-}
+// this method not inlined so its address can be passed to the Data_Wrap_Struct function.
+void str_free(str_t *str);

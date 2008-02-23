@@ -33,10 +33,11 @@ ragel               = 'ext/wikitext_ragel.c'
 built_extension     = "ext/wikitext.#{Config::CONFIG['DLEXT']}" # wikitext.bundle (Darwin), wikitext.so (Linux)
 extension_files     = FileList[
   'ext/Makefile',
-  'ext/ary.h',
   'ext/ary.c',
+  'ext/ary.h',
   'ext/parser.c',
   'ext/parser.h',
+  'ext/str.c',
   'ext/str.h',
   'ext/token.c',
   'ext/token.h',
