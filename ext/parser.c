@@ -207,9 +207,7 @@ inline void _Wikitext_indent(parser_t *parser)
     if (space_count > 0)
     {
         char *old_end, *new_end;
-        if (!parser->tabulation)
-            parser->tabulation = str_new_size(space_count);
-        else if (parser->tabulation->len < space_count)
+        if (parser->tabulation->len < space_count)
             str_grow(parser->tabulation, space_count); // reallocates if necessary
         old_end = parser->tabulation->ptr + parser->tabulation->len;
         new_end = parser->tabulation->ptr + space_count;
@@ -941,9 +939,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore");
     parser->special_link            = Qfalse;
     parser->line_ending             = str_new_from_string(line_ending);
+    GC_WRAP_STR(parser->line_ending, line_ending_gc);
     parser->base_indent             = base_indent;
     parser->current_indent          = 0;
-    parser->tabulation              = NULL;
+    parser->tabulation              = str_new();
+    GC_WRAP_STR(parser->tabulation, tabulation_gc);
 
     token_t _token;
     _token.type = NO_TOKEN;
@@ -2269,9 +2269,5 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         token = NULL;
     } while (1);
 return_output:
-    // BUG: these will leak if we exit this function by raising an exception; need to investigate using Data_Wrap_Struct
-    str_free(parser->line_ending);
-    if (parser->tabulation)
-        str_free(parser->tabulation);
     return parser->output;
 }
