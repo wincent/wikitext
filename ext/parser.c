@@ -930,11 +930,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->external_link_class     = link_class;
     parser->img_prefix              = rb_iv_get(self, "@img_prefix");
     parser->scope                   = ary_new();
-    volatile VALUE scope_gc         = Data_Wrap_Struct(rb_cObject, 0, ary_free, parser->scope);
+    GC_WRAP_ARY(parser->scope, scope_gc);
     parser->line                    = ary_new();
-    volatile VALUE line_gc          = Data_Wrap_Struct(rb_cObject, 0, ary_free, parser->line);
+    GC_WRAP_ARY(parser->line, line_gc);
     parser->line_buffer             = ary_new();
-    volatile VALUE line_buffer_gc   = Data_Wrap_Struct(rb_cObject, 0, ary_free, parser->line_buffer);
+    GC_WRAP_ARY(parser->line_buffer, line_buffer_gc);
     parser->pending_crlf            = Qfalse;
     parser->autolink                = rb_iv_get(self, "@autolink");
     parser->treat_slash_as_special  = rb_iv_get(self, "@treat_slash_as_special");
