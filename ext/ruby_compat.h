@@ -12,20 +12,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "ruby_compat.h"
+#include <ruby.h>
 
-VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self);
+// for compatibility with Ruby 1.8.5, which doesn't declare RSTRING_PTR
+#ifndef RSTRING_PTR
+#define RSTRING_PTR(s) (RSTRING(s)->ptr)
+#endif
 
-VALUE Wikitext_parser_tokenize(VALUE self, VALUE string);
-
-VALUE Wikitext_parser_benchmarking_tokenize(VALUE self, VALUE string);
-
-VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string);
-
-VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in);
-
-VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in);
-
-VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self);
-
-VALUE Wikitext_parser_profiling_parse(VALUE self, VALUE string);
+// for compatibility with Ruby 1.8.5, which doesn't declare RSTRING_LEN
+#ifndef RSTRING_LEN
+#define RSTRING_LEN(s) (RSTRING(s)->len)
+#endif

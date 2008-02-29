@@ -37,6 +37,7 @@ extension_files     = FileList[
   'ext/ary.h',
   'ext/parser.c',
   'ext/parser.h',
+  'ext/ruby_compat.h',
   'ext/str.c',
   'ext/str.h',
   'ext/token.c',

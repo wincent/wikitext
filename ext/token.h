@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <ruby.h>
+#include "ruby_compat.h"
 #include <stdint.h>     /* uint32_t */
 
 #define TOKEN_TEXT(token)   rb_str_new((const char *)token->start, (token->stop - token->start))

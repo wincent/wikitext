@@ -17,9 +17,9 @@
 # don't warn about unused params because many Ruby methods accept "self" but don't use it
 CFLAGS += -std=gnu99 -Wall -Wextra -Wno-unused-parameter
 
-ary.o : ary.c ary.h
-parser.o : ary.c ary.h parser.c parser.h token.h str.c str.h wikitext.h wikitext_ragel.h
-str.o : str.c str.h
-token.o : token.c token.h wikitext.h
-wikitext.o : parser.h token.h wikitext.c wikitext.h wikitext_ragel.h
-wikitext_ragel.o : token.h wikitext.h wikitext_ragel.h wikitext_ragel.c
+ary.o : ary.c ary.h ruby_compat.h
+parser.o : ary.c ary.h parser.c parser.h ruby_compat.h str.c str.h token.h wikitext.h wikitext_ragel.h
+str.o : ruby_compat.h str.c str.h
+token.o : ruby_compat.h token.c token.h wikitext.h
+wikitext.o : parser.h ruby_compat.h token.h wikitext.c wikitext.h wikitext_ragel.h
+wikitext_ragel.o : ruby_compat.h token.h wikitext.h wikitext_ragel.h wikitext_ragel.c
