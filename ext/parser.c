@@ -442,7 +442,7 @@ inline void _Wikitext_start_para_if_necessary(parser_t *parser)
 // on the line scope.
 // Luckily, BLOCKQUOTE_START tokens can only appear at the start of the scope array, so we can check for them first before
 // entering the for loop.
-void inline _Wikitext_pop_excess_elements(parser_t *parser)
+inline void _Wikitext_pop_excess_elements(parser_t *parser)
 {
     if (!NIL_P(parser->capture)) // we don't pop anything if in capturing mode
         return;
