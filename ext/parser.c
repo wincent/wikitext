@@ -880,6 +880,7 @@ VALUE Wikitext_parser_profiling_parse(VALUE self, VALUE string)
 {
     for (int i = 0; i < 100000; i++)
         Wikitext_parser_parse(1, &string, self);
+    return Qnil;
 }
 
 VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
