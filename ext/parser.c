@@ -544,7 +544,7 @@ inline VALUE _Wikitext_parser_trim_link_target(VALUE string)
         if (*src == ' ')
         {
             if (src == left)
-                *left++;
+                left++;
         }
         else
             non_space = src;
