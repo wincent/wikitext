@@ -55,3 +55,12 @@ indentation, and indentation overrides):
 
   short slab of ASCII text    1.620000   0.010000   1.630000 (  1.765099)
   short slab of UTF-8 text    3.370000   0.010000   3.380000 (  3.561710)
+
+New baseline after adding more features and other changes (alternate
+pre/blockquote syntax, img tags, more Garbage Collection) but also
+improving performance due to removal of inappropriately inlined code:
+
+  short slab of ASCII text    1.980000   0.030000   2.010000 (  2.116161)
+  short slab of UTF-8 text    4.040000   0.050000   4.090000 (  4.471805)
+  longer slab of ASCII text  16.920000   0.150000  17.070000 ( 18.609802)
+  longer slab of UTF-8 text  50.460000   0.350000  50.810000 ( 53.719019)
