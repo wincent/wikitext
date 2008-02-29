@@ -14,7 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CFLAGS += -std=gnu99
+# don't warn about unused params because many Ruby methods accept "self" but don't use it
+CFLAGS += -std=gnu99 -Wall -Wextra -Wno-unused-parameter
 
 ary.o : ary.c ary.h
 parser.o : ary.c ary.h parser.c parser.h token.h str.c str.h wikitext.h wikitext_ragel.h
