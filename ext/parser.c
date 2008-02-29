@@ -158,7 +158,7 @@ VALUE Wikitext_parser_benchmarking_tokenize(VALUE self, VALUE string)
 }
 
 // we downcase "in place", overwriting the original contents of the buffer and returning the same string
-inline VALUE _Wikitext_downcase(VALUE string)
+VALUE _Wikitext_downcase(VALUE string)
 {
     char *ptr   = RSTRING_PTR(string);
     long len    = RSTRING_LEN(string);
@@ -170,7 +170,7 @@ inline VALUE _Wikitext_downcase(VALUE string)
     return string;
 }
 
-inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE link_text, VALUE link_class)
+VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE link_text, VALUE link_class)
 {
     VALUE string = rb_str_new(a_start, sizeof(a_start) - 1);        // <a href="
     if (!NIL_P(link_prefix))
@@ -187,7 +187,7 @@ inline VALUE _Wikitext_hyperlink(VALUE link_prefix, VALUE link_target, VALUE lin
     return string;
 }
 
-inline void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_len)
+void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_len)
 {
     rb_str_cat(parser->output, img_start, sizeof(img_start) - 1);   // <img src="
     if (!NIL_P(parser->img_prefix))
@@ -201,7 +201,7 @@ inline void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_le
 // will emit indentation only if we are about to emit any of:
 //      <blockquote>, <p>, <ul>, <ol>, <li>, <h1> etc, <pre>
 // each time we enter one of those spans must ++ the indentation level
-inline void _Wikitext_indent(parser_t *parser)
+void _Wikitext_indent(parser_t *parser)
 {
     int space_count = parser->current_indent + parser->base_indent;
     if (space_count > 0)
@@ -220,7 +220,7 @@ inline void _Wikitext_indent(parser_t *parser)
     parser->current_indent += 2;
 }
 
-inline void _Wikitext_dedent(parser_t *parser, VALUE emit)
+void _Wikitext_dedent(parser_t *parser, VALUE emit)
 {
     parser->current_indent -= 2;
     if (emit != Qtrue)
@@ -393,7 +393,7 @@ void _Wikitext_pop_from_stack_up_to(parser_t *parser, VALUE target, int item, VA
     } while (continue_looping);
 }
 
-inline void _Wikitext_start_para_if_necessary(parser_t *parser)
+void _Wikitext_start_para_if_necessary(parser_t *parser)
 {
     if (!NIL_P(parser->capture))    // we don't do anything if in capturing mode
         return;
@@ -442,7 +442,7 @@ inline void _Wikitext_start_para_if_necessary(parser_t *parser)
 // on the line scope.
 // Luckily, BLOCKQUOTE_START tokens can only appear at the start of the scope array, so we can check for them first before
 // entering the for loop.
-inline void _Wikitext_pop_excess_elements(parser_t *parser)
+void _Wikitext_pop_excess_elements(parser_t *parser)
 {
     if (!NIL_P(parser->capture)) // we don't pop anything if in capturing mode
         return;
@@ -471,7 +471,7 @@ inline void _Wikitext_pop_excess_elements(parser_t *parser)
 // the number of bytes in the UTF-8 character (between 1 and 4) is returned by reference in width_out
 // raises a RangeError if the supplied character is invalid UTF-8
 // (in which case it also frees the block of memory indicated by dest_ptr if it is non-NULL)
-inline uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out, void *dest_ptr)
+uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out, void *dest_ptr)
 {
     uint32_t dest;
     if ((unsigned char)src[0] <= 0x7f)                      // ASCII
@@ -515,7 +515,7 @@ inline uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out, v
     return dest;
 }
 
-inline VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
+VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
 {
     // TODO: consider special casing some entities (ie. quot, amp, lt, gt etc)?
     char hex_string[8]  = { '&', '#', 'x', 0, 0, 0, 0, ';' };
@@ -530,7 +530,7 @@ inline VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
     return rb_str_new((const char *)hex_string, sizeof(hex_string));
 }
 
-inline VALUE _Wikitext_parser_trim_link_target(VALUE string)
+VALUE _Wikitext_parser_trim_link_target(VALUE string)
 {
     string              = StringValue(string);
     char    *src        = RSTRING_PTR(string);
@@ -560,7 +560,7 @@ inline VALUE _Wikitext_parser_trim_link_target(VALUE string)
 // - QUOT and AMP characters converted to named entities
 // - if rollback is Qtrue, there is no special treatment of spaces
 // - if rollback is Qfalse, leading and trailing whitespace trimmed if trimmed
-inline VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, VALUE rollback)
+VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, VALUE rollback)
 {
     VALUE string        = StringValue(parser->link_target); // raises if string is nil or doesn't quack like a string
     char    *src        = RSTRING_PTR(string);
@@ -667,7 +667,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 //         thing. [[Foo]] was...
 // this is also where we check treat_slash_as_special is true and act accordingly
 // basically any link target matching /\A[a-z]+\/\d+\z/ is flagged as special
-inline static void _Wikitext_parser_encode_link_target(parser_t *parser)
+static void _Wikitext_parser_encode_link_target(parser_t *parser)
 {
     VALUE in                = StringValue(parser->link_target);
     char        *input      = RSTRING_PTR(in);
@@ -784,8 +784,7 @@ VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in)
     return parser.link_target;
 }
 
-// not sure whether these rollback functions should be inline: could refactor them into a single non-inlined function
-inline void _Wikitext_rollback_failed_link(parser_t *parser)
+void _Wikitext_rollback_failed_link(parser_t *parser)
 {
     if (!IN(LINK_START))
         return; // nothing to do!
@@ -808,7 +807,7 @@ inline void _Wikitext_rollback_failed_link(parser_t *parser)
     parser->link_text   = Qnil;
 }
 
-inline void _Wikitext_rollback_failed_external_link(parser_t *parser)
+void _Wikitext_rollback_failed_external_link(parser_t *parser)
 {
     if (!IN(EXT_LINK_START))
         return; // nothing to do!

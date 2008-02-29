@@ -26,110 +26,38 @@ typedef struct
 #define GC_WRAP_STR(ptr, name) volatile VALUE name __attribute__((unused)) = Data_Wrap_Struct(rb_cObject, 0, str_free, ptr)
 
 // create a new, empty string struct
-inline str_t *str_new(void)
-{
-    str_t *str      = ALLOC_N(str_t, 1);
-    str->ptr        = NULL;
-    str->len        = 0;
-    str->capacity   = 0;
-    return str;
-}
+str_t *str_new(void);
 
 // create a new, empty string struct with capacity len
-inline str_t *str_new_size(long len)
-{
-    str_t *str      = ALLOC_N(str_t, 1);
-    str->ptr        = ALLOC_N(char, len);
-    str->len        = 0;
-    str->capacity   = len;
-    return str;
-}
+str_t *str_new_size(long len);
 
 // create a new string struct and initialize it with a copy of the buffer of length len pointed to by src
-inline str_t *str_new_copy(char *src, long len)
-{
-    str_t *str      = ALLOC_N(str_t, 1);
-    str->ptr        = ALLOC_N(char, len);
-    memcpy(str->ptr, src, len);
-    str->len        = len;
-    str->capacity   = len;
-    return str;
-}
+str_t *str_new_copy(char *src, long len);
 
 // create a new string struct and initialize it with the buffer of length len pointed to by src
 // no copy is made; the struct takes ownership of the buffer and will free it when the struct is disposed of
-inline str_t *str_new_no_copy(char *src, long len)
-{
-    str_t *str      = ALLOC_N(str_t, 1);
-    str->ptr        = src;
-    str->len        = len;
-    str->capacity   = len;
-    return str;
-}
+str_t *str_new_no_copy(char *src, long len);
 
 // convenience method for testing
-inline str_t *str_new_from_string(VALUE string)
-{
-    string = StringValue(string);
-    return str_new_copy(RSTRING_PTR(string), RSTRING_LEN(string));
-}
+str_t *str_new_from_string(VALUE string);
 
 // convenience method for testing
-inline VALUE string_from_str(str_t *str)
-{
-    return rb_str_new(str->ptr, str->len);
-}
+VALUE string_from_str(str_t *str);
 
 // grows a string's capacity to the specified length
-inline void str_grow(str_t *str, long len)
-{
-    if (str->capacity < len)
-    {
-        if (str->ptr)
-            REALLOC_N(str->ptr, char, len);
-        else
-            str->ptr = ALLOC_N(char, len);
-        str->capacity = len;
-    }
-}
+void str_grow(str_t *str, long len);
 
-inline void str_append(str_t *str, char *src, long len)
-{
-    long new_len = str->len + len;
-    if (str->capacity < new_len)
-    {
-        if (str->ptr)
-            REALLOC_N(str->ptr, char, new_len);
-        else
-            str->ptr = ALLOC_N(char, new_len);
-        str->capacity = new_len;
-    }
-    memcpy(str->ptr + str->len, src, len);
-    str->len = new_len;
-}
+void str_append(str_t *str, char *src, long len);
 
 // appends the "other" string struct onto str
-inline void str_append_str(str_t *str, str_t *other)
-{
-    str_append(str, other->ptr, other->len);
-}
+void str_append_str(str_t *str, str_t *other);
 
 // this is a temporary convenience measure
 // later on if I develop in-place variants of some functions this won't be needed
-inline void str_swap(str_t **a, str_t **b)
-{
-    str_t *c;
-    c = *a;
-    *a = *b;
-    *b = c;
-}
+void str_swap(str_t **a, str_t **b);
 
 // don't actually free the memory yet
 // this makes str structs very useful when reusing buffers because it avoids reallocation
-inline void str_clear(str_t *str)
-{
-    str->len = 0;
-}
+void str_clear(str_t *str);
 
-// this method not inlined so its address can be passed to the Data_Wrap_Struct function.
 void str_free(str_t *str);
