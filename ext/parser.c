@@ -970,9 +970,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         }
         int type = token->type;
 
-        // many restrictions depend on what is at the top of the stack
-        int top = ary_entry(parser->scope, -1);
-
         // can't declare new variables inside a switch statement, so predeclare them here
         long remove_strong          = -1;
         long remove_em              = -1;
