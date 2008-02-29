@@ -50,7 +50,7 @@ After implementing profiling_parse method
 
 New baseline after adding additional features (additional em and strong
 tokens, email address tokenization and autolinking, whitespace trimming
-for link components, optional options hash for parse method, auotmatic
+for link components, optional options hash for parse method, automatic
 indentation, and indentation overrides):
 
   short slab of ASCII text    1.620000   0.010000   1.630000 (  1.765099)
