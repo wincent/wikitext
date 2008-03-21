@@ -42,4 +42,23 @@ describe Wikitext::Parser, 'regressions' do
     END
     @parser.parse(input).should == expected
   end
+
+  # this one discovered in a real Rails application
+  it 'should allow empty lines in PRE blocks marked up with a leading space' do
+    input = dedent <<-END
+       # -d turns on debug mode: output is verbose, no actual changes are made to the log files
+       sudo logrotate -d /etc/logrotate.d/nginx
+       
+       # if the debug output looks good, proceed with a real rotation (-v turns on verbose output)
+       sudo logrotate -v /etc/logrotate.d/nginx
+    END
+    expected = dedent <<-END
+      <pre># -d turns on debug mode: output is verbose, no actual changes are made to the log files
+      sudo logrotate -d /etc/logrotate.d/nginx
+      
+      # if the debug output looks good, proceed with a real rotation (-v turns on verbose output)
+      sudo logrotate -v /etc/logrotate.d/nginx</pre>
+    END
+    @parser.parse(input).should == expected
+  end
 end

@@ -2159,6 +2159,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 break;
 
             case CRLF:
+                i = parser->pending_crlf;
                 parser->pending_crlf = Qfalse;
                 _Wikitext_rollback_failed_link(parser);             // if any
                 _Wikitext_rollback_failed_external_link(parser);    // if any
@@ -2170,27 +2171,33 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else if (IN(PRE))
                 {
-                    // beware when nothing or BLOCKQUOTE on line buffer (not line stack!) prior to CRLF, that must be end of PRE block
-                    if (NO_ITEM(ary_entry(parser->line_buffer, -2)) || ary_entry(parser->line_buffer, -2) == BLOCKQUOTE)
+                    // beware when BLOCKQUOTE on line buffer (not line stack!) prior to CRLF, that must be end of PRE block
+                    if (ary_entry(parser->line_buffer, -2) == BLOCKQUOTE)
                         // don't emit in this case
                         _Wikitext_pop_from_stack_up_to(parser, parser->output, PRE, Qtrue);
                     else
                     {
+                        if (ary_entry(parser->line_buffer, -2) == PRE)
+                        {
+                             // only thing on line is the PRE: emit pending line ending (if we had one)
+                             if (i == Qtrue)
+                                 rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
+                        }
+
+                        // clear these _before_ calling NEXT_TOKEN (NEXT_TOKEN adds to the line_buffer)
+                        ary_clear(parser->line);
+                        ary_clear(parser->line_buffer);
+
                         // peek ahead to see if this is definitely the end of the PRE block
                         NEXT_TOKEN();
                         type = token->type;
                         if (type != BLOCKQUOTE && type != PRE)
-                        {
                             // this is definitely the end of the block, so don't emit
                             _Wikitext_pop_from_stack_up_to(parser, parser->output, PRE, Qtrue);
-                        }
                         else
                             // potentially will emit
                             parser->pending_crlf = Qtrue;
 
-                        // delete the entire contents of the line scope stack and buffer
-                        ary_clear(parser->line);
-                        ary_clear(parser->line_buffer);
                         continue; // jump back to top of loop to handle token grabbed via lookahead
                     }
                 }
@@ -2251,6 +2258,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 break;
 
             case END_OF_FILE:
+                // special case for input like " foo\n " (see pre_spec.rb)
+                if (IN(PRE) &&
+                    ary_entry(parser->line_buffer, -2) == PRE &&
+                    parser->pending_crlf == Qtrue)
+                    rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
+
                 // close any open scopes on hitting EOF
                 _Wikitext_rollback_failed_external_link(parser);    // if any
                 _Wikitext_rollback_failed_link(parser);             // if any
