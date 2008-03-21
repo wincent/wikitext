@@ -87,7 +87,7 @@ describe Wikitext::Parser, 'with large slab of input text' do
        notice how it can contain ''markup''
        which would '''otherwise''' have <tt>special</tt> meaning
        although explicit entities &copy; are passed through unchanged
-       
+      
       a normal paragraph again
       
       {{an_image.png}}

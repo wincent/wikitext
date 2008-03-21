@@ -29,6 +29,33 @@ describe Wikitext::Parser, 'parsing PRE blocks' do
     @parser.parse(" foo\n bar").should == "<pre>foo\nbar</pre>\n"
   end
 
+  it 'should handle "empty" lines in the middle of multiline PRE blocks' do
+    input = dedent <<-END
+       foo
+       
+       bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      
+      bar</pre>
+    END
+    @parser.parse(input).should == expected
+  end
+
+  it 'should render an empty block for an empty PRE block' do
+    @parser.parse(' ').should == "<pre></pre>\n"
+  end
+
+  it 'should sanely handle a leading empty line' do
+    @parser.parse(" \n foo").should == "<pre>\nfoo</pre>\n"
+  end
+
+  it 'should sanely handle a trailing empty line' do
+    @parser.parse(" foo\n \n").should == "<pre>foo\n</pre>\n"
+    @parser.parse(" foo\n ").should == "<pre>foo\n</pre>\n"
+  end
+
   it 'should allow nesting inside a <blockquote> block' do
     # nesting inside single blockquotes
     @parser.parse(">  foo").should == "<blockquote>\n  <pre>foo</pre>\n</blockquote>\n"
