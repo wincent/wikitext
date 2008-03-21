@@ -18,7 +18,7 @@ require 'rake/gempackagetask'
 require 'rake/rdoctask'
 require 'rubygems'
 require 'spec/rake/spectask'
-require File.join(File.dirname(__FILE__), 'lib', 'version.rb')
+require File.join(File.dirname(__FILE__), 'lib', 'wikitext', 'version.rb')
 
 CLEAN.include   Rake::FileList['**/*.so', '**/*.bundle', '**/*.o', '**/mkmf.log', '**/Makefile']
 CLOBBER.include Rake::FileList['ext/wikitext_ragel.c']
