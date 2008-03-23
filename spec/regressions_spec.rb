@@ -22,8 +22,8 @@ describe Wikitext::Parser, 'regressions' do
     @parser = Wikitext::Parser.new
   end
 
+  # turns out that this was never a bug in wikitext -- it was a bug in the host application -- but keeping the test does no harm
   it 'should correctly transform example #1' do
-    # turns out that this was never a bug in wikitext: it was a bug in the host application
     input = dedent <<-END
       = Leopard =
       
@@ -43,7 +43,8 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # this one discovered in a real Rails application
+  # discovered at: http://rails.wincent.com/wiki/nginx_log_rotation
+  # fixed by 0a328f1
   it 'should allow empty lines in PRE blocks marked up with a leading space' do
     input = dedent <<-END
        # -d turns on debug mode: output is verbose, no actual changes are made to the log files
@@ -58,6 +59,64 @@ describe Wikitext::Parser, 'regressions' do
       
       # if the debug output looks good, proceed with a real rotation (-v turns on verbose output)
       sudo logrotate -v /etc/logrotate.d/nginx</pre>
+    END
+    @parser.parse(input).should == expected
+  end
+
+  # discovered at: http://rails.wincent.com/wiki/Installing_Ragel_5.2.0_on_Mac_OS_X_Tiger
+  # fixed by ?
+  it 'should handle PRE_START blocks which follow unordered lists' do
+    input = dedent <<-END
+      * Get link to latest source code from: http://www.cs.queensu.ca/~thurston/ragel/
+      
+      <pre>wget http://www.cs.queensu.ca/~thurston/ragel/ragel-5.20.tar.gz
+      tar xzvf ragel-5.20.tar.gz
+      cd ragel-5.20</pre>
+    END
+    expected = dedent <<-END
+      <ul>
+        <li>Get link to latest source code from: <a href="http://www.cs.queensu.ca/~thurston/ragel/" class="external">http://www.cs.queensu.ca/~thurston/ragel/</a></li>
+      </ul>
+      <pre>wget <a href="http://www.cs.queensu.ca/~thurston/ragel/ragel-5.20.tar.gz" class="external">http://www.cs.queensu.ca/~thurston/ragel/ragel-5.20.tar.gz</a>
+      tar xzvf ragel-5.20.tar.gz
+      cd ragel-5.20</pre>
+    END
+    @parser.parse(input).should == expected
+  end
+
+  # discovered at: http://rails.wincent.com/wiki/Movable_Type_security_notes
+  # fixed by ?
+  it 'should handle PRE_START blocks which follow unordered lists' do
+    input = dedent <<-END
+      # Turn off the [[Movable Type]] search function; use Google instead (it's better anyway) with a form something like this:
+      
+      <pre><form method="get"...></pre>
+    END
+    expected = dedent <<-END
+      <ol>
+        <li>Turn off the <a href="/wiki/Movable%20Type">Movable Type</a> search function; use Google instead (it's better anyway) with a form something like this:</li>
+      </ol>
+      <pre>&lt;form method=&quot;get&quot;...&gt;</pre>
+    END
+    @parser.parse(input).should == expected
+  end
+
+  # discovered at: http://rails.wincent.com/wiki/Movable_Type_security_notes
+  # fixed by ?
+  it 'should respect additional indentation found inside PRE blocks' do
+    pending
+
+    # note the two extra spaces on each line
+    input = dedent <<-END
+        <input type="text" name="q" size="20" maxlength="255" value="" />
+        <input type="hidden" name="hl" value="en" />
+    END
+
+    # first line had only one additional space
+    # second line had no additional spaces at all
+    expected = dedent <<-END
+      <pre>  &lt;input type="text" name="q" size="20" maxlength="255" value="" /&gt;
+        &lt;input type="hidden" name="hl" value="en" /&gt;</pre>
     END
     @parser.parse(input).should == expected
   end

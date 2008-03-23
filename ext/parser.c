@@ -1046,9 +1046,16 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     ary_push(parser->scope, PRE_START);
                     ary_push(parser->line, PRE_START);
                 }
-                else if (parser->scope->count == 0 || (IN(P) && !IN(BLOCKQUOTE)))
+                else if (IN(BLOCKQUOTE))
                 {
-                    // would be nice to eliminate the repetition here but it's probably the clearest way
+                    // PRE_START is illegal
+                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
+                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_start_para_if_necessary(parser);
+                    rb_str_cat(i, escaped_pre_start, sizeof(escaped_pre_start) - 1);
+                }
+                else
+                {
                     _Wikitext_rollback_failed_link(parser);             // if any
                     _Wikitext_rollback_failed_external_link(parser);    // if any
                     _Wikitext_pop_from_stack_up_to(parser, Qnil, P, Qtrue);
@@ -1056,14 +1063,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
                     ary_push(parser->scope, PRE_START);
                     ary_push(parser->line, PRE_START);
-                }
-                else
-                {
-                    // everywhere else, PRE_START is illegal (in LI, BLOCKQUOTE, H1_START etc)
-                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
-                    rb_str_cat(i, escaped_pre_start, sizeof(escaped_pre_start) - 1);
                 }
                 break;
 
