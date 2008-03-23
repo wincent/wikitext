@@ -86,7 +86,7 @@ describe Wikitext::Parser, 'regressions' do
 
   # discovered at: http://rails.wincent.com/wiki/Movable_Type_security_notes
   # fixed by a616841
-  it 'should handle PRE_START blocks which follow unordered lists' do
+  it 'should handle PRE_START blocks which follow ordered lists' do
     input = dedent <<-END
       # Turn off the [[Movable Type]] search function; use Google instead (it's better anyway) with a form something like this:
       
@@ -121,5 +121,627 @@ describe Wikitext::Parser, 'regressions' do
   # this is the general case of the bug covered in the previous spec
   # any token that appears as the first token after a PRE token can manifest this bug
   # PRINTABLE didn't only because it called _Wikitext_start_para_if_necessary(), which handled the pending CRLF
-  it 'should emit pending newlines for all token types found inside PRE blocks'
+  it 'should emit pending newlines for all token types found inside PRE and PRE_START blocks' do
+    # PRE_START
+    input = dedent <<-END
+       foo
+       <pre>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;pre&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # PRE_END
+    input = dedent <<-END
+       foo
+       </pre>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;/pre&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # BLOCKQUOTE_START
+    input = dedent <<-END
+       foo
+       <blockquote>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;blockquote&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # BLOCKQUOTE_END
+    input = dedent <<-END
+       foo
+       </blockquote>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;/blockquote&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # NO_WIKI_START
+    input = dedent <<-END
+       foo
+       <nowiki>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;nowiki&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # STRONG_EM
+    input = dedent <<-END
+       foo
+       '''''bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      '''''bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # STRONG
+    input = dedent <<-END
+       foo
+       '''bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      '''bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # STRONG_START
+    input = dedent <<-END
+       foo
+       <strong>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;strong&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # STRONG_END
+    input = dedent <<-END
+       foo
+       </strong>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;/strong&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # EM
+    input = dedent <<-END
+       foo
+       ''bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ''bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # EM_START
+    input = dedent <<-END
+       foo
+       <em>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;em&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # EM_END
+    input = dedent <<-END
+       foo
+       </em>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;/em&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # TT
+    input = dedent <<-END
+       foo
+       `bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      `bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # TT_START
+    input = dedent <<-END
+       foo
+       <tt>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;tt&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # TT_END
+    input = dedent <<-END
+       foo
+       </tt>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;/tt&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H6_END
+    input = dedent <<-END
+       foo
+       ======
+       bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ======
+      bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H5_END
+    input = dedent <<-END
+       foo
+       =====
+       bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      =====
+      bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H4_END
+    input = dedent <<-END
+       foo
+       ====
+       bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ====
+      bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H3_END
+    input = dedent <<-END
+       foo
+       ===
+       bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ===
+      bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H2_END
+    input = dedent <<-END
+       foo
+       ==
+       bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ==
+      bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H1_END
+    input = dedent <<-END
+       foo
+       =
+       bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      =
+      bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # MAIL
+    input = dedent <<-END
+       foo
+       bar@baz.com
+    END
+    expected = dedent <<-END
+      <pre>foo
+      bar@baz.com</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # LINK_START
+    input = dedent <<-END
+       foo
+       [[bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      [[bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # LINK_END
+    input = dedent <<-END
+       foo
+       ]]bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ]]bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # EXT_LINK_START
+    input = dedent <<-END
+       foo
+       [bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      [bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # EXT_LINK_END
+    input = dedent <<-END
+       foo
+       ]bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ]bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # IMG_START
+    input = dedent <<-END
+       foo
+       {{bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      {{bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # these tokens weren't affected by the bug, seeing as they either call _Wikitext_start_para_if_necessary()
+    # or they can only appear in PRE_START (not PRE) thanks to the tokenizer
+    # but we add specs for them to make sure that the issue never crops up for them in the future
+
+    # PRE (in PRE_START)
+    input = dedent <<-END
+      <pre>foo
+       bar</pre>
+    END
+    expected = dedent <<-END
+      <pre>foo
+       bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # BLOCKQUOTE (in PRE_START)
+    input = dedent <<-END
+      <pre>foo
+      > bar</pre>
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &gt; bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # OL (in PRE_START)
+    input = dedent <<-END
+      <pre># foo
+      # bar</pre>
+    END
+    expected = dedent <<-END
+      <pre># foo
+      # bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # UL (in PRE_START)
+    input = dedent <<-END
+      <pre>* foo
+      * bar</pre>
+    END
+    expected = dedent <<-END
+      <pre>* foo
+      * bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H6_START (in PRE_START)
+    input = dedent <<-END
+      <pre>foo
+      ====== bar
+      baz</pre>
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ====== bar
+      baz</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H5_START (in PRE_START)
+    input = dedent <<-END
+      <pre>foo
+      ===== bar
+      baz</pre>
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ===== bar
+      baz</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H4_START (in PRE_START)
+    input = dedent <<-END
+      <pre>foo
+      ==== bar
+      baz</pre>
+    END
+    expected = dedent <<-END
+      <pre>foo
+      ==== bar
+      baz</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H3_START (in PRE_START)
+    input = dedent <<-END
+      <pre>foo
+      === bar
+      baz</pre>
+    END
+    expected = dedent <<-END
+      <pre>foo
+      === bar
+      baz</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H2_START (in PRE_START)
+    input = dedent <<-END
+      <pre>foo
+      == bar
+      baz</pre>
+    END
+    expected = dedent <<-END
+      <pre>foo
+      == bar
+      baz</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # H1_START (in PRE_START)
+    input = dedent <<-END
+      <pre>foo
+      = bar
+      baz</pre>
+    END
+    expected = dedent <<-END
+      <pre>foo
+      = bar
+      baz</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # NO_WIKI_END
+    input = dedent <<-END
+       foo
+       </nowiki>bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;/nowiki&gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # SEPARATOR
+    input = dedent <<-END
+       foo
+       |bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      |bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # QUOT_ENTITY
+    input = dedent <<-END
+       foo
+       &quot;bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &quot;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # AMP_ENTITY
+    input = dedent <<-END
+       foo
+       &amp;bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &amp;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # NAMED_ENTITY
+    input = dedent <<-END
+       foo
+       &raquo;bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &raquo;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # DECIMAL_ENTITY
+    input = dedent <<-END
+       foo
+       &#1234;bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &#1234;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # HEX_ENTITY
+    input = dedent <<-END
+       foo
+       &#x2022;bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &#x2022;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # QUOT
+    input = dedent <<-END
+       foo
+       "bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &quot;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # AMP
+    input = dedent <<-END
+       foo
+       &bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &amp;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # LESS
+    input = dedent <<-END
+       foo
+       <bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &lt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # GREATER
+    input = dedent <<-END
+       foo
+       >bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &gt;bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # URI
+    input = dedent <<-END
+       foo
+       http://example.com/
+    END
+    expected = dedent <<-END
+      <pre>foo
+      <a href="http://example.com/" class="external">http://example.com/</a></pre>
+    END
+    @parser.parse(input).should == expected
+
+    # PRINTABLE
+    input = dedent <<-END
+       foo
+       bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # IMG_END
+    input = dedent <<-END
+       foo
+       }}bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      }}bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # LEFT_CURLY
+    input = dedent <<-END
+       foo
+       {bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      {bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # RIGHT_CURLY
+    input = dedent <<-END
+       foo
+       }bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      }bar</pre>
+    END
+    @parser.parse(input).should == expected
+
+    # DEFAULT
+    input = dedent <<-END
+       foo
+       €bar
+    END
+    expected = dedent <<-END
+      <pre>foo
+      &#x20ac;bar</pre>
+    END
+    @parser.parse(input).should == expected
+  end
 end
