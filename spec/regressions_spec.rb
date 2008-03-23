@@ -102,7 +102,7 @@ describe Wikitext::Parser, 'regressions' do
   end
 
   # discovered at: http://rails.wincent.com/wiki/Movable_Type_security_notes
-  # fixed by ?
+  # fixed by 191b75d
   it 'should respect additional indentation found inside PRE blocks' do
     # note the two extra spaces on each line
     input = dedent <<-END
