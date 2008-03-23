@@ -104,20 +104,22 @@ describe Wikitext::Parser, 'regressions' do
   # discovered at: http://rails.wincent.com/wiki/Movable_Type_security_notes
   # fixed by ?
   it 'should respect additional indentation found inside PRE blocks' do
-    pending
-
     # note the two extra spaces on each line
     input = dedent <<-END
-        <input type="text" name="q" size="20" maxlength="255" value="" />
-        <input type="hidden" name="hl" value="en" />
+         <input type="text" name="q" size="20" maxlength="255" value="" />
+         <input type="hidden" name="hl" value="en" />
     END
 
-    # first line had only one additional space
-    # second line had no additional spaces at all
+    # problem is the spaces were being emitted _before_ the CRLF
     expected = dedent <<-END
-      <pre>  &lt;input type="text" name="q" size="20" maxlength="255" value="" /&gt;
-        &lt;input type="hidden" name="hl" value="en" /&gt;</pre>
+      <pre>  &lt;input type=&quot;text&quot; name=&quot;q&quot; size=&quot;20&quot; maxlength=&quot;255&quot; value=&quot;&quot; /&gt;
+        &lt;input type=&quot;hidden&quot; name=&quot;hl&quot; value=&quot;en&quot; /&gt;</pre>
     END
     @parser.parse(input).should == expected
   end
+
+  # this is the general case of the bug covered in the previous spec
+  # any token that appears as the first token after a PRE token can manifest this bug
+  # PRINTABLE didn't only because it called _Wikitext_start_para_if_necessary(), which handled the pending CRLF
+  it 'should emit pending newlines for all token types found inside PRE blocks'
 end

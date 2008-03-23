@@ -420,6 +420,15 @@ void _Wikitext_start_para_if_necessary(parser_t *parser)
     parser->pending_crlf = Qfalse;
 }
 
+void _Wikitext_emit_pending_crlf_if_necessary(parser_t *parser)
+{
+    if (parser->pending_crlf == Qtrue)
+    {
+        rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
+        parser->pending_crlf = Qfalse;
+    }
+}
+
 // Helper function that pops any excess elements off scope (pushing is already handled in the respective rules).
 // For example, given input like:
 //
@@ -2037,7 +2046,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case SPACE:
                 i = NIL_P(parser->capture) ? parser->output : parser->capture;
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
+                {
+                    _Wikitext_emit_pending_crlf_if_necessary(parser);
                     rb_str_cat(i, token->start, TOKEN_LEN(token));
+                }
                 else
                 {
                     // peek ahead to see next token
