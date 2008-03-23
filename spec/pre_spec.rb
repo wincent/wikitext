@@ -263,13 +263,14 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
     @parser.parse('> </pre>').should == expected
   end
 
-  it 'should ignore PRE_START inside UL blocks' do
+  it 'should break out of UL blocks on seeing PRE_START' do
     expected = dedent <<-END
       <ul>
-        <li>&lt;pre&gt;</li>
+        <li>foo</li>
       </ul>
+      <pre>bar</pre>
     END
-    @parser.parse('* <pre>').should == expected
+    @parser.parse('* foo<pre>bar</pre>').should == expected
   end
 
   it 'should ignore PRE_END inside UL blocks' do
@@ -281,13 +282,14 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
     @parser.parse('* </pre>').should == expected
   end
 
-  it 'should ignore PRE_START inside OL blocks' do
+  it 'should break out of OL blocks on seeing PRE_START' do
     expected = dedent <<-END
       <ol>
-        <li>&lt;pre&gt;</li>
+        <li>foo</li>
       </ol>
+      <pre>bar</pre>
     END
-    @parser.parse('# <pre>').should == expected
+    @parser.parse('# foo<pre>bar</pre>').should == expected
   end
 
   it 'should ignore PRE_END inside OL blocks' do
@@ -299,48 +301,78 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
     @parser.parse('# </pre>').should == expected
   end
 
-  it 'should ignore PRE_START inside H1 blocks' do
-    @parser.parse('= <pre> =').should == "<h1>&lt;pre&gt;</h1>\n"
+  it 'should break out of H1 blocks on seeing PRE_START' do
+    expected = dedent <<-END
+      <h1>foo</h1>
+      <pre>bar</pre>
+      <p> =</p>
+    END
+    @parser.parse('= foo<pre>bar</pre> =').should == expected
   end
 
   it 'should ignore PRE_END inside H1 blocks' do
     @parser.parse('= </pre> =').should == "<h1>&lt;/pre&gt;</h1>\n"
   end
 
-  it 'should ignore PRE_START inside H2 blocks' do
-    @parser.parse('== <pre> ==').should == "<h2>&lt;pre&gt;</h2>\n"
+  it 'should break out of H2 blocks on seeing PRE_START' do
+    expected = dedent <<-END
+      <h2>foo</h2>
+      <pre>bar</pre>
+      <p> ==</p>
+    END
+    @parser.parse('== foo<pre>bar</pre> ==').should == expected
   end
 
   it 'should ignore PRE_END inside H2 blocks' do
     @parser.parse('== </pre> ==').should == "<h2>&lt;/pre&gt;</h2>\n"
   end
 
-  it 'should ignore PRE_START inside H3 blocks' do
-    @parser.parse('=== <pre> ===').should == "<h3>&lt;pre&gt;</h3>\n"
+  it 'should break out of H3 blocks on seeing PRE_START' do
+    expected = dedent <<-END
+      <h3>foo</h3>
+      <pre>bar</pre>
+      <p> ===</p>
+    END
+    @parser.parse('=== foo<pre>bar</pre> ===').should == expected
   end
 
   it 'should ignore PRE_END inside H3 blocks' do
     @parser.parse('=== </pre> ===').should == "<h3>&lt;/pre&gt;</h3>\n"
   end
 
-  it 'should ignore PRE_START inside H4 blocks' do
-    @parser.parse('==== <pre> ====').should == "<h4>&lt;pre&gt;</h4>\n"
+  it 'should break out of H4 blocks on seeing PRE_START' do
+    expected = dedent <<-END
+      <h4>foo</h4>
+      <pre>bar</pre>
+      <p> ====</p>
+    END
+    @parser.parse('==== foo<pre>bar</pre> ====').should == expected
   end
 
   it 'should ignore PRE_END inside H4 blocks' do
     @parser.parse('==== </pre> ====').should == "<h4>&lt;/pre&gt;</h4>\n"
   end
 
-  it 'should ignore PRE_START inside H5 blocks' do
-    @parser.parse('===== <pre> =====').should == "<h5>&lt;pre&gt;</h5>\n"
+  it 'should break out of H5 blocks on seeing PRE_START' do
+    expected = dedent <<-END
+      <h5>foo</h5>
+      <pre>bar</pre>
+      <p> =====</p>
+    END
+    @parser.parse('===== foo<pre>bar</pre> =====').should == expected
   end
 
   it 'should ignore PRE_END inside H5 blocks' do
     @parser.parse('===== </pre> =====').should == "<h5>&lt;/pre&gt;</h5>\n"
   end
 
-  it 'should ignore PRE_START inside H6 blocks' do
-    @parser.parse('====== <pre> ======').should == "<h6>&lt;pre&gt;</h6>\n"
+  it 'should break out of H6 blocks on seeing PRE_START' do
+    expected = dedent <<-END
+      <h6>foo</h6>
+      <pre>bar</pre>
+      <p> ======</p>
+    END
+    @parser.parse('====== foo<pre>bar</pre> ======').should == expected
   end
 
   it 'should ignore PRE_END inside H6 blocks' do
