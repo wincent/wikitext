@@ -64,7 +64,7 @@ describe Wikitext::Parser, 'regressions' do
   end
 
   # discovered at: http://rails.wincent.com/wiki/Installing_Ragel_5.2.0_on_Mac_OS_X_Tiger
-  # fixed by ?
+  # fixed by a616841
   it 'should handle PRE_START blocks which follow unordered lists' do
     input = dedent <<-END
       * Get link to latest source code from: http://www.cs.queensu.ca/~thurston/ragel/
@@ -85,7 +85,7 @@ describe Wikitext::Parser, 'regressions' do
   end
 
   # discovered at: http://rails.wincent.com/wiki/Movable_Type_security_notes
-  # fixed by ?
+  # fixed by a616841
   it 'should handle PRE_START blocks which follow unordered lists' do
     input = dedent <<-END
       # Turn off the [[Movable Type]] search function; use Google instead (it's better anyway) with a form something like this:
