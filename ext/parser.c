@@ -23,6 +23,7 @@
 // poor man's object orientation in C:
 // instead of parsing around multiple parameters between functions in the parser
 // we pack everything into a struct and pass around only a pointer to that
+// TODO: consider changing some of the VALUE members (eg link_target) to the more efficient str_t type
 typedef struct
 {
     VALUE   output;                 // for accumulating output to be returned
@@ -1911,7 +1912,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             //          example [[foo €]]
             //          renders <a href="/wiki/Foo_%E2%82%AC">foo €</a>
             // we'll impose similar restrictions here for the link target; allowed tokens will be:
-            //      SPACE, PRINTABLE, DEFAULT, QUOT and AMP
+            //      SPACE, SPECIAL_URI_CHARS, PRINTABLE, DEFAULT, QUOT and AMP
             // everything else will be rejected
             case LINK_START:
                 i = NIL_P(parser->capture) ? parser->output : parser->capture;
@@ -1943,16 +1944,17 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // look ahead and try to gobble up link target
                     while (NEXT_TOKEN(), (type = token->type))
                     {
-                        if (type == SPACE       ||
-                            type == PRINTABLE   ||
-                            type == DEFAULT     ||
-                            type == QUOT        ||
-                            type == QUOT_ENTITY ||
-                            type == AMP         ||
-                            type == AMP_ENTITY  ||
-                            type == IMG_START   ||
-                            type == IMG_END     ||
-                            type == LEFT_CURLY  ||
+                        if (type == SPACE               ||
+                            type == SPECIAL_URI_CHARS   ||
+                            type == PRINTABLE           ||
+                            type == DEFAULT             ||
+                            type == QUOT                ||
+                            type == QUOT_ENTITY         ||
+                            type == AMP                 ||
+                            type == AMP_ENTITY          ||
+                            type == IMG_START           ||
+                            type == IMG_END             ||
+                            type == LEFT_CURLY          ||
                             type == RIGHT_CURLY)
                         {
                             // accumulate these tokens into link_target
@@ -2216,34 +2218,32 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
 
-                    // peek ahead to see next token
-                    NEXT_TOKEN();
-                    if (token->type != PRINTABLE)
-                        // failure
-                        rb_str_cat(parser->output, literal_img_start, sizeof(literal_img_start) - 1);
-                    else
+                    // scan ahead consuming PRINTABLE and SPECIAL_URI_CHARS tokens
+                    // will cheat here and abuse the link_target capture buffer to accumulate text
+                    if (NIL_P(parser->link_target))
+                        parser->link_target = rb_str_new2("");
+                    while (NEXT_TOKEN(), (type = token->type))
                     {
-                        // remember the PRINTABLE
-                        char    *token_ptr  = token->start;
-                        int     token_len   = TOKEN_LEN(token);
-
-                        // peek ahead once more
-                        NEXT_TOKEN();
-                        if (token->type == IMG_END)
+                        if (type == PRINTABLE || type == SPECIAL_URI_CHARS)
+                            rb_str_cat(parser->link_target, token->start, TOKEN_LEN(token));
+                        else if (type == IMG_END)
                         {
                             // success
-                            _Wikitext_append_img(parser, token_ptr, token_len);
+                            _Wikitext_append_img(parser, RSTRING_PTR(parser->link_target), RSTRING_LEN(parser->link_target));
                             token = NULL;
+                            break;
                         }
-                        else
+                        else // unexpected token (syntax error)
                         {
-                            // failure
+                            // rollback
                             rb_str_cat(parser->output, literal_img_start, sizeof(literal_img_start) - 1);
-                            rb_str_cat(parser->output, token_ptr, token_len);
+                            rb_str_cat(parser->output, RSTRING_PTR(parser->link_target), RSTRING_LEN(parser->link_target));
+                            break;
                         }
                     }
 
                     // jump to top of the loop to process token we scanned during lookahead
+                    parser->link_target = Qnil;
                     continue;
                 }
                 break;
@@ -2330,6 +2330,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 ary_clear(parser->line_buffer);
                 break;
 
+            case SPECIAL_URI_CHARS:
             case PRINTABLE:
             case IMG_END:
             case LEFT_CURLY:

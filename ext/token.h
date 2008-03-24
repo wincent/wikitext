@@ -89,6 +89,7 @@ enum token_types {
     LEFT_CURLY,
     RIGHT_CURLY,
     CRLF,
+    SPECIAL_URI_CHARS,
     PRINTABLE,
     DEFAULT,
     END_OF_FILE

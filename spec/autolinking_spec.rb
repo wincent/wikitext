@@ -119,4 +119,466 @@ describe Wikitext::Parser, 'autolinking' do
       @parser.parse('user@example.com').should == "<p>user@example.com</p>\n"
     end
   end
+
+  # "special" URI characters are characters that are valid _within_ a URI
+  # but if they appear as delimiters (at the end of a URI) we want them to be excluded from the URI
+  describe 'handling "special" URI characters' do
+    describe 'after HTTP URIs' do
+      it 'should terminate if followed by a period' do
+        input     = 'Try http://example.com/.'
+        expected  = %Q{<p>Try <a href="http://example.com/" class="external">http://example.com/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on periods that occur within the URI' do
+        input     = 'Try http://www.example.com/.'
+        expected  = %Q{<p>Try <a href="http://www.example.com/" class="external">http://www.example.com/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a colon' do
+        input     = 'Try http://example.com/:'
+        expected  = %Q{<p>Try <a href="http://example.com/" class="external">http://example.com/</a>:</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on colons that occur within the URI' do
+        input     = 'Try http://example.com:3000/.'
+        expected  = %Q{<p>Try <a href="http://example.com:3000/" class="external">http://example.com:3000/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a comma' do
+        input     = 'Try http://example.com/,'
+        expected  = %Q{<p>Try <a href="http://example.com/" class="external">http://example.com/</a>,</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on commas that occur within the URI' do
+        input     = 'Try http://example.com/2008,10,12,index.html.'
+        expected  = %Q{<p>Try <a href="http://example.com/2008,10,12,index.html" class="external">http://example.com/2008,10,12,index.html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by an exclamation mark' do
+        input     = 'Try http://example.com/!'
+        expected  = %Q{<p>Try <a href="http://example.com/" class="external">http://example.com/</a>!</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on exclamation marks that occur within the URI' do
+        input     = 'Try http://example.com/fun!.html.'
+        expected  = %Q{<p>Try <a href="http://example.com/fun!.html" class="external">http://example.com/fun!.html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a question mark' do
+        input     = 'Try http://example.com/?'
+        expected  = %Q{<p>Try <a href="http://example.com/" class="external">http://example.com/</a>?</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on question marks that occur within the URI' do
+        input     = 'Try http://example.com/fun.html?q=foo.'
+        expected  = %Q{<p>Try <a href="http://example.com/fun.html?q=foo" class="external">http://example.com/fun.html?q=foo</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a semi-colon' do
+        input     = 'Try http://example.com/;'
+        expected  = %Q{<p>Try <a href="http://example.com/" class="external">http://example.com/</a>;</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on semi-colons that occur within the URI' do
+        input     = 'Try http://example.com/fun;edit.'
+        expected  = %Q{<p>Try <a href="http://example.com/fun;edit" class="external">http://example.com/fun;edit</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a right parenthesis' do
+        input     = '(Try http://example.com/)'
+        expected  = %Q{<p>(Try <a href="http://example.com/" class="external">http://example.com/</a>)</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on right-parentheses that occur within the URI' do
+        input     = 'Try http://example.com/(fun).html.'
+        expected  = %Q{<p>Try <a href="http://example.com/(fun).html" class="external">http://example.com/(fun).html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+    end
+
+    describe 'after HTTPS URIs' do
+      it 'should terminate if followed by a period' do
+        input     = 'Try https://example.com/.'
+        expected  = %Q{<p>Try <a href="https://example.com/" class="external">https://example.com/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on periods that occur within the URI' do
+        input     = 'Try https://www.example.com/.'
+        expected  = %Q{<p>Try <a href="https://www.example.com/" class="external">https://www.example.com/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a colon' do
+        input     = 'Try https://example.com/:'
+        expected  = %Q{<p>Try <a href="https://example.com/" class="external">https://example.com/</a>:</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on colons that occur within the URI' do
+        input     = 'Try https://example.com:3000/.'
+        expected  = %Q{<p>Try <a href="https://example.com:3000/" class="external">https://example.com:3000/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a comma' do
+        input     = 'Try https://example.com/,'
+        expected  = %Q{<p>Try <a href="https://example.com/" class="external">https://example.com/</a>,</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on commas that occur within the URI' do
+        input     = 'Try https://example.com/2008,10,12,index.html.'
+        expected  = %Q{<p>Try <a href="https://example.com/2008,10,12,index.html" class="external">https://example.com/2008,10,12,index.html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by an exclamation mark' do
+        input     = 'Try https://example.com/!'
+        expected  = %Q{<p>Try <a href="https://example.com/" class="external">https://example.com/</a>!</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on exclamation marks that occur within the URI' do
+        input     = 'Try https://example.com/fun!.html.'
+        expected  = %Q{<p>Try <a href="https://example.com/fun!.html" class="external">https://example.com/fun!.html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a question mark' do
+        input     = 'Try https://example.com/?'
+        expected  = %Q{<p>Try <a href="https://example.com/" class="external">https://example.com/</a>?</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on question marks that occur within the URI' do
+        input     = 'Try https://example.com/fun.html?q=foo.'
+        expected  = %Q{<p>Try <a href="https://example.com/fun.html?q=foo" class="external">https://example.com/fun.html?q=foo</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a semi-colon' do
+        input     = 'Try https://example.com/;'
+        expected  = %Q{<p>Try <a href="https://example.com/" class="external">https://example.com/</a>;</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on semi-colons that occur within the URI' do
+        input     = 'Try https://example.com/fun;edit.'
+        expected  = %Q{<p>Try <a href="https://example.com/fun;edit" class="external">https://example.com/fun;edit</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a right parenthesis' do
+        input     = '(Try https://example.com/)'
+        expected  = %Q{<p>(Try <a href="https://example.com/" class="external">https://example.com/</a>)</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on right-parentheses that occur within the URI' do
+        input     = 'Try https://example.com/(fun).html.'
+        expected  = %Q{<p>Try <a href="https://example.com/(fun).html" class="external">https://example.com/(fun).html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+    end
+
+    # note: these are just like the HTTP specs seeing as both URI types are treated the same syntactically
+    # (even though these aren't "real" FTP URIs)
+    describe 'after FTP URIs' do
+      it 'should terminate if followed by a period' do
+        input     = 'Try ftp://example.com/.'
+        expected  = %Q{<p>Try <a href="ftp://example.com/" class="external">ftp://example.com/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on periods that occur within the URI' do
+        input     = 'Try ftp://www.example.com/.'
+        expected  = %Q{<p>Try <a href="ftp://www.example.com/" class="external">ftp://www.example.com/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a colon' do
+        input     = 'Try ftp://example.com/:'
+        expected  = %Q{<p>Try <a href="ftp://example.com/" class="external">ftp://example.com/</a>:</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on colons that occur within the URI' do
+        input     = 'Try ftp://example.com:3000/.'
+        expected  = %Q{<p>Try <a href="ftp://example.com:3000/" class="external">ftp://example.com:3000/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a comma' do
+        input     = 'Try ftp://example.com/,'
+        expected  = %Q{<p>Try <a href="ftp://example.com/" class="external">ftp://example.com/</a>,</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on commas that occur within the URI' do
+        input     = 'Try ftp://example.com/2008,10,12,index.html.'
+        expected  = %Q{<p>Try <a href="ftp://example.com/2008,10,12,index.html" class="external">ftp://example.com/2008,10,12,index.html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by an exclamation mark' do
+        input     = 'Try ftp://example.com/!'
+        expected  = %Q{<p>Try <a href="ftp://example.com/" class="external">ftp://example.com/</a>!</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on exclamation marks that occur within the URI' do
+        input     = 'Try ftp://example.com/fun!.html.'
+        expected  = %Q{<p>Try <a href="ftp://example.com/fun!.html" class="external">ftp://example.com/fun!.html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a question mark' do
+        input     = 'Try ftp://example.com/?'
+        expected  = %Q{<p>Try <a href="ftp://example.com/" class="external">ftp://example.com/</a>?</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on question marks that occur within the URI' do
+        input     = 'Try ftp://example.com/fun.html?q=foo.'
+        expected  = %Q{<p>Try <a href="ftp://example.com/fun.html?q=foo" class="external">ftp://example.com/fun.html?q=foo</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a semi-colon' do
+        input     = 'Try ftp://example.com/;'
+        expected  = %Q{<p>Try <a href="ftp://example.com/" class="external">ftp://example.com/</a>;</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on semi-colons that occur within the URI' do
+        input     = 'Try ftp://example.com/fun;edit.'
+        expected  = %Q{<p>Try <a href="ftp://example.com/fun;edit" class="external">ftp://example.com/fun;edit</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a right parenthesis' do
+        input     = '(Try ftp://example.com/)'
+        expected  = %Q{<p>(Try <a href="ftp://example.com/" class="external">ftp://example.com/</a>)</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on right-parentheses that occur within the URI' do
+        input     = 'Try ftp://example.com/(fun).html.'
+        expected  = %Q{<p>Try <a href="ftp://example.com/(fun).html" class="external">ftp://example.com/(fun).html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+    end
+
+    # note: these are just like the HTTP specs seeing as both URI types are treated the same syntactically
+    # (even though these aren't "real" SVN URIs)
+    describe 'after SVN URIs' do
+      it 'should terminate if followed by a period' do
+        input     = 'Try svn://example.com/.'
+        expected  = %Q{<p>Try <a href="svn://example.com/" class="external">svn://example.com/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on periods that occur within the URI' do
+        input     = 'Try svn://www.example.com/.'
+        expected  = %Q{<p>Try <a href="svn://www.example.com/" class="external">svn://www.example.com/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a colon' do
+        input     = 'Try svn://example.com/:'
+        expected  = %Q{<p>Try <a href="svn://example.com/" class="external">svn://example.com/</a>:</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on colons that occur within the URI' do
+        input     = 'Try svn://example.com:3000/.'
+        expected  = %Q{<p>Try <a href="svn://example.com:3000/" class="external">svn://example.com:3000/</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a comma' do
+        input     = 'Try svn://example.com/,'
+        expected  = %Q{<p>Try <a href="svn://example.com/" class="external">svn://example.com/</a>,</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on commas that occur within the URI' do
+        input     = 'Try svn://example.com/2008,10,12,index.html.'
+        expected  = %Q{<p>Try <a href="svn://example.com/2008,10,12,index.html" class="external">svn://example.com/2008,10,12,index.html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by an exclamation mark' do
+        input     = 'Try svn://example.com/!'
+        expected  = %Q{<p>Try <a href="svn://example.com/" class="external">svn://example.com/</a>!</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on exclamation marks that occur within the URI' do
+        input     = 'Try svn://example.com/fun!.html.'
+        expected  = %Q{<p>Try <a href="svn://example.com/fun!.html" class="external">svn://example.com/fun!.html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a question mark' do
+        input     = 'Try svn://example.com/?'
+        expected  = %Q{<p>Try <a href="svn://example.com/" class="external">svn://example.com/</a>?</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on question marks that occur within the URI' do
+        input     = 'Try svn://example.com/fun.html?q=foo'
+        expected  = %Q{<p>Try <a href="svn://example.com/fun.html?q=foo" class="external">svn://example.com/fun.html?q=foo</a></p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a semi-colon' do
+        input     = 'Try svn://example.com/;'
+        expected  = %Q{<p>Try <a href="svn://example.com/" class="external">svn://example.com/</a>;</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on semi-colons that occur within the URI' do
+        input     = 'Try svn://example.com/fun;edit.'
+        expected  = %Q{<p>Try <a href="svn://example.com/fun;edit" class="external">svn://example.com/fun;edit</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a right parenthesis' do
+        input     = '(Try svn://example.com/)'
+        expected  = %Q{<p>(Try <a href="svn://example.com/" class="external">svn://example.com/</a>)</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on right-parentheses that occur within the URI' do
+        input     = 'Try svn://example.com/(fun).html.'
+        expected  = %Q{<p>Try <a href="svn://example.com/(fun).html" class="external">svn://example.com/(fun).html</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+    end
+
+    # fewer specs here because the range of "mailto:" URIs recognized by the scanner is more limited
+    # (compared with, say, HTTP or HTTPS)
+    describe 'after "mailto:" URIs' do
+      it 'should terminate if followed by a period' do
+        input     = 'Try mailto:user@example.com.'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on periods that occur within the URI' do
+        input     = 'Try mailto:user.name@example.com.'
+        expected  = %Q{<p>Try <a href="mailto:user.name@example.com" class="external">mailto:user.name@example.com</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a colon' do
+        input     = 'Try mailto:user@example.com:'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>:</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a comma' do
+        input     = 'Try mailto:user@example.com,'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>,</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by an exclamation mark' do
+        input     = 'Try mailto:user@example.com!'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>!</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a question mark' do
+        input     = 'Try mailto:user@example.com?'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>?</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on question marks that occur within the URI' do
+        pending
+        # this kind of autolink never worked (will require changes to the Ragel scanner)
+        input     = 'Try mailto:user@example.com?subject=foo?'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com?subject=foo" class="external">mailto:user@example.com?subject=foo</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a semi-colon' do
+        input     = 'Try mailto:user@example.com;'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>;</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a right parenthesis' do
+        input     = '(Try mailto:user@example.com)'
+        expected  = %Q{<p>(Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>)</p>\n}
+        @parser.parse(input).should == expected
+      end
+    end
+
+    describe 'after email addresses' do
+      it 'should terminate if followed by a period' do
+        input     = 'Try user@example.com.'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">user@example.com</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should not terminate on periods that occur within the email address' do
+        input     = 'Try user.name@example.com.'
+        expected  = %Q{<p>Try <a href="mailto:user.name@example.com" class="mailto">user.name@example.com</a>.</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a colon' do
+        input     = 'Try user@example.com:'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">user@example.com</a>:</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a comma' do
+        input     = 'Try user@example.com,'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">user@example.com</a>,</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by an exclamation mark' do
+        input     = 'Try user@example.com!'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">user@example.com</a>!</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a question mark' do
+        input     = 'Try user@example.com?'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">user@example.com</a>?</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a semi-colon' do
+        input     = 'Try user@example.com;'
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">user@example.com</a>;</p>\n}
+        @parser.parse(input).should == expected
+      end
+
+      it 'should terminate if followed by a right parenthesis' do
+        input     = '(Try user@example.com)'
+        expected  = %Q{<p>(Try <a href="mailto:user@example.com" class="mailto">user@example.com</a>)</p>\n}
+        @parser.parse(input).should == expected
+      end
+    end
+  end
 end
