@@ -580,5 +580,21 @@ describe Wikitext::Parser, 'autolinking' do
         @parser.parse(input).should == expected
       end
     end
+
+    describe 'before HTTP URIs' do
+      it 'should handle left parenthesis before' do
+        input = "The site (http://example.com/)"
+        expected = %Q{<p>The site (<a href="http://example.com/" class="external">http://example.com/</a>)</p>\n}
+        @parser.parse(input).should == expected
+      end
+    end
+
+    describe 'before email addresses' do
+      it 'should handle left parenthesis before' do
+        input = "Email me (user@example.com)"
+        expected = %Q{<p>Email me (<a href="mailto:user@example.com" class="mailto">user@example.com</a>)</p>\n}
+        @parser.parse(input).should == expected
+      end
+    end
   end
 end
