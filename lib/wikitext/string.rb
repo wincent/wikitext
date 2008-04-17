@@ -29,7 +29,7 @@ private
   # for now do this in pure Ruby
   # if speed later becomes a concern can whip up a Ragel C extension to do it
   def wikitext_preprocess
-    gsub /\b(bug|issue|request) #(\d+)/i, '[[issues/\2|\1 #\2]]'
+    gsub /\b(bug|issue|request|ticket) #(\d+)/i, '[[issues/\2|\1 #\2]]'
   end
 
 end
