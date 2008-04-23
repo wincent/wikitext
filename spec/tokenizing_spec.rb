@@ -56,7 +56,7 @@ describe Wikitext::Parser, 'tokenizing' do
   it 'should tokenize strings containing a single symbol' do
     @tokens = @parser.tokenize('foo')
     @tokens.length.should == 2
-    @tokens[0].token_type.should    == :printable
+    @tokens[0].token_type.should    == :alnum
     @tokens[0].string_value.should  == 'foo'
     @tokens[1].token_type.should    == :end_of_file
     @tokens[1].string_value.should  == ''
@@ -65,7 +65,7 @@ describe Wikitext::Parser, 'tokenizing' do
   it 'should tokenize strings containing multiple symbols' do
     @tokens = @parser.tokenize('foo http://example.com/')
     @tokens.length.should == 4
-    @tokens[0].token_type.should    == :printable
+    @tokens[0].token_type.should    == :alnum
     @tokens[0].string_value.should  == 'foo'
     @tokens[1].token_type.should    == :space
     @tokens[1].string_value.should  == ' '
@@ -78,7 +78,7 @@ describe Wikitext::Parser, 'tokenizing' do
   it 'should tokenize runs of printable characters as as single symbol' do
     @tokens = @parser.tokenize('foo')
     @tokens.length.should == 2
-    @tokens[0].token_type.should    == :printable
+    @tokens[0].token_type.should    == :alnum
     @tokens[0].string_value.should  == 'foo'
     @tokens[0].line_start.should    == 1
     @tokens[0].column_start.should  == 1

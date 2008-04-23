@@ -91,6 +91,7 @@ enum token_types {
     CRLF,
     SPECIAL_URI_CHARS,
     PRINTABLE,
+    ALNUM,
     DEFAULT,
     END_OF_FILE
 };

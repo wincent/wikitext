@@ -416,13 +416,19 @@
             fbreak;
         };
 
+        alnum+
+        {
+            EMIT(ALNUM);
+            fbreak;
+        };
+
         # all the printable ASCII characters (0x20 to 0x7e) excluding those explicitly covered elsewhere:
         # we skip space (0x20), exclamation mark (0x21), quote (0x22), hash (0x23), ampersand (0x26), apostrophe (0x27),
-        # left parenthesis (0x28), right parenthesis (0x29), asterisk (0x2a), comma (0x2c), period (0x2e), colon (0x3a),
-        # semi-colon (0x3b), less than (0x3c), equals (0x3d), greater than (0x3e), question mark (0x3f), left bracket (0x5b),
-        # right bracket (0x5d), backtick (0x60), left curly brace (0x7b), vertical bar (0x7c) and
-        # right curly brace (0x7d).
-        (0x24..0x25 | 0x2b | 0x2d | 0x2f..0x39 | 0x40..0x5a | 0x5c | 0x5e..0x5f | 0x61..0x7a | 0x7e)+
+        # left parenthesis (0x28), right parenthesis (0x29), numbers (0x30..0x39), asterisk (0x2a), comma (0x2c), period (0x2e),
+        # colon (0x3a), semi-colon (0x3b), less than (0x3c), equals (0x3d), greater than (0x3e), question mark (0x3f), uppercase
+        # letters (0x41..0x5a), left bracket (0x5b), right bracket (0x5d), backtick (0x60), lowercase letters (0x61..0x7a), left
+        # curly brace (0x7b), vertical bar (0x7c) and right curly brace (0x7d).
+        (0x24..0x25 | 0x2b | 0x2d | 0x2f | 0x40 | 0x5c | 0x5e..0x5f | 0x7e)+
         {
             EMIT(PRINTABLE);
             fbreak;

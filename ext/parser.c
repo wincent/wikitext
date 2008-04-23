@@ -1912,7 +1912,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             //          example [[foo €]]
             //          renders <a href="/wiki/Foo_%E2%82%AC">foo €</a>
             // we'll impose similar restrictions here for the link target; allowed tokens will be:
-            //      SPACE, SPECIAL_URI_CHARS, PRINTABLE, DEFAULT, QUOT and AMP
+            //      SPACE, SPECIAL_URI_CHARS, PRINTABLE, ALNUM, DEFAULT, QUOT and AMP
             // everything else will be rejected
             case LINK_START:
                 i = NIL_P(parser->capture) ? parser->output : parser->capture;
@@ -1947,6 +1947,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         if (type == SPACE               ||
                             type == SPECIAL_URI_CHARS   ||
                             type == PRINTABLE           ||
+                            type == ALNUM               ||
                             type == DEFAULT             ||
                             type == QUOT                ||
                             type == QUOT_ENTITY         ||
@@ -2218,13 +2219,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
 
-                    // scan ahead consuming PRINTABLE and SPECIAL_URI_CHARS tokens
+                    // scan ahead consuming PRINTABLE, ALNUM and SPECIAL_URI_CHARS tokens
                     // will cheat here and abuse the link_target capture buffer to accumulate text
                     if (NIL_P(parser->link_target))
                         parser->link_target = rb_str_new2("");
                     while (NEXT_TOKEN(), (type = token->type))
                     {
-                        if (type == PRINTABLE || type == SPECIAL_URI_CHARS)
+                        if (type == PRINTABLE || type == ALNUM || type == SPECIAL_URI_CHARS)
                             rb_str_cat(parser->link_target, token->start, TOKEN_LEN(token));
                         else if (type == IMG_END)
                         {
@@ -2332,6 +2333,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case SPECIAL_URI_CHARS:
             case PRINTABLE:
+            case ALNUM:
             case IMG_END:
             case LEFT_CURLY:
             case RIGHT_CURLY:
