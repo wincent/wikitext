@@ -744,4 +744,22 @@ describe Wikitext::Parser, 'regressions' do
     END
     @parser.parse(input).should == expected
   end
+
+  # discovered at: http://rails.wincent.com/wiki/Testing_cookies_in_Rails
+  it 'should handle BLOCKQUOTE_START blocks which follow lists' do
+    # example text taken from wiki article and edited for brevity
+    input = dedent <<-END
+      * This article
+      <blockquote>The cookies</blockquote>
+    END
+    expected = dedent <<-END
+      <ul>
+        <li>This article</li>
+      </ul>
+      <blockquote>
+        <p>The cookies</p>
+      </blockquote>
+    END
+    @parser.parse(input).should == expected
+  end
 end

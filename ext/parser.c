@@ -1170,7 +1170,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     ary_push(parser->scope, BLOCKQUOTE_START);
                     ary_push(parser->line, BLOCKQUOTE_START);
                 }
-                else if (parser->scope->count == 0 || (IN(P) && !IN(BLOCKQUOTE)))
+                else if (IN(BLOCKQUOTE))
+                {
+                    // illegal here
+                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
+                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_start_para_if_necessary(parser);
+                    rb_str_cat(i, escaped_blockquote_start, sizeof(escaped_blockquote_start) - 1);
+                }
+                else
                 {
                     // would be nice to eliminate the repetition here but it's probably the clearest way
                     _Wikitext_rollback_failed_link(parser);             // if any
@@ -1181,14 +1189,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
                     ary_push(parser->scope, BLOCKQUOTE_START);
                     ary_push(parser->line, BLOCKQUOTE_START);
-                }
-                else
-                {
-                    // everywhere else, BLOCKQUOTE_START is illegal (in LI, BLOCKQUOTE, H1_START etc)
-                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
-                    rb_str_cat(i, escaped_blockquote_start, sizeof(escaped_blockquote_start) - 1);
                 }
                 break;
 
