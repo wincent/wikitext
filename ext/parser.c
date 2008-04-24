@@ -162,6 +162,7 @@ VALUE Wikitext_parser_fulltext_tokenize(VALUE self, VALUE string)
 {
     if (NIL_P(string))
         return Qnil;
+    long min_len = 3;
     string = StringValue(string);
     VALUE tokens = rb_ary_new();
     char *p = RSTRING_PTR(string);
@@ -177,7 +178,8 @@ VALUE Wikitext_parser_fulltext_tokenize(VALUE self, VALUE string)
             case URI:
             case MAIL:
             case ALNUM:
-                rb_ary_push(tokens, TOKEN_TEXT(_token));
+                if (TOKEN_LEN(_token) >= min_len)
+                    rb_ary_push(tokens, TOKEN_TEXT(_token));
                 break;
             default:
                 // ignore everything else
