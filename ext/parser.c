@@ -158,13 +158,31 @@ VALUE Wikitext_parser_benchmarking_tokenize(VALUE self, VALUE string)
     return Qnil;
 }
 
-VALUE Wikitext_parser_fulltext_tokenize(VALUE self, VALUE string)
+VALUE Wikitext_parser_fulltext_tokenize(int argc, VALUE *argv, VALUE self)
 {
+    // process arguments
+    VALUE string, options;
+    if (rb_scan_args(argc, argv, "11", &string, &options) == 1) // 1 mandatory argument, 1 optional argument
+        options = Qnil;
     if (NIL_P(string))
         return Qnil;
-    long min_len = 3;
     string = StringValue(string);
     VALUE tokens = rb_ary_new();
+
+    // check instance variables
+    VALUE min = rb_iv_get(self, "@minimum_fulltext_token_length");
+
+    // process options hash (can override instance variables)
+    if (!NIL_P(options) && TYPE(options) == T_HASH)
+    {
+        if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("minimum"))) == Qtrue)
+            min = rb_hash_aref(options, ID2SYM(rb_intern("minimum")));
+    }
+    int min_len = NIL_P(min) ? 3 : NUM2INT(min);
+    if (min_len < 0)
+        min_len = 0;
+
+    // set up scanner
     char *p = RSTRING_PTR(string);
     long len = RSTRING_LEN(string);
     char *pe = p + len;
@@ -881,39 +899,42 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
         options = Qnil;
 
     // defaults
-    VALUE autolink                  = Qtrue;
-    VALUE line_ending               = rb_str_new2("\n");
-    VALUE external_link_class       = rb_str_new2("external");
-    VALUE mailto_class              = rb_str_new2("mailto");
-    VALUE internal_link_prefix      = rb_str_new2("/wiki/");
-    VALUE img_prefix                = rb_str_new2("/images/");
-    VALUE space_to_underscore       = Qfalse;
-    VALUE treat_slash_as_special    = Qtrue;
+    VALUE autolink                      = Qtrue;
+    VALUE line_ending                   = rb_str_new2("\n");
+    VALUE external_link_class           = rb_str_new2("external");
+    VALUE mailto_class                  = rb_str_new2("mailto");
+    VALUE internal_link_prefix          = rb_str_new2("/wiki/");
+    VALUE img_prefix                    = rb_str_new2("/images/");
+    VALUE space_to_underscore           = Qfalse;
+    VALUE treat_slash_as_special        = Qtrue;
+    VALUE minimum_fulltext_token_length = INT2NUM(3);
 
     // process options hash (override defaults)
     if (!NIL_P(options) && TYPE(options) == T_HASH)
     {
 #define OVERRIDE_IF_SET(name)   rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern(#name))) == Qtrue ? \
                                 rb_hash_aref(options, ID2SYM(rb_intern(#name))) : name
-        autolink                = OVERRIDE_IF_SET(autolink);
-        line_ending             = OVERRIDE_IF_SET(line_ending);
-        external_link_class     = OVERRIDE_IF_SET(external_link_class);
-        mailto_class            = OVERRIDE_IF_SET(mailto_class);
-        internal_link_prefix    = OVERRIDE_IF_SET(internal_link_prefix);
-        img_prefix              = OVERRIDE_IF_SET(img_prefix);
-        space_to_underscore     = OVERRIDE_IF_SET(space_to_underscore);
-        treat_slash_as_special  = OVERRIDE_IF_SET(treat_slash_as_special);
+        autolink                        = OVERRIDE_IF_SET(autolink);
+        line_ending                     = OVERRIDE_IF_SET(line_ending);
+        external_link_class             = OVERRIDE_IF_SET(external_link_class);
+        mailto_class                    = OVERRIDE_IF_SET(mailto_class);
+        internal_link_prefix            = OVERRIDE_IF_SET(internal_link_prefix);
+        img_prefix                      = OVERRIDE_IF_SET(img_prefix);
+        space_to_underscore             = OVERRIDE_IF_SET(space_to_underscore);
+        treat_slash_as_special          = OVERRIDE_IF_SET(treat_slash_as_special);
+        minimum_fulltext_token_length   = OVERRIDE_IF_SET(minimum_fulltext_token_length);
     }
 
     // no need to call super here; rb_call_super()
-    rb_iv_set(self, "@autolink",                autolink);
-    rb_iv_set(self, "@line_ending",             line_ending);
-    rb_iv_set(self, "@external_link_class",     external_link_class);
-    rb_iv_set(self, "@mailto_class",            mailto_class);
-    rb_iv_set(self, "@internal_link_prefix",    internal_link_prefix);
-    rb_iv_set(self, "@img_prefix",              img_prefix);
-    rb_iv_set(self, "@space_to_underscore",     space_to_underscore);
-    rb_iv_set(self, "@treat_slash_as_special",  treat_slash_as_special);
+    rb_iv_set(self, "@autolink",                        autolink);
+    rb_iv_set(self, "@line_ending",                     line_ending);
+    rb_iv_set(self, "@external_link_class",             external_link_class);
+    rb_iv_set(self, "@mailto_class",                    mailto_class);
+    rb_iv_set(self, "@internal_link_prefix",            internal_link_prefix);
+    rb_iv_set(self, "@img_prefix",                      img_prefix);
+    rb_iv_set(self, "@space_to_underscore",             space_to_underscore);
+    rb_iv_set(self, "@treat_slash_as_special",          treat_slash_as_special);
+    rb_iv_set(self, "@minimum_fulltext_token_length",   minimum_fulltext_token_length);
     return self;
 }
 

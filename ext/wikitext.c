@@ -32,7 +32,7 @@ void Init_wikitext()
     rb_define_method(cWikitextParser, "profiling_parse", Wikitext_parser_profiling_parse, 1);
     rb_define_method(cWikitextParser, "tokenize", Wikitext_parser_tokenize, 1);
     rb_define_method(cWikitextParser, "benchmarking_tokenize", Wikitext_parser_benchmarking_tokenize, 1);
-    rb_define_method(cWikitextParser, "fulltext_tokenize", Wikitext_parser_fulltext_tokenize, 1);
+    rb_define_method(cWikitextParser, "fulltext_tokenize", Wikitext_parser_fulltext_tokenize, -1);
     rb_define_singleton_method(cWikitextParser, "sanitize_link_target", Wikitext_parser_sanitize_link_target, 1);
     rb_define_singleton_method(cWikitextParser, "encode_link_target", Wikitext_parser_encode_link_target, 1);
     rb_define_singleton_method(cWikitextParser, "encode_special_link_target", Wikitext_parser_encode_special_link_target, 1);
@@ -44,6 +44,7 @@ void Init_wikitext()
     rb_define_attr(cWikitextParser, "autolink", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "treat_slash_as_special", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "space_to_underscore", Qtrue, Qtrue);
+    rb_define_attr(cWikitextParser, "minimum_fulltext_token_length", Qtrue, Qtrue);
 
     // Wikitext::Parser::Error
     eWikitextParserError = rb_define_class_under(cWikitextParser, "Error", rb_eException);
