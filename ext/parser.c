@@ -158,6 +158,36 @@ VALUE Wikitext_parser_benchmarking_tokenize(VALUE self, VALUE string)
     return Qnil;
 }
 
+VALUE Wikitext_parser_fulltext_tokenize(VALUE self, VALUE string)
+{
+    if (NIL_P(string))
+        return Qnil;
+    string = StringValue(string);
+    VALUE tokens = rb_ary_new();
+    char *p = RSTRING_PTR(string);
+    long len = RSTRING_LEN(string);
+    char *pe = p + len;
+    token_t token;
+    token_t *_token = &token;
+    next_token(&token, NULL, p, pe);
+    while (token.type != END_OF_FILE)
+    {
+        switch (token.type)
+        {
+            case URI:
+            case MAIL:
+            case ALNUM:
+                rb_ary_push(tokens, TOKEN_TEXT(_token));
+                break;
+            default:
+                // ignore everything else
+                break;
+        }
+        next_token(&token, &token, NULL, pe);
+    }
+    return tokens;
+}
+
 // we downcase "in place", overwriting the original contents of the buffer and returning the same string
 VALUE _Wikitext_downcase(VALUE string)
 {

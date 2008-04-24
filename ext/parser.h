@@ -20,6 +20,8 @@ VALUE Wikitext_parser_tokenize(VALUE self, VALUE string);
 
 VALUE Wikitext_parser_benchmarking_tokenize(VALUE self, VALUE string);
 
+VALUE Wikitext_parser_fulltext_tokenize(VALUE self, VALUE string);
+
 VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string);
 
 VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in);

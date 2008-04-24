@@ -32,6 +32,7 @@ void Init_wikitext()
     rb_define_method(cWikitextParser, "profiling_parse", Wikitext_parser_profiling_parse, 1);
     rb_define_method(cWikitextParser, "tokenize", Wikitext_parser_tokenize, 1);
     rb_define_method(cWikitextParser, "benchmarking_tokenize", Wikitext_parser_benchmarking_tokenize, 1);
+    rb_define_method(cWikitextParser, "fulltext_tokenize", Wikitext_parser_fulltext_tokenize, 1);
     rb_define_singleton_method(cWikitextParser, "sanitize_link_target", Wikitext_parser_sanitize_link_target, 1);
     rb_define_singleton_method(cWikitextParser, "encode_link_target", Wikitext_parser_encode_link_target, 1);
     rb_define_singleton_method(cWikitextParser, "encode_special_link_target", Wikitext_parser_encode_special_link_target, 1);
