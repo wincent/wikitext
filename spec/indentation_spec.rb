@@ -47,12 +47,12 @@ describe Wikitext::Parser, 'indentation' do
   end
 
   it 'should complain if the "indent" option is nil' do
-    lambda { @parser.parse('* foo', :default => nil) }.should raise_error(TypeError)
+    lambda { @parser.parse('* foo', :indent => nil) }.should raise_error(TypeError)
   end
 
   it 'should complain if the "indent" options is not an integer' do
-    lambda { @parser.parse('* foo', :default => 'bar') }.should raise_error(TypeError)
-    lambda { @parser.parse('* foo', :default => /baz/) }.should raise_error(TypeError)
+    lambda { @parser.parse('* foo', :indent => 'bar') }.should raise_error(TypeError)
+    lambda { @parser.parse('* foo', :indent => /baz/) }.should raise_error(TypeError)
   end
 
   it 'should treat a negative "indent" as though it were zero' do

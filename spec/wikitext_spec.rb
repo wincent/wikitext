@@ -88,6 +88,12 @@ describe Wikitext::Parser do
       Wikitext::Parser.new(:treat_slash_as_special => false).treat_slash_as_special.should == false
     end
   end
+
+  describe 'overriding defaults at parse time' do
+    it 'should ignore unknown options' do
+      @parser.parse('foo', :bar => 'baz').should == "<p>foo</p>\n"
+    end
+  end
 end
 
 describe Wikitext::Parser, 'parsing non-ASCII input' do

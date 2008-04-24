@@ -939,10 +939,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     VALUE indent = Qnil;
     if (!NIL_P(options) && TYPE(options) == T_HASH)
     {
-        indent = rb_hash_aref(options, ID2SYM(rb_intern("indent")));
-        base_indent = NUM2INT(indent);
-        if (base_indent < 0)
-            base_indent = 0;
+        if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("indent"))) == Qtrue)
+        {
+            indent = rb_hash_aref(options, ID2SYM(rb_intern("indent")));
+            base_indent = NUM2INT(indent);
+            if (base_indent < 0)
+                base_indent = 0;
+        }
     }
 
     // set up scanner
