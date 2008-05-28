@@ -25,4 +25,10 @@ module Wikitext
   end
 end
 
-ActionView::Base.register_template_handler :wikitext, Wikitext::TemplateHandler
+if ActionView::Template.respond_to? :register_template_handler  # Rails 2.1.0_RC1 and above
+  ActionView::Template.register_template_handler :wikitext, Wikitext::TemplateHandler
+elsif ActionView::Base.respond_to? :register_template_handler   # Rails 2.0.2
+  ActionView::Base.register_template_handler :wikitext, Wikitext::TemplateHandler
+else
+  raise "Incompatible Rails API version (can't find register_template_handler method)"
+end
