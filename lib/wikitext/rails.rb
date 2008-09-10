@@ -16,8 +16,7 @@ require 'wikitext/string'
 
 module Wikitext
   class TemplateHandler
-    def initialize view
-    end
+    def initialize view; end
 
     def render text, locals = {}
       text.w
