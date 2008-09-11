@@ -107,7 +107,7 @@ SPEC = Gem::Specification.new do |s|
   ENDDESC
   s.require_paths     = ['ext', 'lib']
   s.has_rdoc          = true
-  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}', 'ext/depend', 'lib/wikitext/*'].to_a
+  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}', 'ext/depend', 'lib/wikitext/*', 'rails/init.rb'].to_a
   s.extensions        = ['ext/extconf.rb']
 end
 
