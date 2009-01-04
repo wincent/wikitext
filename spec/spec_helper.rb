@@ -1,4 +1,4 @@
-# Copyright 2007-2008 Wincent Colaiuta
+# Copyright 2007-2009 Wincent Colaiuta
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -43,12 +43,13 @@ def dedent spaces, string = nil
 end
 
 module Wikitext
-  if not const_defined? 'EXTDIR'
+  if not const_defined? 'BASEDIR'
     # prepend the local "ext" directory to search path if not already present
-    base        = File.join(File.dirname(__FILE__), '..')
-    EXTDIR      = Pathname.new(File.join(base, 'ext')).realpath
+    BASEDIR     = Pathname.new(__FILE__).dirname + '..'
+    extdir      = (BASEDIR + 'ext').realpath
+    libdir      = (BASEDIR + 'lib').realpath
     normalized  = $:.collect { |path| Pathname.new(path).realpath rescue path }
-    $:.unshift(EXTDIR) unless normalized.include?(EXTDIR)
+    [libdir, extdir].each { |d| $:.unshift(d) unless normalized.include?(d) }
   end
 end # module Wikitext
 
