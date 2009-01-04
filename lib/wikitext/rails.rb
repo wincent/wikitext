@@ -16,10 +16,10 @@ require 'wikitext/string'
 
 module Wikitext
   class TemplateHandler
-
-    # tested with Rails 2.2.2: the API has now changed so many times that I'm no longer going to support older versions of Rails
     def self.call template
       'template.source.w'
     end
   end
 end
+
+ActionView::Template.register_template_handler :wikitext, Wikitext::TemplateHandler
