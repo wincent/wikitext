@@ -53,9 +53,11 @@ module RailsSpecs
 
   def clone
     if File.exist? CLONE_PATH
-      system "cd #{CLONE_PATH} && git fetch"
+      FileUtils.cd CLONE_PATH do
+        run 'git', 'fetch'
+      end
     else
-      system "git clone git://github.com/rails/rails.git #{CLONE_PATH}"
+      run 'git', 'clone', 'git://github.com/rails/rails.git', CLONE_PATH
     end
   end
 
@@ -67,17 +69,24 @@ module RailsSpecs
     clone
     FileUtils.rm_r(app) if File.exist?(app)
     yield
-    system "ruby #{RAILS_PATH} #{app}"
+    run 'ruby', RAILS_PATH, app
     vendor = app + 'vendor'
     gems = vendor + 'gems'
-    system "cd #{vendor} && ln -s ../../rails.git rails"
+    FileUtils.cd vendor do
+      FileUtils.ln_s '../../rails.git', 'rails'
+    end
     FileUtils.mkdir gems
-    system "cd #{gems} && ln -s ../../../../.. wikitext-#{Wikitext::VERSION}"
+    FileUtils.cd gems do
+      FileUtils.ln_s '../../../../..', "wikitext-#{Wikitext::VERSION}"
+    end
   end
 
   def create_release_app version
     create_base_app_and_symlinks app_path(version) do
-      system "cd #{CLONE_PATH} && git checkout v#{version} && git clean -f"
+      FileUtils.cd CLONE_PATH do
+        run 'git', 'checkout', "v#{version}"
+        run 'git', 'clean', '-f'
+      end
     end
   end
 
@@ -135,14 +144,20 @@ TEST
 
   def create_edge_app
     create_base_app_and_symlinks EDGE_APP_PATH do
-      system "cd #{CLONE_PATH} && git checkout master && git merge origin/master && git clean -f"
+      FileUtils.cd CLONE_PATH do
+        run 'git', 'checkout', 'master'
+        run 'git', 'merge', 'origin/master'
+        run 'git', 'clean', '-f'
+      end
     end
   end
 
   def update_environment app
     environment =  app + 'config' + 'environment.rb'
     add_text_to_initializer "  config.gem 'wikitext', :version => '#{Wikitext::VERSION}'", environment
-    system "cd #{app} && rake gems:refresh_specs"
+    FileUtils.cd app do
+      run 'rake', 'gems:refresh_specs'
+    end
   end
 
   def setup_release_app version
@@ -163,8 +178,9 @@ TEST
   end
 
   def run_integration_test app
-    # TODO: use wopen3 here to capture output nicely
-    `cd #{app} && rake test:integration`
+    FileUtils.cd app do
+      return run('rake', 'test:integration').stdout
+    end
   end
 end # module RailsSpecs
 
