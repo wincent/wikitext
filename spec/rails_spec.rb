@@ -197,3 +197,16 @@ describe 'Template handler in Rails 2.2.2' do
     run_integration_test(@path).should =~ /1 tests, 3 assertions, 0 failures, 0 errors/
   end
 end
+
+describe 'Template handler in Edge Rails' do
+  include RailsSpecs
+
+  before(:all) do
+    setup_edge_app
+    @path = RailsSpecs::EDGE_APP_PATH
+  end
+
+  it 'should process the template using the wikitext module' do
+    run_integration_test(@path).should =~ /1 tests, 3 assertions, 0 failures, 0 errors/
+  end
+end
