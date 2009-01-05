@@ -17,13 +17,32 @@ require File.join(File.dirname(__FILE__), 'spec_helper.rb')
 require 'wikitext/version'
 require 'fileutils'
 require 'pathname'
+require 'wopen3'
+require 'ostruct'
 
-# TODO: silence stdout for these commands; want the specs to run silently unless errors occur
 module RailsSpecs
   TRASH_PATH    = Pathname.new(__FILE__).dirname + 'trash'
   CLONE_PATH    = TRASH_PATH + 'rails.git'
   RAILS_PATH    = CLONE_PATH + 'railties' + 'bin' + 'rails'
   EDGE_APP_PATH = TRASH_PATH + 'edge-app'
+
+  def run cmd, *args
+    result = OpenStruct.new
+    result.stdout = ''
+    result.stderr = ''
+    Wopen3.popen3(*([cmd] + args)) do |stdin, stdout, stderr|
+      threads = []
+      threads << Thread.new(stdout) do |out|
+        out.each { |line| result.stdout << line }
+      end
+      threads << Thread.new(stderr) do |err|
+        err.each { |line| result.stderr << line }
+      end
+      threads.each { |thread| thread.join }
+    end
+    result.status = $?.exitstatus
+    result
+  end
 
   def clone
     if File.exist? CLONE_PATH
