@@ -40,7 +40,14 @@ module RailsSpecs
       end
       threads.each { |thread| thread.join }
     end
-    result.status = $?.exitstatus
+    status = $?.exitstatus
+    if status != 0
+      command_string = ([cmd] + args).join(' ')
+      puts "*** COMMAND #{command_string} EXITED WITH NON-ZERO EXIT STATUS (#{status})"
+      puts "*** STDOUT FOR COMMAND #{command_string}:", result.stdout
+      puts "*** STDERR FOR COMMAND #{command_string}:", result.stderr
+      raise "non-zero exit status (#{status}) for '#{cmd}'"
+    end
     result
   end
 
