@@ -38,6 +38,7 @@ module RailsSpecs
   end
 
   def create_base_app_and_symlinks app, &block
+    clone
     FileUtils.rm_r(app) if File.exist?(app)
     yield
     system "ruby #{RAILS_PATH} #{app}"
@@ -45,7 +46,7 @@ module RailsSpecs
     gems = vendor + 'gems'
     system "cd #{vendor} && ln -s ../../rails.git rails"
     FileUtils.mkdir gems
-    system "cd #{gems} && ln -s ../../../../.. wikitext-#{Wikitext::VERSION}" 
+    system "cd #{gems} && ln -s ../../../../.. wikitext-#{Wikitext::VERSION}"
   end
 
   def create_release_app version
@@ -69,7 +70,41 @@ module RailsSpecs
   end
 
   def add_text_to_initializer text, infile
-    insert text, 'Rails::Initializer.run do', infile 
+    insert text, 'Rails::Initializer.run do', infile
+  end
+
+  def create_controller app
+    File.open(app + 'app' + 'controllers' + 'wiki_controller.rb', 'w') do |f|
+      f.write 'class WikiController < ApplicationController; end'
+    end
+  end
+
+  def create_template app
+    template_dir = app + 'app' + 'views' + 'wiki'
+    FileUtils.mkdir template_dir
+    File.open(template_dir + 'index.html.wikitext', 'w') do |f|
+      f.write '* hello, world!'
+    end
+  end
+
+  def create_test app
+    # integration tests won't run without a schema.rb
+    FileUtils.touch app + 'db' + 'schema.rb'
+
+    File.open(app + 'test' + 'integration' + 'wiki_test.rb', 'w') do |f|
+      f.write <<'TEST'
+require File.join(File.dirname(__FILE__), '..', 'test_helper')
+
+class WikiTest < ActionController::IntegrationTest
+  def test_wiki_index
+    get "/wiki"
+    assert_response :success
+    assert_template "wiki/index"
+    assert_select 'ul>li', 'hello, world!'
+  end
+end
+TEST
+      end
   end
 
   def create_edge_app
@@ -85,32 +120,25 @@ module RailsSpecs
   end
 
   def setup_release_app version
-    clone
     create_release_app version
-    update_environment app_path(version)
+    path = app_path(version)
+    update_environment path
+    create_controller path
+    create_template path
+    create_test path
   end
 
   def setup_edge_app
-    clone
     create_edge_app
     update_environment EDGE_APP_PATH
+    create_controller EDGE_APP_PATH
+    create_template EDGE_APP_PATH
+    create_test EDGE_APP_PATH
   end
 
-  # TODO: instead of actually launching server, leverage Rails integration tests
-  def launch_release_app version
-    system "cd #{app_path(version)} && ./script/server -d"
-  end
-
-  def launch_edge_app
-    system "cd #{EDGE_APP_PATH} && ./script/server -d"
-  end
-
-  def stop_release_app version
-    system "kill `cat #{app_path(version)}/tmp/pids/mongrel.pid`"
-  end
-
-  def stop_edge_app
-    system "kill `cat #{EDGE_APP_PATH}/tmp/pids/mongrel.pid`"
+  def run_integration_test app
+    # TODO: use wopen3 here to capture output nicely
+    `cd #{app} && rake test:integration`
   end
 end # module RailsSpecs
 
@@ -120,33 +148,10 @@ describe 'Template handler in Rails 2.2.2' do
 
   before(:all) do
     setup_release_app version
-    launch_release_app version
-    # wait for it to finish launching
-  end
-
-  after(:all) do
-    stop_release_app version
+    @path = app_path(version)
   end
 
   it 'should process the template using the wikitext module' do
-    pending
-    # either use system "curl localhost:3000" here or some kind of module, Net::HTTP
+    run_integration_test(@path).should =~ /1 tests, 3 assertions, 0 failures, 0 errors/
   end
 end
-
-# TODO:
-#
-# create empty controller:
-#   class FooController < ApplicationController
-#   end
-#
-# and view:
-#  apps/views/foo/index.html.wikitext
-#
-# with content:
-#  * hello
-#
-# which should render as:
-#   <ul>
-#     <li>hello</li>
-#   </ul>
