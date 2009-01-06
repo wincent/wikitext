@@ -45,8 +45,8 @@ describe Wikitext::Parser do
     @parser.img_prefix.should == '/images/'
   end
 
-  it 'should turn space-to-underscore off by default' do
-    @parser.space_to_underscore.should == false
+  it 'should turn space-to-underscore on by default' do
+    @parser.space_to_underscore.should == true
   end
 
   it 'should treat slash as special by default' do
@@ -81,7 +81,7 @@ describe Wikitext::Parser do
     end
 
     it 'should allow overriding of space-to-underscore' do
-      Wikitext::Parser.new(:space_to_underscore => true).space_to_underscore.should == true
+      Wikitext::Parser.new(:space_to_underscore => false).space_to_underscore.should == false
     end
 
     it 'should allow overriding of treat slash as special' do

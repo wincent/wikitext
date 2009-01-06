@@ -271,7 +271,7 @@ describe Wikitext::Parser, 'with large slab of input text' do
   # So add one long-running spec to hopefully catch any GC and memory-related bugs.
   it 'should work correctly during long runs (when Garbage Collection runs)' do
     input     = "a <strong>simple</strong> ''test'' of the [[wikitext parser]]"
-    expected  = %Q{<p>a <strong>simple</strong> <em>test</em> of the <a href="/wiki/wikitext%20parser">wikitext parser</a></p>\n}
+    expected  = %Q{<p>a <strong>simple</strong> <em>test</em> of the <a href="/wiki/wikitext_parser">wikitext parser</a></p>\n}
     100_000.times { @parser.parse(input).should == expected }
   end
 end

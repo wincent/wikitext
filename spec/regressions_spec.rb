@@ -38,7 +38,7 @@ describe Wikitext::Parser, 'regressions' do
         <li>punto 1</li>
         <li>punto 2</li>
       </ul>
-      <p>Y <a href="/wiki/otro%20articulo">otro articulo</a>.</p>
+      <p>Y <a href="/wiki/otro_articulo">otro articulo</a>.</p>
     END
     @parser.parse(input).should == expected
   end
@@ -94,7 +94,7 @@ describe Wikitext::Parser, 'regressions' do
     END
     expected = dedent <<-END
       <ol>
-        <li>Turn off the <a href="/wiki/Movable%20Type">Movable Type</a> search function; use Google instead (it's better anyway) with a form something like this:</li>
+        <li>Turn off the <a href="/wiki/Movable_Type">Movable Type</a> search function; use Google instead (it's better anyway) with a form something like this:</li>
       </ol>
       <pre>&lt;form method=&quot;get&quot;...&gt;</pre>
     END

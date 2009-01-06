@@ -106,11 +106,11 @@ module Wikitext
   # Whether spaces in link targets should be encoded normally or transformed
   # into underscores.
   #
-  # When false (the default), an internal link like:
+  # When false, an internal link like:
   #   [[foo bar]]
   # Would be converted into:
   #   <a href="/wiki/foo%20bar">foo bar</a>
-  # But when true, it would be converted into:
+  # But when true (the default), it would be converted into:
   #   <a href="/wiki/foo_bar">foo bar</a>
   #
   # Converting spaces to underscores makes most URLs prettier, but it comes at

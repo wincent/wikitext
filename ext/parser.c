@@ -905,7 +905,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     VALUE mailto_class                  = rb_str_new2("mailto");
     VALUE internal_link_prefix          = rb_str_new2("/wiki/");
     VALUE img_prefix                    = rb_str_new2("/images/");
-    VALUE space_to_underscore           = Qfalse;
+    VALUE space_to_underscore           = Qtrue;
     VALUE treat_slash_as_special        = Qtrue;
     VALUE minimum_fulltext_token_length = INT2NUM(3);
 

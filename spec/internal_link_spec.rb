@@ -18,7 +18,7 @@ require 'wikitext'
 
 describe Wikitext::Parser, 'internal links (space to underscore off)' do
   before do
-    @parser = Wikitext::Parser.new
+    @parser = Wikitext::Parser.new :space_to_underscore => false
   end
 
   it 'should pass through unexpected link end tokens literally' do
@@ -447,7 +447,6 @@ end
 describe Wikitext::Parser, 'internal links (space to underscore on)' do
   before do
     @parser = Wikitext::Parser.new
-    @parser.space_to_underscore = true
   end
 
   it 'should pass through unexpected link end tokens literally' do
