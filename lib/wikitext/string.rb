@@ -12,16 +12,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'wikitext'
+require 'wikitext/parser'
 
 class String
-  def self.shared_wikitext_parser
-    @@shared_wikitext_parser ||= Wikitext::Parser.new(:space_to_underscore => true)
-  end
-
   def to_wikitext
-    @@shared_wikitext_parser ||= Wikitext::Parser.new(:space_to_underscore => true)
-    @@shared_wikitext_parser.parse wikitext_preprocess
+    Wikitext::Parser.shared_parser.parse wikitext_preprocess
   end
   alias :w :to_wikitext
 

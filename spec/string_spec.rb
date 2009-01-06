@@ -24,23 +24,4 @@ describe String, 'wikitext extensions' do
   it 'should provide a w method on all strings' do
     "'''strong'''".w.should == "<p><strong>strong</strong></p>\n"
   end
-
-  it 'should provide access to the shared parser instance for customization' do
-    String.shared_wikitext_parser.should be_instance_of(Wikitext::Parser)
-  end
-
-  it 'should persist customizations made to shared parser instance' do
-    # fisrt pass
-    parser                   = String.shared_wikitext_parser
-    original_prefix          = '/images/'
-    parser.img_prefix        = original_prefix
-    parser.img_prefix.should == original_prefix
-    '{{foo.png}}'.w.should   == %Q{<p><img src="/images/foo.png" alt="foo.png" /></p>\n}
-
-    # second pass
-    new_prefix               = '/totally-different-prefix/'
-    parser.img_prefix        = new_prefix
-    parser.img_prefix.should == new_prefix
-    '{{bar.png}}'.w.should   == %Q{<p><img src="/totally-different-prefix/bar.png" alt="bar.png" /></p>\n}
-  end
 end
