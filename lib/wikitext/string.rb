@@ -1,4 +1,4 @@
-# Copyright 2008 Wincent Colaiuta
+# Copyright 2008-2009 Wincent Colaiuta
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -15,6 +15,10 @@
 require 'wikitext'
 
 class String
+  def self.shared_wikitext_parser
+    @@shared_wikitext_parser ||= Wikitext::Parser.new(:space_to_underscore => true)
+  end
+
   def to_wikitext
     @@shared_wikitext_parser ||= Wikitext::Parser.new(:space_to_underscore => true)
     @@shared_wikitext_parser.parse wikitext_preprocess
@@ -25,6 +29,7 @@ private
 
   # for now do this in pure Ruby
   # if speed later becomes a concern can whip up a Ragel C extension to do it
+  # TODO: make this customizable (accept a lambda that performs preprocessing)
   def wikitext_preprocess
     gsub /\b(bug|issue|request|ticket) #(\d+)/i, '[[issues/\2|\1 #\2]]'
   end
