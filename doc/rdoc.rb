@@ -89,7 +89,7 @@ module Wikitext
   # other words, while:
   #     [[interesting article]]
   # is a wiki link (assuming the internal_link_prefix of "/wiki/"):
-  #     <a href="/wiki/interesting+article">interesting article</a>
+  #     <a href="/wiki/interesting_article">interesting article</a>
   # in contrast:
   #     [[issue/400]]
   # is interpreted as a link external to the wiki but internal to the site, and is converted into:
