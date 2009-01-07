@@ -159,7 +159,7 @@ Would be emitted as:
 
 Would be emitted as:
 
-  <blockquote><p>Hellow world! Bye for now.</blockquote>
+  <blockquote><p>Hello world! Bye for now.</blockquote>
 
 You can nest blockquotes or any other kind of block or span inside
 blockquotes. For example:
@@ -195,7 +195,7 @@ Would be translated into:
 
 Would become:
 
-  <a href="/wiki/article%20title">article title</a>
+  <a href="/wiki/article_title">article title</a>
 
 And:
 
