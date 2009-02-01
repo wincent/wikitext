@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Copyright 2007-2008 Wincent Colaiuta
+# Copyright 2007-2009 Wincent Colaiuta
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -92,6 +92,11 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
   it 'should handle mixed scenarios (quotes, ampersands, non-ASCII characers)' do
     expected = %Q{<p><a href="/wiki/foo%2c%20%22bar%22%20%26%20baz%20%e2%82%ac">foo, &quot;bar&quot; &amp; baz &#x20ac;</a></p>\n}
     @parser.parse('[[foo, "bar" & baz €]]').should == expected
+  end
+
+  it 'should handle embedded paths' do
+    expected = %Q{<p><a href="/wiki/foo%2fbar">foo/bar</a></p>\n}
+    @parser.parse('[[foo/bar]]').should == expected
   end
 
   it 'should handle links in paragraph flows' do
@@ -252,6 +257,11 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
       expected = %Q{<p><a href="/wiki/foo">bar ]</a></p>\n}
       @parser.parse("[[foo|bar <nowiki>]</nowiki>]]").should == expected
     end
+
+    it 'should handle paths in custom link text' do
+      expected = %Q{<p><a href="/wiki/hello%2fworld">foo/bar</a></p>\n}
+      @parser.parse('[[hello/world|foo/bar]]').should == expected
+    end
   end
 
   describe 'overriding the link prefix' do
@@ -266,36 +276,30 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
     end
   end
 
+  # "special links" existed in internal links up to and including wikitext version 1.3.2
+  # from version 1.4.0 onwards this feature was changed to instead work with external links
+  # as such, all of these specs have been updated to make sure that the old behaviour was removed
   describe 'special links' do
-    it 'should recognize links of the form "bug/10" as special links' do
-      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/bug/10">bug/10</a></p>\n}
-      @parser.parse('[[issue/25]]').should == %Q{<p><a href="/issue/25">issue/25</a></p>\n}
-      @parser.parse('[[post/7]]').should == %Q{<p><a href="/post/7">post/7</a></p>\n}
+    it 'should no longer recognize links of the form "bug/10" as special links' do
+      @parser.parse('[[bug/10]]').should    == %Q{<p><a href="/wiki/bug%2f10">bug/10</a></p>\n}
+      @parser.parse('[[issue/25]]').should  == %Q{<p><a href="/wiki/issue%2f25">issue/25</a></p>\n}
+      @parser.parse('[[post/7]]').should    == %Q{<p><a href="/wiki/post%2f7">post/7</a></p>\n}
     end
 
-    it 'should not recognize special links when "treat_slash_as_special" is set to false' do
-      @parser.treat_slash_as_special = false
-      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/wiki/bug%2f10">bug/10</a></p>\n}
-      @parser.parse('[[issue/25]]').should == %Q{<p><a href="/wiki/issue%2f25">issue/25</a></p>\n}
-      @parser.parse('[[post/7]]').should == %Q{<p><a href="/wiki/post%2f7">post/7</a></p>\n}
+    it 'should no longer accept custom link text in conjunction with special links' do
+      @parser.parse('[[bug/10|bug #10]]').should == %Q{<p><a href="/wiki/bug%2f10">bug #10</a></p>\n}
     end
 
-    it 'should accept custom link text in conjunction with special links' do
-      @parser.parse('[[bug/10|bug #10]]').should == %Q{<p><a href="/bug/10">bug #10</a></p>\n}
-    end
-
-    it 'should ignore link prefix overrides when emitting special links' do
+    it 'should not emit special links regardless of custom internal link prefix overrides' do
       @parser.internal_link_prefix = '/custom/'
-      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/bug/10">bug/10</a></p>\n}
+      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/custom/bug%2f10">bug/10</a></p>\n}
     end
 
-    it 'should not classify links as special merely because of the presence of a slash' do
-      # we want the syntax to be tight to minimize false positives
+    it 'should (still) not classify links as special merely because of the presence of a slash' do
       @parser.parse('[[foo/bar]]').should == %Q{<p><a href="/wiki/foo%2fbar">foo/bar</a></p>\n}
     end
 
-    it 'should not accept special links which have a leading forward slash' do
-      # this is a syntax error
+    it 'should (still) not accept special links which have a leading forward slash' do
       @parser.parse('[[/bug/10]]').should == %Q{<p><a href="/wiki/%2fbug%2f10">/bug/10</a></p>\n}
     end
   end
@@ -694,36 +698,28 @@ describe Wikitext::Parser, 'internal links (space to underscore on)' do
     end
   end
 
+  # see note above about "special links" being removed from internal links from 1.4.0 onwards
   describe 'special links' do
-    it 'should recognize links of the form "bug/10" as special links' do
-      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/bug/10">bug/10</a></p>\n}
-      @parser.parse('[[issue/25]]').should == %Q{<p><a href="/issue/25">issue/25</a></p>\n}
-      @parser.parse('[[post/7]]').should == %Q{<p><a href="/post/7">post/7</a></p>\n}
+    it 'should no longer recognize links of the form "bug/10" as special links' do
+      @parser.parse('[[bug/10]]').should    == %Q{<p><a href="/wiki/bug%2f10">bug/10</a></p>\n}
+      @parser.parse('[[issue/25]]').should  == %Q{<p><a href="/wiki/issue%2f25">issue/25</a></p>\n}
+      @parser.parse('[[post/7]]').should    == %Q{<p><a href="/wiki/post%2f7">post/7</a></p>\n}
     end
 
-    it 'should not recognize special links when "treat_slash_as_special" is set to false' do
-      @parser.treat_slash_as_special = false
-      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/wiki/bug%2f10">bug/10</a></p>\n}
-      @parser.parse('[[issue/25]]').should == %Q{<p><a href="/wiki/issue%2f25">issue/25</a></p>\n}
-      @parser.parse('[[post/7]]').should == %Q{<p><a href="/wiki/post%2f7">post/7</a></p>\n}
+    it 'should no longer accept custom link text in conjunction with special links' do
+      @parser.parse('[[bug/10|bug #10]]').should == %Q{<p><a href="/wiki/bug%2f10">bug #10</a></p>\n}
     end
 
-    it 'should accept custom link text in conjunction with special links' do
-      @parser.parse('[[bug/10|bug #10]]').should == %Q{<p><a href="/bug/10">bug #10</a></p>\n}
-    end
-
-    it 'should ignore link prefix overrides when emitting special links' do
+    it 'should not emit special links regardless of custom internal link prefix overrides' do
       @parser.internal_link_prefix = '/custom/'
-      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/bug/10">bug/10</a></p>\n}
+      @parser.parse('[[bug/10]]').should == %Q{<p><a href="/custom/bug%2f10">bug/10</a></p>\n}
     end
 
-    it 'should not classify links as special merely because of the presence of a slash' do
-      # we want the syntax to be tight to minimize false positives
+    it 'should (still) not classify links as special merely because of the presence of a slash' do
       @parser.parse('[[foo/bar]]').should == %Q{<p><a href="/wiki/foo%2fbar">foo/bar</a></p>\n}
     end
 
-    it 'should not accept special links which have a leading forward slash' do
-      # this is a syntax error
+    it 'should (still) not accept special links which have a leading forward slash' do
       @parser.parse('[[/bug/10]]').should == %Q{<p><a href="/wiki/%2fbug%2f10">/bug/10</a></p>\n}
     end
   end

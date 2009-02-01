@@ -49,10 +49,6 @@ describe Wikitext::Parser do
     @parser.space_to_underscore.should == true
   end
 
-  it 'should treat slash as special by default' do
-    @parser.treat_slash_as_special.should == true
-  end
-
   describe 'overriding defaults at initialization time' do
     it 'should allow overriding of autolink' do
       Wikitext::Parser.new(:autolink => false).autolink.should == false
@@ -82,10 +78,6 @@ describe Wikitext::Parser do
 
     it 'should allow overriding of space-to-underscore' do
       Wikitext::Parser.new(:space_to_underscore => false).space_to_underscore.should == false
-    end
-
-    it 'should allow overriding of treat slash as special' do
-      Wikitext::Parser.new(:treat_slash_as_special => false).treat_slash_as_special.should == false
     end
   end
 

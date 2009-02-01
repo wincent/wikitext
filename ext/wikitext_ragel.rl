@@ -1,4 +1,4 @@
-// Copyright 2008 Wincent Colaiuta
+// Copyright 2008-2009 Wincent Colaiuta
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -73,6 +73,7 @@
     special_uri_chars   = ([:!\(\),;\.\?])+ ;
     uri                 = ('mailto:'i mail) |
                           (('http'i [sS]? '://' | 'ftp://'i | 'svn://'i) uri_chars (special_uri_chars uri_chars)*) ;
+    path                = '/' ([a-zA-Z0-9_\-.]+ '/'?)* ;
 
     main := |*
 
@@ -286,6 +287,12 @@
         mail
         {
             EMIT(MAIL);
+            fbreak;
+        };
+
+        path
+        {
+            EMIT(PATH);
             fbreak;
         };
 

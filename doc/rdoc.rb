@@ -81,26 +81,6 @@ module Wikitext
   # echoed literally:
   #     http://apple.com/
   #
-  # == +treat_slash_as_special+ (boolean)
-  #
-  # Whether "slash" in link text is treated specially. When true, any link
-  # containing a slash and matching <tt>\A[a-z]+\/\d+\z</tt> is considered to
-  # be a relative link _within_ the current site, but _outside_ the wiki. In
-  # other words, while:
-  #     [[interesting article]]
-  # is a wiki link (assuming the internal_link_prefix of "/wiki/"):
-  #     <a href="/wiki/interesting_article">interesting article</a>
-  # in contrast:
-  #     [[issue/400]]
-  # is interpreted as a link external to the wiki but internal to the site, and is converted into:
-  #     <a href="/issue/400">issue/400</a>
-  # this design is intended to work well with preprocessors, that can scan the input for things like:
-  #     issue #400
-  # and transform them before feeding them into the wikitext parser as:
-  #     [[issue/400|issue #400]]
-  # which in turn would be transformed into:
-  #     <a href="/issue/400">issue #400</a>
-  #
   # == +space_to_underscore+ (boolean)
   #
   # Whether spaces in link targets should be encoded normally or transformed

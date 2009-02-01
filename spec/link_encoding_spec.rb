@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Copyright 2007-2008 Wincent Colaiuta
+# Copyright 2007-2009 Wincent Colaiuta
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -87,10 +87,12 @@ describe Wikitext, 'encoding a link target' do
 
   # "special" links don't get transformed in any way
   describe 'special links' do
-    it 'should recognize links which match /\A[a-z]+\/\d+\z/ as being special' do
+
+    # as of version 1.4.0 the encode_link_target function no longer handles special links
+    it 'should (no longer) recognize links which match /\A[a-z]+\/\d+\z/ as being special' do
       string = 'foo/10'
-      Wikitext::Parser.encode_special_link_target(string).should == string
-      Wikitext::Parser.encode_link_target(string).should_not == string
+      Wikitext::Parser.encode_special_link_target(string).should == 'foo%2f10'
+      Wikitext::Parser.encode_link_target(string).should == 'foo%2f10'
     end
 
     it "should not recognize links which don't match at /\A/ as being special" do

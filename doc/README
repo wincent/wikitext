@@ -237,6 +237,26 @@ Would become:
 See the Parser attributes documentation for information on overriding
 the default external link class (+external+ in this example).
 
+Note that in addition to providing a fully-qualified URL including a
+protocol (such as "http://" or "ftp://") you also have the option of
+using an unqualified "path"-style URL. This is useful for making
+links to other pages still on the same site, but outside of the wiki:
+
+  [/issues/1024 ticket #1024]
+
+Would become:
+
+  <a href="/issues/1024">ticket #1024</a>
+
+Note that no "external" class is included in the generated link.
+
+To avoid false positives, what constitutes a "path" is
+narrowly-defined as a string that begins with a slash, optionally
+followed by zero or more "path components" consisting of upper and
+lowercase letters, numbers, underscores, hyphens or periods. Path
+components are separated by a slash, and the trailing slash after
+the last path component is optional.
+
 == Images
 
   {{foo.png}}

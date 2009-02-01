@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Copyright 2007-2008 Wincent Colaiuta
+# Copyright 2007-2009 Wincent Colaiuta
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -46,6 +46,33 @@ describe Wikitext::Parser, 'external links' do
     # this is because we're matching this as a (generic) URI rather than an email address
     expected = %Q{<p><a href="mailto:user@example.com" class="external">john</a></p>\n}
     @parser.parse('[mailto:user@example.com john]').should == expected
+  end
+
+  it 'should format absolute path links' do
+    expected = %Q{<p><a href="/foo/bar">fb</a></p>\n} # note no "external" class
+    @parser.parse('[/foo/bar fb]').should == expected
+  end
+
+  it 'should format deeply nested absolute path links' do
+    expected = %Q{<p><a href="/foo/bar/baz/bing">fb</a></p>\n} # note no "external" class
+    @parser.parse('[/foo/bar/baz/bing fb]').should == expected
+  end
+
+  it 'should format minimal absolute path links' do
+    expected = %Q{<p><a href="/">fb</a></p>\n} # note no "external" class
+    @parser.parse('[/ fb]').should == expected
+  end
+
+  it 'should format absolute path links with trailing slashes' do
+    expected = %Q{<p><a href="/foo/bar/">fb</a></p>\n} # note no "external" class
+    @parser.parse('[/foo/bar/ fb]').should == expected
+  end
+
+  it 'should not format relative path links' do
+    # relative paths don't make sense in wikitext because
+    # they could be displayed anywhere (eg. /wiki/article, /dashboard/ etc)
+    expected = %Q{<p>[foo/bar fb]</p>\n}
+    @parser.parse('[foo/bar fb]').should == expected
   end
 
   it 'should treat runs of spaces after the link target as a single space' do

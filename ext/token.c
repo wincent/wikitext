@@ -1,4 +1,4 @@
-// Copyright 2008 Wincent Colaiuta
+// Copyright 2008-2009 Wincent Colaiuta
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -63,6 +63,7 @@ VALUE Wikitext_parser_token_types(VALUE self)
     SET_TOKEN_TYPE(H1_END);
     SET_TOKEN_TYPE(URI);
     SET_TOKEN_TYPE(MAIL);
+    SET_TOKEN_TYPE(PATH);
     SET_TOKEN_TYPE(LINK_START);
     SET_TOKEN_TYPE(LINK_END);
     SET_TOKEN_TYPE(EXT_LINK_START);

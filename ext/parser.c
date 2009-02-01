@@ -1,4 +1,4 @@
-// Copyright 2007-2008 Wincent Colaiuta
+// Copyright 2007-2009 Wincent Colaiuta
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -37,9 +37,7 @@ typedef struct
     ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
     VALUE   pending_crlf;           // boolean (Qtrue or Qfalse)
     VALUE   autolink;               // boolean (Qtrue or Qfalse)
-    VALUE   treat_slash_as_special; // boolean (Qtrue or Qfalse)
     VALUE   space_to_underscore;    // boolean (Qtrue or Qfalse)
-    VALUE   special_link;           // boolean (Qtrue or Qfalse): is the current link_target a "special" link?
     str_t   *line_ending;
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
     int     current_indent;         // fluctuates according to currently nested structures
@@ -398,6 +396,10 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
             // not an HTML tag; so nothing to emit
             break;
 
+        case PATH:
+            // not an HTML tag; so nothing to emit
+            break;
+
         case SPACE:
             // not an HTML tag (only used to separate an external link target from the link text); so nothing to emit
             break;
@@ -619,7 +621,7 @@ VALUE _Wikitext_parser_trim_link_target(VALUE string)
 // - non-printable (non-ASCII) characters converted to numeric entities
 // - QUOT and AMP characters converted to named entities
 // - if rollback is Qtrue, there is no special treatment of spaces
-// - if rollback is Qfalse, leading and trailing whitespace trimmed if trimmed
+// - if rollback is Qfalse, leading and trailing whitespace trimmed
 VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, VALUE rollback)
 {
     VALUE string        = StringValue(parser->link_target); // raises if string is nil or doesn't quack like a string
@@ -725,8 +727,6 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 //         ...the [[foo]] is...
 // to be equivalent to:
 //         thing. [[Foo]] was...
-// this is also where we check treat_slash_as_special is true and act accordingly
-// basically any link target matching /\A[a-z]+\/\d+\z/ is flagged as special
 static void _Wikitext_parser_encode_link_target(parser_t *parser)
 {
     VALUE in                = StringValue(parser->link_target);
@@ -737,28 +737,6 @@ static void _Wikitext_parser_encode_link_target(parser_t *parser)
         return;
     char        *end        = input + len;
     static char hex[]       = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-
-    // this potential shortcut requires an (admittedly cheap) prescan, so only do it when treat_slash_as_special is true
-    parser->special_link = Qfalse;
-    if (parser->treat_slash_as_special == Qtrue)
-    {
-        char *c = input;                                    // \A
-        while (c < end && *c >= 'a' && *c <= 'z')           // [a-z]
-            c++;                                            // +
-        if (c > start && c < end && *c++ == '/')            // \/
-        {
-            while (c < end && *c >= '0' && *c <= '9')       // \d
-            {
-                c++;                                        // +
-                if (c == end)                               // \z
-                {
-                    // matches /\A[a-z]+\/\d+\z/ so no transformation required
-                    parser->special_link = Qtrue;
-                    return;
-                }
-            }
-        }
-    }
 
     // to avoid most reallocations start with a destination buffer twice the size of the source
     // this handles the most common case (where most chars are in the ASCII range and don't require more storage, but there are
@@ -827,7 +805,6 @@ VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 {
     parser_t parser;
     parser.link_target              = in;
-    parser.treat_slash_as_special   = Qfalse;
     parser.space_to_underscore      = Qfalse;
     _Wikitext_parser_encode_link_target(&parser);
     return parser.link_target;
@@ -838,7 +815,6 @@ VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in)
 {
     parser_t parser;
     parser.link_target              = in;
-    parser.treat_slash_as_special   = Qtrue;
     parser.space_to_underscore      = Qfalse;
     _Wikitext_parser_encode_link_target(&parser);
     return parser.link_target;
@@ -906,7 +882,6 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     VALUE internal_link_prefix          = rb_str_new2("/wiki/");
     VALUE img_prefix                    = rb_str_new2("/images/");
     VALUE space_to_underscore           = Qtrue;
-    VALUE treat_slash_as_special        = Qtrue;
     VALUE minimum_fulltext_token_length = INT2NUM(3);
 
     // process options hash (override defaults)
@@ -921,7 +896,6 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
         internal_link_prefix            = OVERRIDE_IF_SET(internal_link_prefix);
         img_prefix                      = OVERRIDE_IF_SET(img_prefix);
         space_to_underscore             = OVERRIDE_IF_SET(space_to_underscore);
-        treat_slash_as_special          = OVERRIDE_IF_SET(treat_slash_as_special);
         minimum_fulltext_token_length   = OVERRIDE_IF_SET(minimum_fulltext_token_length);
     }
 
@@ -933,7 +907,6 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     rb_iv_set(self, "@internal_link_prefix",            internal_link_prefix);
     rb_iv_set(self, "@img_prefix",                      img_prefix);
     rb_iv_set(self, "@space_to_underscore",             space_to_underscore);
-    rb_iv_set(self, "@treat_slash_as_special",          treat_slash_as_special);
     rb_iv_set(self, "@minimum_fulltext_token_length",   minimum_fulltext_token_length);
     return self;
 }
@@ -1001,9 +974,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     GC_WRAP_ARY(parser->line_buffer, line_buffer_gc);
     parser->pending_crlf            = Qfalse;
     parser->autolink                = rb_iv_get(self, "@autolink");
-    parser->treat_slash_as_special  = rb_iv_get(self, "@treat_slash_as_special");
     parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore");
-    parser->special_link            = Qfalse;
     parser->line_ending             = str_new_from_string(line_ending);
     GC_WRAP_STR(parser->line_ending, line_ending_gc);
     parser->base_indent             = base_indent;
@@ -1011,6 +982,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->tabulation              = str_new();
     GC_WRAP_STR(parser->tabulation, tabulation_gc);
 
+    // this simple looping design leads to a single enormous function,
+    // but it's faster than doing actual recursive descent and also secure in the face of
+    // malicious input that seeks to overflow the stack
+    // (with "<blockquote><blockquote><blockquote>..." times by 10,000, for example)
+    // given that we expect to deal with a lot of malformed input, a recursive descent design is less appropriate
+    // than a straightforward looping translator like this one anyway
     token_t _token;
     _token.type = NO_TOKEN;
     token_t *token = NULL;
@@ -1945,13 +1922,58 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 break;
 
+            case PATH:
+                if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
+                    rb_str_cat(parser->output, token->start, TOKEN_LEN(token));
+                else if (IN(EXT_LINK_START))
+                {
+                    if (NIL_P(parser->link_target))
+                    {
+                        // this must be our link target: look ahead to make sure we see the space we're expecting to see
+                        i = TOKEN_TEXT(token);
+                        NEXT_TOKEN();
+                        if (token->type == SPACE)
+                        {
+                            ary_push(parser->scope, PATH);
+                            ary_push(parser->scope, SPACE);
+                            parser->link_target = i;
+                            parser->link_text   = rb_str_new2("");
+                            parser->capture     = parser->link_text;
+                            token               = NULL; // silently consume space
+                        }
+                        else
+                        {
+                            // didn't see the space! this must be an error
+                            _Wikitext_pop_from_stack(parser, Qnil);
+                            _Wikitext_pop_excess_elements(parser);
+                            _Wikitext_start_para_if_necessary(parser);
+                            rb_str_cat(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
+                            rb_str_append(parser->output, i);
+                        }
+                    }
+                    else
+                    {
+                        if (NIL_P(parser->link_text))
+                            // this must be the first part of our link text
+                            parser->link_text = TOKEN_TEXT(token);
+                        else
+                            // add to existing link text
+                            rb_str_cat(parser->link_text, token->start, TOKEN_LEN(token));
+                    }
+                }
+                else
+                {
+                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
+                    _Wikitext_pop_excess_elements(parser);
+                    _Wikitext_start_para_if_necessary(parser);
+                    rb_str_cat(i, token->start, TOKEN_LEN(token));
+                }
+                break;
+
             // internal links (links to other wiki articles) look like this:
             //      [[another article]] (would point at, for example, "/wiki/another_article")
             //      [[the other article|the link text we'll use for it]]
             //      [[the other article | the link text we'll use for it]]
-            // note that the forward slash is a reserved character which changes the meaning of an internal link;
-            // this is a link that is external to the wiki but internal to the site as a whole:
-            //      [[bug/12]] (a relative link to "/bug/12")
             // MediaWiki has strict requirements about what it will accept as a link target:
             //      all wikitext markup is disallowed:
             //          example [[foo ''bar'' baz]]
@@ -1968,7 +1990,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             //          example [[foo €]]
             //          renders <a href="/wiki/Foo_%E2%82%AC">foo €</a>
             // we'll impose similar restrictions here for the link target; allowed tokens will be:
-            //      SPACE, SPECIAL_URI_CHARS, PRINTABLE, ALNUM, DEFAULT, QUOT and AMP
+            //      SPACE, SPECIAL_URI_CHARS, PRINTABLE, PATH, ALNUM, DEFAULT, QUOT and AMP
             // everything else will be rejected
             case LINK_START:
                 i = NIL_P(parser->capture) ? parser->output : parser->capture;
@@ -2002,6 +2024,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         if (type == SPACE               ||
                             type == SPECIAL_URI_CHARS   ||
+                            type == PATH                ||
                             type == PRINTABLE           ||
                             type == ALNUM               ||
                             type == DEFAULT             ||
@@ -2072,10 +2095,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_parser_encode_link_target(parser);
                     _Wikitext_pop_from_stack_up_to(parser, i, LINK_START, Qtrue);
                     parser->capture     = Qnil;
-                    if (parser->special_link)
-                        i = _Wikitext_hyperlink(rb_str_new2("/"), parser->link_target, parser->link_text, Qnil);
-                    else
-                        i = _Wikitext_hyperlink(prefix, parser->link_target, parser->link_text, Qnil);
+                    i = _Wikitext_hyperlink(prefix, parser->link_target, parser->link_text, Qnil);
                     rb_str_append(parser->output, i);
                     parser->link_target = Qnil;
                     parser->link_text   = Qnil;
@@ -2090,6 +2110,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             // external links look like this:
             //      [http://google.com/ the link text]
+            //      [/other/page/on/site see this page]
             // strings in square brackets which don't match this syntax get passed through literally; eg:
             //      he was very angery [sic] about the turn of events
             case EXT_LINK_START:
@@ -2129,9 +2150,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
 
-                    // look ahead: expect a URI
+                    // look ahead: expect an absolute URI (with protocol) or "relative" (path) URI
                     NEXT_TOKEN();
-                    if (token->type == URI)
+                    if (token->type == URI || token->type == PATH)
                         ary_push(parser->scope, EXT_LINK_START);    // so far so good, jump back to the top of the loop
                     else
                         // only get here if there was a syntax error (missing URI)
@@ -2155,9 +2176,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     else
                     {
                         // success!
+                        j = IN(PATH) ? Qnil : parser->external_link_class;
                         _Wikitext_pop_from_stack_up_to(parser, i, EXT_LINK_START, Qtrue);
                         parser->capture = Qnil;
-                        i = _Wikitext_hyperlink(Qnil, parser->link_target, parser->link_text, parser->external_link_class);
+                        i = _Wikitext_hyperlink(Qnil, parser->link_target, parser->link_text, j);
                         rb_str_append(parser->output, i);
                     }
                     parser->link_target = Qnil;
@@ -2275,13 +2297,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
 
-                    // scan ahead consuming PRINTABLE, ALNUM and SPECIAL_URI_CHARS tokens
+                    // scan ahead consuming PATH, PRINTABLE, ALNUM and SPECIAL_URI_CHARS tokens
                     // will cheat here and abuse the link_target capture buffer to accumulate text
                     if (NIL_P(parser->link_target))
                         parser->link_target = rb_str_new2("");
                     while (NEXT_TOKEN(), (type = token->type))
                     {
-                        if (type == PRINTABLE || type == ALNUM || type == SPECIAL_URI_CHARS)
+                        if (type == PATH || type == PRINTABLE || type == ALNUM || type == SPECIAL_URI_CHARS)
                             rb_str_cat(parser->link_target, token->start, TOKEN_LEN(token));
                         else if (type == IMG_END)
                         {

@@ -1,4 +1,4 @@
-// Copyright 2008 Wincent Colaiuta
+// Copyright 2008-2009 Wincent Colaiuta
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -42,7 +42,6 @@ void Init_wikitext()
     rb_define_attr(cWikitextParser, "external_link_class", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "mailto_class", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "autolink", Qtrue, Qtrue);
-    rb_define_attr(cWikitextParser, "treat_slash_as_special", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "space_to_underscore", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "minimum_fulltext_token_length", Qtrue, Qtrue);
 
