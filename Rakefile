@@ -82,7 +82,7 @@ Spec::Rake::SpecTask.new('spec') do |t|
 end
 
 Rake::RDocTask.new do |t|
-  t.rdoc_files.include 'doc/README', 'doc/rdoc.rb'
+  t.rdoc_files.include 'doc/README', 'doc/RELEASE-NOTES', 'doc/rdoc.rb'
   t.options           << '--charset' << 'UTF-8' << '--inline-source'
   t.main              = 'doc/README'
   t.title             = 'Wikitext documentation'

@@ -1,0 +1,7 @@
+= Changes in 1.4.0
+
+* "special links" inside internal link spans (double square
+  brackets) are no longer supported; instead use external link
+  spans: where previously you used <tt>[[issues/210 | ticket 210]]</tt>
+  you should now use <tt>[/issues/210 ticket 210]</tt>
+* relatedly, the +treat_slash_as_special+ attribute has been removed
