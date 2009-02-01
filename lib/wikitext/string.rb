@@ -26,6 +26,6 @@ private
   # if speed later becomes a concern can whip up a Ragel C extension to do it
   # TODO: make this customizable (accept a lambda that performs preprocessing)
   def wikitext_preprocess
-    gsub /\b(bug|issue|request|ticket) #(\d+)/i, '[[issues/\2|\1 #\2]]'
+    gsub /\b(bug|issue|request|ticket) #(\d+)/i, '[/issues/\2 \1 #\2]'
   end
 end
