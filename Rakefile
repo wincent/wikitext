@@ -1,4 +1,4 @@
-# Copyright 2007-2008 Wincent Colaiuta
+# Copyright 2007-2009 Wincent Colaiuta
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -59,7 +59,7 @@ file ragel => ['ext/wikitext_ragel.rl'] do
   end
 end
 
-file extension_makefile => ['ext/extconf.rb', 'ext/depend'] do
+file extension_makefile => ['ext/extconf.rb', 'ext/depend', ragel] do
   Dir.chdir('ext') do
     if RUBY_PLATFORM =~ /darwin/
       sh "env ARCHFLAGS='-arch i386' ruby extconf.rb"
@@ -107,11 +107,14 @@ SPEC = Gem::Specification.new do |s|
   ENDDESC
   s.require_paths     = ['ext', 'lib']
   s.has_rdoc          = true
-  s.files             = FileList['spec/*', 'ext/*.{rb,c,h}', 'ext/depend', 'lib/wikitext/*', 'rails/init.rb'].to_a
+  s.files             = FileList['spec/*', 'ext/wikitext_ragel.c', 'ext/*.{rb,c,h}', 'ext/depend', 'lib/wikitext/*', 'rails/init.rb'].to_a
   s.extensions        = ['ext/extconf.rb']
 end
+
+task :gem => [:make]
 
 task :package => [:clobber, :all, :gem]
 Rake::GemPackageTask.new(SPEC) do |t|
   t.need_tar      = true
 end
+
