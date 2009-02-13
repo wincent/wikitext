@@ -34,7 +34,7 @@ def dedent spaces, string = nil
   else
     raise 'Invalid argument'
   end
-  string.each do |line|
+  string.each_line do |line|
     if not line =~ /\A {#{spaces.to_i}}/
       raise "Underlength indent for line: #{line.inspect}"
     end
