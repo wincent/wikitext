@@ -24,4 +24,9 @@ describe String, 'wikitext extensions' do
   it 'should provide a w method on all strings' do
     "'''strong'''".w.should == "<p><strong>strong</strong></p>\n"
   end
+
+  # the options get passed along to the parser
+  it 'should accept an optional options hash' do
+    "= foo =".w(:base_heading_level => 2).should == "<h3>foo</h3>\n"
+  end
 end

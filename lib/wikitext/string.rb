@@ -15,8 +15,8 @@
 require 'wikitext/parser'
 
 class String
-  def to_wikitext
-    Wikitext::Parser.shared_parser.parse wikitext_preprocess
+  def to_wikitext options = {}
+    Wikitext::Parser.shared_parser.parse wikitext_preprocess, options
   end
   alias :w :to_wikitext
 
