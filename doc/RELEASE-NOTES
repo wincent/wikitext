@@ -1,3 +1,7 @@
+= Changes in 1.5.0
+
+* added +base_heading_level+ parser option
+
 = Changes in 1.4.1
 
 * include necessary file that was missing from 1.4.0 gem

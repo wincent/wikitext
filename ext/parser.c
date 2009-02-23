@@ -42,6 +42,7 @@ typedef struct
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
     int     current_indent;         // fluctuates according to currently nested structures
     str_t   *tabulation;            // caching buffer for emitting indentation
+    int     base_heading_level;
 } parser_t;
 
 const char escaped_no_wiki_start[]      = "&lt;nowiki&gt;";
@@ -289,6 +290,16 @@ void _Wikitext_pop_from_stack(parser_t *parser, VALUE target)
         return;
     if (NIL_P(target))
         target = parser->output;
+
+    // for headings, take base_heading_level into account
+    if (top >= H1_START && top <= H6_START)
+    {
+        top += parser->base_heading_level;
+        // no need to check for underflow (base_heading_level is never negative)
+        if (top > H6_START)
+            top = H6_START;
+    }
+
     switch (top)
     {
         case PRE:
@@ -883,6 +894,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     VALUE img_prefix                    = rb_str_new2("/images/");
     VALUE space_to_underscore           = Qtrue;
     VALUE minimum_fulltext_token_length = INT2NUM(3);
+    VALUE base_heading_level            = INT2NUM(0);
 
     // process options hash (override defaults)
     if (!NIL_P(options) && TYPE(options) == T_HASH)
@@ -897,6 +909,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
         img_prefix                      = OVERRIDE_IF_SET(img_prefix);
         space_to_underscore             = OVERRIDE_IF_SET(space_to_underscore);
         minimum_fulltext_token_length   = OVERRIDE_IF_SET(minimum_fulltext_token_length);
+        base_heading_level              = OVERRIDE_IF_SET(base_heading_level);
     }
 
     // no need to call super here; rb_call_super()
@@ -908,6 +921,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     rb_iv_set(self, "@img_prefix",                      img_prefix);
     rb_iv_set(self, "@space_to_underscore",             space_to_underscore);
     rb_iv_set(self, "@minimum_fulltext_token_length",   minimum_fulltext_token_length);
+    rb_iv_set(self, "@base_heading_level",              base_heading_level);
     return self;
 }
 
@@ -930,17 +944,27 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
     // process options hash
     int base_indent = 0;
-    VALUE indent = Qnil;
+    int base_heading_level = NUM2INT(rb_iv_get(self, "@base_heading_level"));
     if (!NIL_P(options) && TYPE(options) == T_HASH)
     {
+        // :indent => 0 (or more)
         if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("indent"))) == Qtrue)
         {
-            indent = rb_hash_aref(options, ID2SYM(rb_intern("indent")));
-            base_indent = NUM2INT(indent);
+            base_indent = NUM2INT(rb_hash_aref(options, ID2SYM(rb_intern("indent"))));
             if (base_indent < 0)
                 base_indent = 0;
         }
+
+        // :base_heading_level => 0/1/2/3/4/5/6
+        if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("base_heading_level"))) == Qtrue)
+            base_heading_level = NUM2INT(rb_hash_aref(options, ID2SYM(rb_intern("base_heading_level"))));
     }
+
+    // normalize, regardless of whether this came from instance variable or override
+    if (base_heading_level < 0)
+        base_heading_level = 0;
+    if (base_heading_level > 6)
+        base_heading_level = 6;
 
     // set up scanner
     char *p = RSTRING_PTR(string);
@@ -981,6 +1005,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->current_indent          = 0;
     parser->tabulation              = str_new();
     GC_WRAP_STR(parser->tabulation, tabulation_gc);
+    parser->base_heading_level      = base_heading_level;
 
     // this simple looping design leads to a single enormous function,
     // but it's faster than doing actual recursive descent and also secure in the face of
@@ -1715,6 +1740,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
                 ary_push(parser->scope, type);
                 _Wikitext_indent(parser);
+
+                // take base_heading_level into account
+                type += base_heading_level;
+                if (type > H6_START) // no need to check for underflow (base_heading_level never negative)
+                    type = H6_START;
 
                 // rather than repeat all that code for each kind of heading, share it and use a conditional here
                 if (type == H6_START)

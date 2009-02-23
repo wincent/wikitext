@@ -34,7 +34,7 @@ module Wikitext
   # == +internal_link_prefix+ (String)
   #
   # The prefix to be prepended to internal links (defaults to "/wiki/").
-  # For example, given an internal_link_prefix of "/wiki/", the internal
+  # For example, given an +internal_link_prefix+ of "/wiki/", the internal
   # link:
   #     [[Apple]]
   # would be transformed into:
@@ -43,7 +43,7 @@ module Wikitext
   # == +external_link_class+ (String)
   #
   # The CSS class to be applied to external links (defaults to "external").
-  # For example, given an external_link_class of "external", the external
+  # For example, given an +external_link_class+ of "external", the external
   # link:
   #     [http://www.google.com/ the best search engine]
   # would be transformed into:
@@ -99,6 +99,35 @@ module Wikitext
   # "foo bar"; it is therefore recommended that you explicitly disallow
   # underscores in titles at the application level so as to avoid this kind of
   # confusion.
+  #
+  # == +base_heading_level+ (integer)
+  #
+  # An integer between 0 and 6 denoting the current "heading level".
+  # This can be used to inform the parser of the "context" in which
+  # it is translating markup.
+  #
+  # For example, the parser might be translating blog post excerpts
+  # on a page where there is an "h1" title element for the page itself
+  # and an "h2" title element for each excerpt. In this context it is
+  # useful to set +base_heading_level+ to 2, so that any "top level"
+  # headings in the markup (that is "h1" elements) can be automatically
+  # transformed into "h3" elements so that they appear to be
+  # appropriately "nested" inside the containing page elements.
+  #
+  # In this way, markup authors can be freed from thinking about
+  # which header size they should use and just always start from "h1"
+  # for their most general content and work their way down.
+  #
+  # An additional benefit is that markup can be used in different
+  # contexts at different levels of nesting and the headings will be
+  # adjusted to suit automatically with no intervention from the
+  # markup author.
+  #
+  # Finally, it's worth noting that in contexts where the user input
+  # is not necessarily trusted, this setting can be used to prevent
+  # users from inappropriately employing "h1" tags in deeply-nested
+  # contexts where they would otherwise disturb the visual harmony of
+  # the page.
   class Parser
 
     # Sanitizes an internal link target for inclusion within the HTML

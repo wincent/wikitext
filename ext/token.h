@@ -55,18 +55,24 @@ enum token_types {
     TT,
     OL,
     UL,
-    H6_START,
-    H5_START,
-    H4_START,
-    H3_START,
-    H2_START,
+
+    // keep these consecutive, and in ascending order
+    // (the arithmetic for the base_heading_level feature assumes this)
     H1_START,
-    H6_END,
-    H5_END,
-    H4_END,
-    H3_END,
-    H2_END,
+    H2_START,
+    H3_START,
+    H4_START,
+    H5_START,
+    H6_START,
+
+    // likewise for the H*_END tokens
     H1_END,
+    H2_END,
+    H3_END,
+    H4_END,
+    H5_END,
+    H6_END,
+
     URI,
     MAIL,
     PATH,
