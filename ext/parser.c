@@ -466,6 +466,12 @@ void _Wikitext_pop_from_stack_up_to(parser_t *parser, VALUE target, int item, VA
     } while (continue_looping);
 }
 
+void _Wikitext_pop_all_from_stack(parser_t *parser, VALUE target)
+{
+    while (!NO_ITEM(ary_entry(parser->scope, -1)))
+        _Wikitext_pop_from_stack(parser, target);
+}
+
 void _Wikitext_start_para_if_necessary(parser_t *parser)
 {
     if (!NIL_P(parser->capture))    // we don't do anything if in capturing mode
@@ -1133,7 +1139,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         _Wikitext_rollback_failed_link(parser);             // if any
                         _Wikitext_rollback_failed_external_link(parser);    // if any
-                        _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qtrue);
+                        _Wikitext_pop_all_from_stack(parser, Qnil);
                         _Wikitext_indent(parser);
                         rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
                         ary_push(parser->scope, PRE_START);
@@ -1256,7 +1262,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         _Wikitext_rollback_failed_link(parser);             // if any
                         _Wikitext_rollback_failed_external_link(parser);    // if any
-                        _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qtrue);
+                        _Wikitext_pop_all_from_stack(parser, Qnil);
                         _Wikitext_indent(parser);
                         rb_str_cat(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
                         rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
