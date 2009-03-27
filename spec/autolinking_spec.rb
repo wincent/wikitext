@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Copyright 2007-2008 Wincent Colaiuta
+# Copyright 2007-2009 Wincent Colaiuta
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -43,7 +43,7 @@ describe Wikitext::Parser, 'autolinking' do
 
     it 'should convert mailto URIs into hyperlinks' do
       uri = 'mailto:user@example.com'
-      @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com" class="external">mailto:user@example.com</a></p>\n}
+      @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com" class="mailto">mailto:user@example.com</a></p>\n}
     end
 
     it 'should convert SVN URIs into hyperlinks' do
@@ -81,16 +81,28 @@ describe Wikitext::Parser, 'autolinking' do
       @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com" class="mailto">user@example.com</a></p>\n}
     end
 
-    it 'should apply the mailto CSS class if set' do
+    it 'should apply the mailto CSS class if set (raw address)' do
       uri = 'user@example.com'
       @parser.mailto_class = 'foo'
       @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com" class="foo">user@example.com</a></p>\n}
     end
 
-    it 'should apply no CSS if the mailto class is set to nil' do
+    it 'should apply the mailto CSS class if set (mailto URI)' do
+      uri = 'mailto:user@example.com'
+      @parser.mailto_class = 'foo'
+      @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com" class="foo">mailto:user@example.com</a></p>\n}
+    end
+
+    it 'should apply no CSS if the mailto class is set to nil (raw address)' do
       uri = 'user@example.com'
       @parser.mailto_class = nil
       @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com">user@example.com</a></p>\n}
+    end
+
+    it 'should apply no CSS if the mailto class is set to nil (mailto URI)' do
+      uri = 'mailto:user@example.com'
+      @parser.mailto_class = nil
+      @parser.parse(uri).should == %Q{<p><a href="mailto:user@example.com">mailto:user@example.com</a></p>\n}
     end
 
     it 'should pass through emails unchanged inside <nowiki></nowiki> spans' do
@@ -476,37 +488,37 @@ describe Wikitext::Parser, 'autolinking' do
     describe 'after "mailto:" URIs' do
       it 'should terminate if followed by a period' do
         input     = 'Try mailto:user@example.com.'
-        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>.</p>\n}
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">mailto:user@example.com</a>.</p>\n}
         @parser.parse(input).should == expected
       end
 
       it 'should not terminate on periods that occur within the URI' do
         input     = 'Try mailto:user.name@example.com.'
-        expected  = %Q{<p>Try <a href="mailto:user.name@example.com" class="external">mailto:user.name@example.com</a>.</p>\n}
+        expected  = %Q{<p>Try <a href="mailto:user.name@example.com" class="mailto">mailto:user.name@example.com</a>.</p>\n}
         @parser.parse(input).should == expected
       end
 
       it 'should terminate if followed by a colon' do
         input     = 'Try mailto:user@example.com:'
-        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>:</p>\n}
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">mailto:user@example.com</a>:</p>\n}
         @parser.parse(input).should == expected
       end
 
       it 'should terminate if followed by a comma' do
         input     = 'Try mailto:user@example.com,'
-        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>,</p>\n}
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">mailto:user@example.com</a>,</p>\n}
         @parser.parse(input).should == expected
       end
 
       it 'should terminate if followed by an exclamation mark' do
         input     = 'Try mailto:user@example.com!'
-        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>!</p>\n}
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">mailto:user@example.com</a>!</p>\n}
         @parser.parse(input).should == expected
       end
 
       it 'should terminate if followed by a question mark' do
         input     = 'Try mailto:user@example.com?'
-        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>?</p>\n}
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">mailto:user@example.com</a>?</p>\n}
         @parser.parse(input).should == expected
       end
 
@@ -520,13 +532,13 @@ describe Wikitext::Parser, 'autolinking' do
 
       it 'should terminate if followed by a semi-colon' do
         input     = 'Try mailto:user@example.com;'
-        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>;</p>\n}
+        expected  = %Q{<p>Try <a href="mailto:user@example.com" class="mailto">mailto:user@example.com</a>;</p>\n}
         @parser.parse(input).should == expected
       end
 
       it 'should terminate if followed by a right parenthesis' do
         input     = '(Try mailto:user@example.com)'
-        expected  = %Q{<p>(Try <a href="mailto:user@example.com" class="external">mailto:user@example.com</a>)</p>\n}
+        expected  = %Q{<p>(Try <a href="mailto:user@example.com" class="mailto">mailto:user@example.com</a>)</p>\n}
         @parser.parse(input).should == expected
       end
     end

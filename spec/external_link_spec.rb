@@ -43,10 +43,13 @@ describe Wikitext::Parser, 'external links' do
   end
 
   it 'should format valid external mailto links' do
-    # although note in this case the CSS class is "external" rather than "mailto"
-    # this is because we're matching this as a (generic) URI rather than an email address
-    expected = %Q{<p><a href="mailto:user@example.com" class="external">john</a></p>\n}
+    expected = %Q{<p><a href="mailto:user@example.com" class="mailto">john</a></p>\n}
     @parser.parse('[mailto:user@example.com john]').should == expected
+  end
+
+  it 'should not treat raw email addresses as valid link targets' do
+    expected = %Q{<p>[<a href="mailto:user@example.com" class="mailto">user@example.com</a> john]</p>\n}
+    @parser.parse('[user@example.com john]').should == expected
   end
 
   it 'should format absolute path links' do
