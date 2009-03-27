@@ -1129,11 +1129,23 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else if (IN(BLOCKQUOTE))
                 {
-                    // PRE_START is illegal
-                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
-                    rb_str_cat(i, escaped_pre_start, sizeof(escaped_pre_start) - 1);
+                    if (token->column_start == 1) // only allowed in first column
+                    {
+                        _Wikitext_rollback_failed_link(parser);             // if any
+                        _Wikitext_rollback_failed_external_link(parser);    // if any
+                        _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qtrue);
+                        _Wikitext_indent(parser);
+                        rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
+                        ary_push(parser->scope, PRE_START);
+                        ary_push(parser->line, PRE_START);
+                    }
+                    else // PRE_START illegal here
+                    {
+                        i = NIL_P(parser->capture) ? parser->output : parser->capture;
+                        _Wikitext_pop_excess_elements(parser);
+                        _Wikitext_start_para_if_necessary(parser);
+                        rb_str_cat(i, escaped_pre_start, sizeof(escaped_pre_start) - 1);
+                    }
                 }
                 else
                 {
@@ -1240,11 +1252,24 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else if (IN(BLOCKQUOTE))
                 {
-                    // illegal here
-                    i = NIL_P(parser->capture) ? parser->output : parser->capture;
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
-                    rb_str_cat(i, escaped_blockquote_start, sizeof(escaped_blockquote_start) - 1);
+                    if (token->column_start == 1) // only allowed in first column
+                    {
+                        _Wikitext_rollback_failed_link(parser);             // if any
+                        _Wikitext_rollback_failed_external_link(parser);    // if any
+                        _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qtrue);
+                        _Wikitext_indent(parser);
+                        rb_str_cat(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
+                        rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
+                        ary_push(parser->scope, BLOCKQUOTE_START);
+                        ary_push(parser->line, BLOCKQUOTE_START);
+                    }
+                    else // BLOCKQUOTE_START illegal here
+                    {
+                        i = NIL_P(parser->capture) ? parser->output : parser->capture;
+                        _Wikitext_pop_excess_elements(parser);
+                        _Wikitext_start_para_if_necessary(parser);
+                        rb_str_cat(i, escaped_blockquote_start, sizeof(escaped_blockquote_start) - 1);
+                    }
                 }
                 else
                 {

@@ -763,4 +763,36 @@ describe Wikitext::Parser, 'regressions' do
     END
     @parser.parse(input).should == expected
   end
+
+  # https://wincent.com/issues/818
+  it 'should handle BLOCKQUOTE_START blocks which follow BLOCKQUOTE shorthand' do
+    input = dedent <<-END
+      > foo
+      <blockquote>bar</blockquote>
+    END
+    expected = dedent <<-END
+      <blockquote>
+        <p>foo</p>
+      </blockquote>
+      <blockquote>
+        <p>bar</p>
+      </blockquote>
+    END
+    @parser.parse(input).should == expected
+  end
+
+  # https://wincent.com/issues/818
+  it 'should handle PRE_START blocks which follow BLOCKQUOTE shorthand' do
+    input = dedent <<-END
+      > foo
+      <pre>bar</pre>
+    END
+    expected = dedent <<-END
+      <blockquote>
+        <p>foo</p>
+      </blockquote>
+      <pre>bar</pre>
+    END
+    @parser.parse(input).should == expected
+  end
 end
