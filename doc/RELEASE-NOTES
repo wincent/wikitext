@@ -1,6 +1,34 @@
+This file describes changes with some user or developer impact
+(significant changes to the externally visible behaviour of the
+extension, or things which may require action on the part of
+users or developers). Minor bugfixes and tweaks which don't
+require any user or developer action are generally not included
+in these release notes. For a full listing of all changes see
+the source code repository at: http://git.wincent.com.
+
+= Not yet released
+
+* changed license from GPL v3 to the more permissive BSD license
+  (specifically the Simplified or "2-clause" version of the BSD
+  license, as used by FreeBSD)
+
+= Changes in 1.5.2
+
+* the "mailto" class is now consistently applied to all mailto URIs
+* works around a bug in Rails 2.3.2
+* fixes a minor bug with "pre" and "blockquote" start tags when they
+  appear immediately after the shorthand notation of "pre" and
+  "blockquote" blocks
+
+= Changes in 1.5.1
+
+* the +w+ and +to_wikitext+ methods now accept an options hash
+
 = Changes in 1.5.0
 
 * added +base_heading_level+ parser option
+* changes for compatibility with Ruby 1.9 (compiles and all specs
+  pass)
 
 = Changes in 1.4.1
 
@@ -13,3 +41,7 @@
   spans: where previously you used <tt>[[issues/210 | ticket 210]]</tt>
   you should now use <tt>[/issues/210 ticket 210]</tt>
 * relatedly, the +treat_slash_as_special+ attribute has been removed
+
+= Changes prior to 1.4.0
+
+Please see the source code repository browser at http://git.wincent.com.
