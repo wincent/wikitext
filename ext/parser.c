@@ -846,6 +846,22 @@ VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in)
     return parser.link_target;
 }
 
+// returns 1 (true) if supplied string is blank (nil, empty, or all whitespace)
+// returns 0 (false) otherwise
+int _Wikitext_blank(VALUE str)
+{
+    if (NIL_P(str) || RSTRING_LEN(str) == 0)
+        return 1;
+    for (char *ptr = RSTRING_PTR(str),
+        *end = RSTRING_PTR(str) + RSTRING_LEN(str);
+        ptr < end; ptr++)
+    {
+        if (*ptr != ' ')
+            return 0;
+    }
+    return 1;
+}
+
 void _Wikitext_rollback_failed_link(parser_t *parser)
 {
     if (!IN(LINK_START))
@@ -2164,9 +2180,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (IN(EXT_LINK_START))
                     // already in external link scope! (and in fact, must be capturing link_text right now)
                     rb_str_cat(i, link_end, sizeof(link_end) - 1);
-                else if (IN(LINK_START))
+                else if (IN(LINK_START)) // in internal link scope!
                 {
-                    // in internal link scope!
+                    if (_Wikitext_blank(parser->link_target))
+                    {
+                        // special case for inputs like "[[    ]]"
+                        _Wikitext_rollback_failed_link(parser);
+                        rb_str_cat(parser->output, link_end, sizeof(link_end) - 1);
+                        break;
+                    }
                     if (NIL_P(parser->link_text) || RSTRING_LEN(parser->link_text) == 0)
                         // use link target as link text
                         parser->link_text = _Wikitext_parser_sanitize_link_target(parser, Qfalse);

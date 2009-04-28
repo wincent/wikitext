@@ -849,8 +849,12 @@ describe Wikitext::Parser, 'regressions' do
 
   it 'should handle empty (whitespace only) link targets' do
     # no exception raised, but clearly not desirable behaviour
-    pending
-    @parser.parse('[[ ]]').should == "<p>[[ ]]</p>\n" # <p><a href="/wiki/"></a></p>\n
-    @parser.parse('[[  ]]').should == "<p>[[  ]]</p>\n" # <p><a href="/wiki/"></a></p>\n
+    # formerly these all returned: <p><a href="/wiki/"></a></p>\n
+    @parser.parse('[[ ]]').should == "<p>[[ ]]</p>\n"
+    @parser.parse('[[  ]]').should == "<p>[[  ]]</p>\n"
+    @parser.parse('[[  |]]').should == "<p>[[  |]]</p>\n"
+
+    # and this one returned: <p><a href="/wiki/">foo</a></p>\n
+    @parser.parse('[[  |foo]]').should == "<p>[[  |foo]]</p>\n"
   end
 end
