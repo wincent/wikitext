@@ -2124,13 +2124,22 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                                 rb_str_cat(parser->link_target, token->start, TOKEN_LEN(token));
                         }
                         else if (type == LINK_END)
+                        {
+                            if (NIL_P(parser->link_target)) // bail for inputs like "[[]]"
+                                _Wikitext_rollback_failed_link(parser);
                             break; // jump back to top of loop (will handle this in LINK_END case below)
+                        }
                         else if (type == SEPARATOR)
                         {
-                            ary_push(parser->scope, SEPARATOR);
-                            parser->link_text   = rb_str_new2("");
-                            parser->capture     = parser->link_text;
-                            token               = NULL;
+                            if (NIL_P(parser->link_target)) // bail for inputs like "[[|"
+                                _Wikitext_rollback_failed_link(parser);
+                            else
+                            {
+                                ary_push(parser->scope, SEPARATOR);
+                                parser->link_text   = rb_str_new2("");
+                                parser->capture     = parser->link_text;
+                                token               = NULL;
+                            }
                             break;
                         }
                         else // unexpected token (syntax error)
