@@ -6,8 +6,12 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
-= Not yet released
+= Changes to 1.5.3
 
+* fixed broken handling of empty (zero-width) links such as
+  <tt>[[]]</tt>, <tt>[[|]]</tt> and <tt>[[|foo]]</tt>
+* improved handling of empty (whitespace-only) links such as
+  <tt>[[ ]]</tt> and <tt>[[   |foo]]</tt>
 * changed license from GPL v3 to the more permissive BSD license
   (specifically the Simplified or "2-clause" version of the BSD
   license, as used by FreeBSD)
