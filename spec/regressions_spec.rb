@@ -844,4 +844,26 @@ describe Wikitext::Parser, 'regressions' do
     END
     @parser.parse(input).should == expected
   end
+
+  # https://wincent.com/issues/1289
+  it 'should handle empty (zero-width) link targets' do
+    # these were badly broken (caused exceptions to be raised)
+    @parser.parse('[[]]').should == "<p>[[]]</p>\n"
+    @parser.parse('[[|]]').should == "<p>[[|]]</p>\n"
+    @parser.parse('[[|foo]]').should == "<p>[[|foo]]</p>\n"
+
+    # was working, but check here anyway to guard against regressions
+    @parser.parse('[[foo|]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+  end
+
+  it 'should handle empty (whitespace only) link targets' do
+    # no exception raised, but clearly not desirable behaviour
+    # formerly these all returned: <p><a href="/wiki/"></a></p>\n
+    @parser.parse('[[ ]]').should == "<p>[[ ]]</p>\n"
+    @parser.parse('[[  ]]').should == "<p>[[  ]]</p>\n"
+    @parser.parse('[[  |]]').should == "<p>[[  |]]</p>\n"
+
+    # and this one returned: <p><a href="/wiki/">foo</a></p>\n
+    @parser.parse('[[  |foo]]').should == "<p>[[  |foo]]</p>\n"
+  end
 end
