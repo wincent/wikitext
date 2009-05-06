@@ -31,6 +31,10 @@ def indent spaces, string
   string.gsub /^/, ' ' * spaces
 end
 
+def nodent string
+  string.gsub /^ */, ''
+end
+
 describe Wikitext::Parser, 'indentation' do
   before do
     @parser         = Wikitext::Parser.new
@@ -43,34 +47,38 @@ describe Wikitext::Parser, 'indentation' do
   end
 
   it 'should default to no additional indentation' do
-    @parser.parse('* foo').should == @default_output
+    @parser.parse(@input).should == @default_output
   end
 
   it 'should add additional indentation as indicated by the "indent" option' do
-    @parser.parse('* foo', :indent => 1).should == indent(1, @default_output)
-    @parser.parse('* foo', :indent => 2).should == indent(2, @default_output)
-    @parser.parse('* foo', :indent => 3).should == indent(3, @default_output)
-    @parser.parse('* foo', :indent => 4).should == indent(4, @default_output)
-    @parser.parse('* foo', :indent => 5).should == indent(5, @default_output)
-    @parser.parse('* foo', :indent => 6).should == indent(6, @default_output)
+    @parser.parse(@input, :indent => 1).should == indent(1, @default_output)
+    @parser.parse(@input, :indent => 2).should == indent(2, @default_output)
+    @parser.parse(@input, :indent => 3).should == indent(3, @default_output)
+    @parser.parse(@input, :indent => 4).should == indent(4, @default_output)
+    @parser.parse(@input, :indent => 5).should == indent(5, @default_output)
+    @parser.parse(@input, :indent => 6).should == indent(6, @default_output)
+  end
+
+  it 'should perform no indentation when "indent" is "false"' do
+    @parser.parse(@input, :indent => false).should == nodent(@default_output)
   end
 
   it 'should complain if the "indent" option is nil' do
-    lambda { @parser.parse('* foo', :indent => nil) }.should raise_error(TypeError)
+    lambda { @parser.parse(@input, :indent => nil) }.should raise_error(TypeError)
   end
 
   it 'should complain if the "indent" options is not an integer' do
-    lambda { @parser.parse('* foo', :indent => 'bar') }.should raise_error(TypeError)
-    lambda { @parser.parse('* foo', :indent => /baz/) }.should raise_error(TypeError)
+    lambda { @parser.parse(@input, :indent => 'bar') }.should raise_error(TypeError)
+    lambda { @parser.parse(@input, :indent => /baz/) }.should raise_error(TypeError)
   end
 
   it 'should treat a negative "indent" as though it were zero' do
-    @parser.parse('* foo', :indent => -4).should == @default_output
+    @parser.parse(@input, :indent => -4).should == @default_output
   end
 
   it 'should coerce a float "indent" into an integer' do
-    @parser.parse('* foo', :indent => 0.0).should == @default_output
-    @parser.parse('* foo', :indent => 2.0).should == <<-END
+    @parser.parse(@input, :indent => 0.0).should == @default_output
+    @parser.parse(@input, :indent => 2.0).should == <<-END
   <ul>
     <li>foo</li>
   </ul>

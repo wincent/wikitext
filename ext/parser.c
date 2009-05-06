@@ -271,6 +271,8 @@ void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_len)
 // each time we enter one of those spans must ++ the indentation level
 void _Wikitext_indent(parser_t *parser)
 {
+    if (parser->base_indent == -1) // indentation disabled
+        return;
     int space_count = parser->current_indent + parser->base_indent;
     if (space_count > 0)
     {
@@ -290,6 +292,8 @@ void _Wikitext_indent(parser_t *parser)
 
 void _Wikitext_dedent(parser_t *parser, VALUE emit)
 {
+    if (parser->base_indent == -1) // indentation disabled
+        return;
     parser->current_indent -= 2;
     if (emit != Qtrue)
         return;
@@ -990,9 +994,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         // :indent => 0 (or more)
         if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("indent"))) == Qtrue)
         {
-            base_indent = NUM2INT(rb_hash_aref(options, ID2SYM(rb_intern("indent"))));
-            if (base_indent < 0)
-                base_indent = 0;
+            VALUE indent = rb_hash_aref(options, ID2SYM(rb_intern("indent")));
+            if (indent == Qfalse)
+                base_indent = -1; // indentation disabled
+            else
+            {
+                base_indent = NUM2INT(indent);
+                if (base_indent < 0)
+                    base_indent = 0;
+            }
         }
 
         // :base_heading_level => 0/1/2/3/4/5/6

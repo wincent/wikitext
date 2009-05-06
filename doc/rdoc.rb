@@ -222,10 +222,19 @@ module Wikitext
     # Parses and transforms the UTF-8 wikitext markup input string into
     # HTML. Raises a Wikitext::Parser::Error if passed invalid UTF-8.
     # You can customize some aspects of the transformation by setting
-    # attributes on the parser instance before calling this method.
+    # attributes on the parser instance before calling this method
+    # (see the attributes documentation for the Parser class),
+    # or by passing in an (optional) options hash.
     #
-    # See the attributes documentation for the Parser class.
-    def parse string
+    # Options that can be overridden at parse-time include:
+    #
+    # +indent+::              A non-negative number (to add an arbitrary
+    #                         amount of indentation to all lines in the
+    #                         output) or false (to disable indentation
+    #                         entirely).
+    # +base_heading_level+::  An integer between 0 and 6 denoting the
+    #                         current "heading level" (documented above).
+    def parse string, options = {}
       # This is just a placeholder.
       # See parser.c for the C source code to this method.
     end
