@@ -25,7 +25,9 @@ require 'wikitext/parser'
 
 class String
   def to_wikitext options = {}
-    Wikitext::Parser.shared_parser.parse wikitext_preprocess, options
+    default_options = { :indent => false }
+    Wikitext::Parser.shared_parser.parse wikitext_preprocess,
+      default_options.merge(options)
   end
   alias :w :to_wikitext
 
