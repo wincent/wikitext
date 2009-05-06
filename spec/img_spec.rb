@@ -47,6 +47,11 @@ describe Wikitext::Parser, 'embedding img tags' do
     @parser.parse('{{}}').should == %Q{<p>{{}}</p>\n}
   end
 
+  it 'should not append prefix if img src starts with a slash' do
+    @parser.parse('{{/foo.png}}').should ==
+      %Q{<p><img src="/foo.png" alt="/foo.png" /></p>\n}
+  end
+
   it 'should work in BLOCKQUOTE blocks' do
     expected = dedent <<-END
       <blockquote>

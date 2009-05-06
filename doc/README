@@ -271,6 +271,16 @@ Would become:
 You can override the "/images/" prefix using the +img_prefix+ attribute
 of the Parser.
 
+You can also specify "absolute" image "src" attributes regardless of
+the current prefix setting by starting the image path with a forward
+slash; that is:
+
+  {{/foo.png}}
+
+Would become:
+
+  <img src="/foo.png" alt="/foo.png" />
+
 = Links
 
 * RubyForge project page: http://rubyforge.org/projects/wikitext

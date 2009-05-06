@@ -258,7 +258,7 @@ VALUE _Wikitext_hyperlink(parser_t *parser, VALUE link_prefix, VALUE link_target
 void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_len)
 {
     rb_str_cat(parser->output, img_start, sizeof(img_start) - 1);   // <img src="
-    if (!NIL_P(parser->img_prefix))
+    if (!NIL_P(parser->img_prefix) && *token_ptr != '/')            // len always > 0
         rb_str_append(parser->output, parser->img_prefix);
     rb_str_cat(parser->output, token_ptr, token_len);
     rb_str_cat(parser->output, img_alt, sizeof(img_alt) - 1);       // " alt="
