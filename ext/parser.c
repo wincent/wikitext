@@ -237,7 +237,7 @@ VALUE _Wikitext_hyperlink(parser_t *parser, VALUE link_prefix, VALUE link_target
         rb_str_append(string, link_prefix);
     rb_str_append(string, link_target);
 
-    /* special handling for mailto URIs */
+    // special handling for mailto URIs
     const char *mailto = "mailto:";
     if (NIL_P(link_prefix) &&
         RSTRING_LEN(link_target) >= (long)sizeof(mailto) &&
