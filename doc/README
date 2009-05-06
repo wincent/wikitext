@@ -32,7 +32,7 @@ of design goals flowed on from this:
   about where the errors are in the input
 * <em>multilingual-friendly</em>: the translator should handle input beyond
   printable ASCII in a compatible fashion
-* _attractive_: the emitted HTML source should be consistent and attractively
+* _attractive_: the emitted HTML source should be consistent and attractive
 * <em>valid output</em>: regardless of the input, the translator should
   always produce valid XHTML output
 * <em>well-tested</em>: the translator should have a comprehensive test
@@ -118,10 +118,13 @@ force the alternative interpretation you can do one of the following:
 
  '' '''foo''' bar'' baz (ie. use whitespace)
  ''<nowiki></nowiki>'''foo''' bar'' baz (ie. insert an empty nowiki span)
+ <em><strong>foo</strong> bar</em> baz (ie. use explicit HTML tags instead)
  <em>'''foo''' bar</em> baz (ie. use explicit HTML tags instead)
 
 Note that to avoid ambiguity, the translator will not let you intermix
 the shorthand style with the literal HTML tag style.
+
+ <em>foo'' (ie. intermixed, invalid)
 
 == Teletype
 
@@ -159,7 +162,7 @@ Would be emitted as:
 
 Would be emitted as:
 
-  <blockquote><p>Hello world! Bye for now.</blockquote>
+  <blockquote><p>Hello world! Bye for now.</p></blockquote>
 
 You can nest blockquotes or any other kind of block or span inside
 blockquotes. For example:
