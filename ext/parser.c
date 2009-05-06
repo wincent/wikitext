@@ -2416,14 +2416,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         if (type == PATH || type == PRINTABLE || type == ALNUM || type == SPECIAL_URI_CHARS)
                             rb_str_cat(parser->link_target, token->start, TOKEN_LEN(token));
-                        else if (type == IMG_END)
+                        else if (type == IMG_END && RSTRING_LEN(parser->link_target) > 0)
                         {
                             // success
                             _Wikitext_append_img(parser, RSTRING_PTR(parser->link_target), RSTRING_LEN(parser->link_target));
                             token = NULL;
                             break;
                         }
-                        else // unexpected token (syntax error)
+                        else // unexpected token or zero-length target (syntax error)
                         {
                             // rollback
                             rb_str_cat(parser->output, literal_img_start, sizeof(literal_img_start) - 1);
