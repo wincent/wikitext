@@ -902,7 +902,7 @@ void _Wikitext_rollback_failed_external_link(parser_t *parser)
 {
     if (!IN(EXT_LINK_START))
         return; // nothing to do!
-    int scope_includes_space = IN(SPACE);
+    int scope_includes_space = IN(SPACE); // remember this before popping
     _Wikitext_pop_from_stack_up_to(parser, Qnil, EXT_LINK_START, Qtrue);
     rb_str_cat(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
     if (!NIL_P(parser->link_target))
