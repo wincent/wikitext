@@ -233,10 +233,10 @@ VALUE _Wikitext_downcase(VALUE string)
 // prepare hyperlink and append it to parser->output
 void _Wikitext_hyperlink(parser_t *parser, VALUE link_prefix, VALUE link_target, VALUE link_text, VALUE link_class)
 {
-    VALUE string = rb_str_new(a_start, sizeof(a_start) - 1);        // <a href="
+    rb_str_cat(parser->output, a_start, sizeof(a_start) - 1);               // <a href="
     if (!NIL_P(link_prefix))
-        rb_str_append(string, link_prefix);
-    rb_str_append(string, link_target);
+        rb_str_append(parser->output, link_prefix);
+    rb_str_append(parser->output, link_target);
 
     // special handling for mailto URIs
     const char *mailto = "mailto:";
@@ -244,16 +244,14 @@ void _Wikitext_hyperlink(parser_t *parser, VALUE link_prefix, VALUE link_target,
         RSTRING_LEN(link_target) >= (long)sizeof(mailto) &&
         strncmp(mailto, RSTRING_PTR(link_target), sizeof(mailto)) == 0)
         link_class = parser->mailto_class; // use mailto_class from parser
-
     if (link_class != Qnil)
     {
-        rb_str_cat(string, a_class, sizeof(a_class) - 1);           // " class="
-        rb_str_append(string, link_class);
+        rb_str_cat(parser->output, a_class, sizeof(a_class) - 1);           // " class="
+        rb_str_append(parser->output, link_class);
     }
-    rb_str_cat(string, a_start_close, sizeof(a_start_close) - 1);   // ">
-    rb_str_append(string, link_text);
-    rb_str_cat(string, a_end, sizeof(a_end) - 1);
-    rb_str_append(parser->output, string);
+    rb_str_cat(parser->output, a_start_close, sizeof(a_start_close) - 1);   // ">
+    rb_str_append(parser->output, link_text);
+    rb_str_cat(parser->output, a_end, sizeof(a_end) - 1);                   // </a>
 }
 
 void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_len)
