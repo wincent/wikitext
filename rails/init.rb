@@ -24,7 +24,8 @@
 # Avoid Rails bug #2266 by not requiring during "rake gems:build"
 # See: https://rails.lighthouseapp.com/projects/8994/tickets/2266
 unless $gems_build_rake_task
-  require 'wikitext/nil_class'
-  require 'wikitext/string'
-  require 'wikitext/rails'
+  libdir = File.join(File.dirname(__FILE__), '..', 'lib', 'wikitext')
+  require File.expand_path(File.join(libdir, 'nil_class'))
+  require File.expand_path(File.join(libdir, 'string'))
+  require File.expand_path(File.join(libdir, 'rails'))
 end

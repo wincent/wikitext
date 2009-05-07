@@ -21,7 +21,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-require 'wikitext/string'
+require File.expand_path(File.join(File.dirname(__FILE__), 'string'))
 
 module Wikitext
   class TemplateHandler
