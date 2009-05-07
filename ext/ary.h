@@ -50,5 +50,4 @@ int ary_includes(ary_t *ary, int val);
 // refactored from _Wikitext_count()
 int ary_count(ary_t *ary, int item);
 
-// this method not inlined so its address can be passed to the Data_Wrap_Struct function.
 void ary_free(ary_t *ary);
