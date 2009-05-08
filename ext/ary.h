@@ -35,10 +35,6 @@ typedef struct
 
 #define NO_ITEM(item) (item == INT_MAX)
 
-// Mark the ary struct designated by ptr as a participant in Ruby's mark-and-sweep garbage collection scheme.
-// A variable named name is placed on the C stack to prevent the structure from being prematurely collected.
-#define GC_WRAP_ARY(ptr, name) volatile VALUE name __attribute__((unused)) = Data_Wrap_Struct(rb_cObject, 0, ary_free, ptr)
-
 ary_t *ary_new(void);
 int ary_entry(ary_t *ary, int idx);
 void ary_clear(ary_t *ary);
