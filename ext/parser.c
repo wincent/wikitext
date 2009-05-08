@@ -44,17 +44,17 @@ typedef struct
     VALUE   external_link_class;    // CSS class applied to external links
     VALUE   mailto_class;           // CSS class applied to email (mailto) links
     VALUE   img_prefix;             // path prepended when emitting img tags
+    str_t   *line_ending;
+    str_t   *tabulation;            // caching buffer for emitting indentation
     ary_t   *scope;                 // stack for tracking scope
     ary_t   *line;                  // stack for tracking scope as implied by current line
     ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
+    int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
+    int     current_indent;         // fluctuates according to currently nested structures
+    int     base_heading_level;
     bool    pending_crlf;
     bool    autolink;
     bool    space_to_underscore;
-    str_t   *line_ending;
-    int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
-    int     current_indent;         // fluctuates according to currently nested structures
-    str_t   *tabulation;            // caching buffer for emitting indentation
-    int     base_heading_level;
 } parser_t;
 
 const char escaped_no_wiki_start[]      = "&lt;nowiki&gt;";
