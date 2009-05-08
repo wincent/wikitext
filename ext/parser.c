@@ -57,9 +57,9 @@ typedef struct
     ary_t   *scope;                 // stack for tracking scope
     ary_t   *line;                  // stack for tracking scope as implied by current line
     ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
-    int     pending_crlf;           // boolean
-    int     autolink;               // boolean
-    int     space_to_underscore;    // boolean
+    char    pending_crlf;           // boolean
+    char    autolink;               // boolean
+    char    space_to_underscore;    // boolean
     str_t   *line_ending;
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
     int     current_indent;         // fluctuates according to currently nested structures
