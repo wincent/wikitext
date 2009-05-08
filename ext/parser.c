@@ -881,7 +881,7 @@ int _Wikitext_blank(VALUE str)
     return 1;
 }
 
-void _Wikitext_rollback_failed_link(parser_t *parser)
+void _Wikitext_rollback_failed_internal_link(parser_t *parser)
 {
     if (!IN(LINK_START))
         return; // nothing to do!
@@ -924,6 +924,12 @@ void _Wikitext_rollback_failed_external_link(parser_t *parser)
     parser->capture     = Qnil;
     parser->link_target = Qnil;
     parser->link_text   = Qnil;
+}
+
+void _Wikitext_rollback_failed_link(parser_t *parser)
+{
+    _Wikitext_rollback_failed_internal_link(parser);
+    _Wikitext_rollback_failed_external_link(parser);
 }
 
 VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
@@ -1164,8 +1170,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else if (IN(BLOCKQUOTE_START))
                 {
-                    _Wikitext_rollback_failed_link(parser);             // if any
-                    _Wikitext_rollback_failed_external_link(parser);    // if any
+                    _Wikitext_rollback_failed_link(parser); // if any
                     _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE_START, Qfalse);
                     _Wikitext_indent(parser);
                     rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
@@ -1176,8 +1181,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (token->column_start == 1) // only allowed in first column
                     {
-                        _Wikitext_rollback_failed_link(parser);             // if any
-                        _Wikitext_rollback_failed_external_link(parser);    // if any
+                        _Wikitext_rollback_failed_link(parser); // if any
                         _Wikitext_pop_all_from_stack(parser, Qnil);
                         _Wikitext_indent(parser);
                         rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
@@ -1194,8 +1198,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else
                 {
-                    _Wikitext_rollback_failed_link(parser);             // if any
-                    _Wikitext_rollback_failed_external_link(parser);    // if any
+                    _Wikitext_rollback_failed_link(parser); // if any
                     _Wikitext_pop_from_stack_up_to(parser, Qnil, P, Qtrue);
                     _Wikitext_indent(parser);
                     rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
@@ -1286,8 +1289,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (IN(BLOCKQUOTE_START))
                 {
                     // nesting is fine here
-                    _Wikitext_rollback_failed_link(parser);             // if any
-                    _Wikitext_rollback_failed_external_link(parser);    // if any
+                    _Wikitext_rollback_failed_link(parser); // if any
                     _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE_START, Qfalse);
                     _Wikitext_indent(parser);
                     rb_str_cat(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
@@ -1299,8 +1301,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (token->column_start == 1) // only allowed in first column
                     {
-                        _Wikitext_rollback_failed_link(parser);             // if any
-                        _Wikitext_rollback_failed_external_link(parser);    // if any
+                        _Wikitext_rollback_failed_link(parser); // if any
                         _Wikitext_pop_all_from_stack(parser, Qnil);
                         _Wikitext_indent(parser);
                         rb_str_cat(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
@@ -1319,8 +1320,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else
                 {
                     // would be nice to eliminate the repetition here but it's probably the clearest way
-                    _Wikitext_rollback_failed_link(parser);             // if any
-                    _Wikitext_rollback_failed_external_link(parser);    // if any
+                    _Wikitext_rollback_failed_link(parser); // if any
                     _Wikitext_pop_from_stack_up_to(parser, Qnil, P, Qtrue);
                     _Wikitext_indent(parser);
                     rb_str_cat(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
@@ -1975,7 +1975,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (IN(LINK_START))
                 {
                     // if the URI were allowed it would have been handled already in LINK_START
-                    _Wikitext_rollback_failed_link(parser);
+                    _Wikitext_rollback_failed_internal_link(parser);
                     i = TOKEN_TEXT(token);
                     _Wikitext_append_hyperlink(parser, Qnil, i, i, parser->external_link_class, Qtrue); // link target, link text
                 }
@@ -2107,7 +2107,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (IN(LINK_START))
                 {
                     // already in internal link scope! this is a syntax error
-                    _Wikitext_rollback_failed_link(parser);
+                    _Wikitext_rollback_failed_internal_link(parser);
                     rb_str_cat(parser->output, link_start, sizeof(link_start) - 1);
                 }
                 else if (IN(SEPARATOR))
@@ -2157,13 +2157,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         else if (type == LINK_END)
                         {
                             if (NIL_P(parser->link_target)) // bail for inputs like "[[]]"
-                                _Wikitext_rollback_failed_link(parser);
+                                _Wikitext_rollback_failed_internal_link(parser);
                             break; // jump back to top of loop (will handle this in LINK_END case below)
                         }
                         else if (type == SEPARATOR)
                         {
                             if (NIL_P(parser->link_target)) // bail for inputs like "[[|"
-                                _Wikitext_rollback_failed_link(parser);
+                                _Wikitext_rollback_failed_internal_link(parser);
                             else
                             {
                                 ary_push(parser->scope, SEPARATOR);
@@ -2175,7 +2175,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         }
                         else // unexpected token (syntax error)
                         {
-                            _Wikitext_rollback_failed_link(parser);
+                            _Wikitext_rollback_failed_internal_link(parser);
                             break; // jump back to top of loop to handle unexpected token
                         }
                     }
@@ -2200,7 +2200,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (_Wikitext_blank(parser->link_target))
                     {
                         // special case for inputs like "[[    ]]"
-                        _Wikitext_rollback_failed_link(parser);
+                        _Wikitext_rollback_failed_internal_link(parser);
                         rb_str_cat(parser->output, link_end, sizeof(link_end) - 1);
                         break;
                     }
@@ -2445,8 +2445,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case CRLF:
                 i = parser->pending_crlf;
                 parser->pending_crlf = Qfalse;
-                _Wikitext_rollback_failed_link(parser);             // if any
-                _Wikitext_rollback_failed_external_link(parser);    // if any
+                _Wikitext_rollback_failed_link(parser); // if any
                 if (IN(NO_WIKI_START) || IN(PRE_START))
                 {
                     ary_clear(parser->line_buffer);
@@ -2551,8 +2550,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
 
                 // close any open scopes on hitting EOF
-                _Wikitext_rollback_failed_external_link(parser);    // if any
-                _Wikitext_rollback_failed_link(parser);             // if any
+                _Wikitext_rollback_failed_link(parser); // if any
                 for (i = 0, j = parser->scope->count; i < j; i++)
                     _Wikitext_pop_from_stack(parser, Qnil);
                 goto return_output; // break not enough here (want to break out of outer while loop, not inner switch statement)
