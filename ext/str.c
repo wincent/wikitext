@@ -41,7 +41,7 @@ str_t *str_new_size(long len)
     return str;
 }
 
-str_t *str_new_copy(char *src, long len)
+str_t *str_new_copy(const char *src, long len)
 {
     str_t *str      = ALLOC_N(str_t, 1);
     str->ptr        = ALLOC_N(char, len);
@@ -83,7 +83,11 @@ void str_grow(str_t *str, long len)
     }
 }
 
-void str_append(str_t *str, char *src, long len)
+// try overallocating once we've switched more things over to str_t
+// ie. allocate 32 bytes too much, 64 bytes etc
+// and run benchmarks to see if it runs faster
+// and other tests to count the number of allocations
+void str_append(str_t *str, const char *src, long len)
 {
     long new_len = str->len + len;
     if (str->capacity < new_len)
@@ -103,7 +107,7 @@ void str_append_str(str_t *str, str_t *other)
     str_append(str, other->ptr, other->len);
 }
 
-void str_append_rb_str(str_t *str, VALUE other)
+void str_append_string(str_t *str, VALUE other)
 {
     str_append(str, RSTRING_PTR(other), RSTRING_LEN(other));
 }

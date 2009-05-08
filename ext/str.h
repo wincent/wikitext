@@ -41,7 +41,7 @@ str_t *str_new(void);
 str_t *str_new_size(long len);
 
 // create a new string struct and initialize it with a copy of the buffer of length len pointed to by src
-str_t *str_new_copy(char *src, long len);
+str_t *str_new_copy(const char *src, long len);
 
 // create a new string struct and initialize it with the buffer of length len pointed to by src
 // no copy is made; the struct takes ownership of the buffer and will free it when the struct is disposed of
@@ -56,13 +56,13 @@ VALUE string_from_str(str_t *str);
 // grows a string's capacity to the specified length
 void str_grow(str_t *str, long len);
 
-void str_append(str_t *str, char *src, long len);
+void str_append(str_t *str, const char *src, long len);
 
 // appends the "other" string struct onto str
 void str_append_str(str_t *str, str_t *other);
 
 // appends the "other" string (a Ruby String) onto str
-void str_append_rb_str(str_t *str, VALUE other)
+void str_append_string(str_t *str, VALUE other);
 
 // this is a temporary convenience measure
 // later on if I develop in-place variants of some functions this won't be needed
