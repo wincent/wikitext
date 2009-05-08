@@ -2558,8 +2558,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
                 // close any open scopes on hitting EOF
                 _Wikitext_rollback_failed_link(parser); // if any
-                for (i = 0, j = parser->scope->count; i < j; i++)
-                    _Wikitext_pop_from_stack(parser, Qnil);
+                _Wikitext_pop_all_from_stack(parser, Qnil);
                 goto return_output; // break not enough here (want to break out of outer while loop, not inner switch statement)
 
             default:
