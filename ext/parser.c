@@ -133,6 +133,21 @@ const char img_start[]                  = "<img src=\"";
 const char img_end[]                    = "\" />";
 const char img_alt[]                    = "\" alt=\"";
 
+// Mark the parser struct designated by ptr as a participant in Ruby's
+// mark-and-sweep garbage collection scheme. A variable named name is placed on
+// the C stack to prevent the structure from being prematurely collected.
+#define GC_WRAP_PARSER(ptr, name) volatile VALUE name __attribute__((unused)) = Data_Wrap_Struct(rb_cObject, 0, parser_free, ptr)
+
+void parser_free(parser_t *parser)
+{
+    if (parser->scope)          ary_free(parser->scope);
+    if (parser->line)           ary_free(parser->line);
+    if (parser->line_buffer)    ary_free(parser->line_buffer);
+    if (parser->line_ending)    str_free(parser->line_ending);
+    if (parser->tabulation)     str_free(parser->tabulation);
+    free(parser);
+}
+
 // for testing and debugging only
 VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
 {
@@ -1053,8 +1068,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
     // set up parser struct to make passing parameters a little easier
     // eventually this will encapsulate most or all of the variables above
-    parser_t _parser;
-    parser_t *parser                = &_parser;
+    parser_t *parser                = ALLOC_N(parser_t, 1);
+    GC_WRAP_PARSER(parser, parser_gc);
+    memset(parser, 0, sizeof(parser_t));
     parser->output                  = rb_str_new2("");
     parser->capture                 = Qnil;
     parser->capturing               = false;
@@ -1064,20 +1080,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->mailto_class            = mailto_class;
     parser->img_prefix              = rb_iv_get(self, "@img_prefix");
     parser->scope                   = ary_new();
-    GC_WRAP_ARY(parser->scope, scope_gc);
     parser->line                    = ary_new();
-    GC_WRAP_ARY(parser->line, line_gc);
     parser->line_buffer             = ary_new();
-    GC_WRAP_ARY(parser->line_buffer, line_buffer_gc);
     parser->pending_crlf            = false;
     parser->autolink                = rb_iv_get(self, "@autolink") == Qtrue ? true : false;
     parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore") == Qtrue ? true : false;
     parser->line_ending             = str_new_from_string(line_ending);
-    GC_WRAP_STR(parser->line_ending, line_ending_gc);
     parser->base_indent             = base_indent;
     parser->current_indent          = 0;
     parser->tabulation              = str_new();
-    GC_WRAP_STR(parser->tabulation, tabulation_gc);
     parser->base_heading_level      = base_heading_level;
 
     // this simple looping design leads to a single enormous function,
