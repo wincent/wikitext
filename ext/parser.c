@@ -233,6 +233,7 @@ VALUE _Wikitext_downcase_bang(VALUE string)
 // prepare hyperlink and append it to parser->output
 // if check_autolink is Qtrue, checks parser->autolink to decide whether to emit a real hyperlink
 // or merely the literal link target
+// if link_text is Qnil, the link_target is re-used for the link text
 void _Wikitext_append_hyperlink(parser_t *parser, VALUE link_prefix, VALUE link_target, VALUE link_text, VALUE link_class, VALUE check_autolink)
 {
     if (check_autolink == Qtrue && parser->autolink != Qtrue)
@@ -256,7 +257,10 @@ void _Wikitext_append_hyperlink(parser_t *parser, VALUE link_prefix, VALUE link_
             rb_str_append(parser->output, link_class);
         }
         rb_str_cat(parser->output, a_start_close, sizeof(a_start_close) - 1);   // ">
-        rb_str_append(parser->output, link_text);
+        if (NIL_P(link_text)) // re-use link_target
+            rb_str_append(parser->output, link_target);
+        else
+            rb_str_append(parser->output, link_text);
         rb_str_cat(parser->output, a_end, sizeof(a_end) - 1);                   // </a>
     }
 }
@@ -917,7 +921,7 @@ void _Wikitext_rollback_failed_external_link(parser_t *parser)
     rb_str_cat(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
     if (!NIL_P(parser->link_target))
     {
-        _Wikitext_append_hyperlink(parser, Qnil, parser->link_target, parser->link_target, link_class, Qtrue);
+        _Wikitext_append_hyperlink(parser, Qnil, parser->link_target, Qnil, link_class, Qtrue);
         if (scope_includes_space)
         {
             rb_str_cat(parser->output, space, sizeof(space) - 1);
@@ -1966,8 +1970,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
-                    i = TOKEN_TEXT(token);
-                    _Wikitext_append_hyperlink(parser, rb_str_new2("mailto:"), i, i, mailto_class, Qtrue);
+                    _Wikitext_append_hyperlink(parser, rb_str_new2("mailto:"), TOKEN_TEXT(token), Qnil, mailto_class, Qtrue);
                 }
                 break;
 
@@ -1980,8 +1983,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     // if the URI were allowed it would have been handled already in LINK_START
                     _Wikitext_rollback_failed_internal_link(parser);
-                    i = TOKEN_TEXT(token);
-                    _Wikitext_append_hyperlink(parser, Qnil, i, i, parser->external_link_class, Qtrue); // link target, link text
+                    _Wikitext_append_hyperlink(parser, Qnil, TOKEN_TEXT(token), Qnil, parser->external_link_class, Qtrue);
                 }
                 else if (IN(EXT_LINK_START))
                 {
@@ -2005,7 +2007,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             _Wikitext_pop_excess_elements(parser);
                             _Wikitext_start_para_if_necessary(parser);
                             rb_str_cat(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
-                            _Wikitext_append_hyperlink(parser, Qnil, i, i, parser->external_link_class, Qtrue); // link target, link text
+                            _Wikitext_append_hyperlink(parser, Qnil, i, Qnil, parser->external_link_class, Qtrue);
                         }
                     }
                     else
@@ -2023,8 +2025,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
-                    i = TOKEN_TEXT(token);
-                    _Wikitext_append_hyperlink(parser, Qnil, i, i, parser->external_link_class, Qtrue); // link target, link text
+                    _Wikitext_append_hyperlink(parser, Qnil, TOKEN_TEXT(token), Qnil, parser->external_link_class, Qtrue);
                 }
                 break;
 
