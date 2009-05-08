@@ -326,4 +326,21 @@ describe Wikitext::Parser, 'external links' do
       @parser.parse("> [http://google.com/\n").should == expected # was a bug
     end
   end
+
+  describe 'regressions' do
+    # assorted examples
+    it 'should not turn failed absolute links into external hyperlinks' do
+      # was emitting: <p>[<a href="/hello" class="external">/hello</a> this</p>\n
+      expected =   %Q{<p>[<a href="/hello">/hello</a> this</p>\n}
+      @parser.parse('[/hello this').should == expected
+
+      # was emitting: <p>[<a href="/hello" class="external">/hello</a> </p>\n
+      expected =   %Q{<p>[<a href="/hello">/hello</a> </p>\n}
+      @parser.parse('[/hello ').should == expected
+
+      # was emitting: <h1>hello [<a href="/hello" class="external">/hello</a> </h1>\n
+      expected =   %Q{<h1>hello [<a href="/hello">/hello</a> </h1>\n}
+      @parser.parse('= hello [/hello =').should == expected
+    end
+  end
 end
