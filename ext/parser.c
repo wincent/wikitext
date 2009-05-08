@@ -1967,7 +1967,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else
                 {
-                    // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
                     _Wikitext_append_hyperlink(parser, rb_str_new2("mailto:"), TOKEN_TEXT(token), Qnil, mailto_class, Qtrue);
@@ -2022,7 +2021,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else
                 {
-                    // in plain scope, will turn into autolink (with appropriate, user-configurable CSS)
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
                     _Wikitext_append_hyperlink(parser, Qnil, TOKEN_TEXT(token), Qnil, parser->external_link_class, Qtrue);
