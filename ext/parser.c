@@ -46,7 +46,7 @@ typedef struct
     ary_t   *line;                  // stack for tracking scope as implied by current line
     ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
     VALUE   pending_crlf;           // boolean (Qtrue or Qfalse)
-    VALUE   autolink;               // boolean (Qtrue or Qfalse)
+    int     autolink;               // boolean (1/true or 0/false)
     int     space_to_underscore;    // boolean (1/true or 0/false)
     str_t   *line_ending;
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
@@ -236,7 +236,7 @@ VALUE _Wikitext_downcase_bang(VALUE string)
 // if link_text is Qnil, the link_target is re-used for the link text
 void _Wikitext_append_hyperlink(parser_t *parser, VALUE link_prefix, VALUE link_target, VALUE link_text, VALUE link_class, VALUE check_autolink)
 {
-    if (check_autolink == Qtrue && parser->autolink != Qtrue)
+    if (check_autolink == Qtrue && !parser->autolink)
         rb_str_append(parser->output, link_target);
     else
     {
@@ -1066,7 +1066,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->line_buffer             = ary_new();
     GC_WRAP_ARY(parser->line_buffer, line_buffer_gc);
     parser->pending_crlf            = Qfalse;
-    parser->autolink                = rb_iv_get(self, "@autolink");
+    parser->autolink                = rb_iv_get(self, "@autolink") == Qtrue ? 1 : 0;
     parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore") == Qtrue ? 1 : 0;
     parser->line_ending             = str_new_from_string(line_ending);
     GC_WRAP_STR(parser->line_ending, line_ending_gc);
