@@ -489,10 +489,10 @@ void _Wikitext_pop_from_stack_up_to(parser_t *parser, VALUE target, int item, VA
     } while (continue_looping);
 }
 
-void _Wikitext_pop_all_from_stack(parser_t *parser, VALUE target)
+void _Wikitext_pop_all_from_stack(parser_t *parser)
 {
     for (int i = 0, max = parser->scope->count; i < max; i++)
-        _Wikitext_pop_from_stack(parser, target);
+        _Wikitext_pop_from_stack(parser, Qnil);
 }
 
 void _Wikitext_start_para_if_necessary(parser_t *parser)
@@ -1190,7 +1190,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (token->column_start == 1) // only allowed in first column
                     {
                         _Wikitext_rollback_failed_link(parser); // if any
-                        _Wikitext_pop_all_from_stack(parser, Qnil);
+                        _Wikitext_pop_all_from_stack(parser);
                         _Wikitext_indent(parser);
                         rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
                         ary_push(parser->scope, PRE_START);
@@ -1310,7 +1310,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (token->column_start == 1) // only allowed in first column
                     {
                         _Wikitext_rollback_failed_link(parser); // if any
-                        _Wikitext_pop_all_from_stack(parser, Qnil);
+                        _Wikitext_pop_all_from_stack(parser);
                         _Wikitext_indent(parser);
                         rb_str_cat(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
                         rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
@@ -2558,7 +2558,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
                 // close any open scopes on hitting EOF
                 _Wikitext_rollback_failed_link(parser); // if any
-                _Wikitext_pop_all_from_stack(parser, Qnil);
+                _Wikitext_pop_all_from_stack(parser);
                 goto return_output; // break not enough here (want to break out of outer while loop, not inner switch statement)
 
             default:
