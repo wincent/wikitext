@@ -103,6 +103,11 @@ void str_append_str(str_t *str, str_t *other)
     str_append(str, other->ptr, other->len);
 }
 
+void str_append_rb_str(str_t *str, VALUE other)
+{
+    str_append(str, RSTRING_PTR(other), RSTRING_LEN(other));
+}
+
 void str_swap(str_t **a, str_t **b)
 {
     str_t *c;

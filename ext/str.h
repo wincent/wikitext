@@ -57,6 +57,9 @@ void str_append(str_t *str, char *src, long len);
 // appends the "other" string struct onto str
 void str_append_str(str_t *str, str_t *other);
 
+// appends the "other" string (a Ruby String) onto str
+void str_append_rb_str(str_t *str, VALUE other)
+
 // this is a temporary convenience measure
 // later on if I develop in-place variants of some functions this won't be needed
 void str_swap(str_t **a, str_t **b);
