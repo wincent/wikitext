@@ -218,7 +218,7 @@ VALUE Wikitext_parser_fulltext_tokenize(int argc, VALUE *argv, VALUE self)
 }
 
 // we downcase "in place", overwriting the original contents of the buffer and returning the same string
-VALUE _Wikitext_downcase(VALUE string)
+VALUE _Wikitext_downcase_bang(VALUE string)
 {
     char *ptr   = RSTRING_PTR(string);
     long len    = RSTRING_LEN(string);
@@ -2367,7 +2367,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 i = NIL_P(parser->capture) ? parser->output : parser->capture;
                 _Wikitext_pop_excess_elements(parser);
                 _Wikitext_start_para_if_necessary(parser);
-                rb_str_append(i, _Wikitext_downcase(TOKEN_TEXT(token)));
+                rb_str_append(i, _Wikitext_downcase_bang(TOKEN_TEXT(token)));
                 break;
 
             case QUOT:
