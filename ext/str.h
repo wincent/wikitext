@@ -30,6 +30,10 @@ typedef struct
     long capacity;
 } str_t;
 
+// Mark the str struct designated by ptr as a participant in Ruby's mark-and-sweep garbage collection scheme.
+// A variable named name is placed on the C stack to prevent the structure from being prematurely collected.
+#define GC_WRAP_STR(ptr, name) volatile VALUE name __attribute__((unused)) = Data_Wrap_Struct(rb_cObject, 0, str_free, ptr)
+
 // create a new, empty string struct
 str_t *str_new(void);
 
