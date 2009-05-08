@@ -491,7 +491,7 @@ void _Wikitext_pop_from_stack_up_to(parser_t *parser, VALUE target, int item, VA
 
 void _Wikitext_pop_all_from_stack(parser_t *parser, VALUE target)
 {
-    while (!NO_ITEM(ary_entry(parser->scope, -1)))
+    for (int i = 0, max = parser->scope->count; i < max; i++)
         _Wikitext_pop_from_stack(parser, target);
 }
 
