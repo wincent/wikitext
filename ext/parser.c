@@ -21,6 +21,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include <stdbool.h>
+
 #include "parser.h"
 #include "ary.h"
 #include "str.h"
@@ -28,18 +30,6 @@
 #include "wikitext_ragel.h"
 
 #define IN(type) ary_includes(parser->scope, type)
-
-#ifndef TRUE
-#define TRUE 1
-#else
-#warning TRUE macro already defined
-#endif
-
-#ifndef FALSE
-#define FALSE 0
-#else
-#warning FALSE macro already defined
-#endif
 
 // poor man's object orientation in C:
 // instead of parsing around multiple parameters between functions in the parser
@@ -57,9 +47,9 @@ typedef struct
     ary_t   *scope;                 // stack for tracking scope
     ary_t   *line;                  // stack for tracking scope as implied by current line
     ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
-    char    pending_crlf;           // boolean
-    char    autolink;               // boolean
-    char    space_to_underscore;    // boolean
+    bool    pending_crlf;
+    bool    autolink;
+    bool    space_to_underscore;
     str_t   *line_ending;
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
     int     current_indent;         // fluctuates according to currently nested structures
@@ -531,7 +521,7 @@ void _Wikitext_start_para_if_necessary(parser_t *parser)
             // PRE blocks can have pending CRLF too (helps us avoid emitting the trailing newline)
             rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
     }
-    parser->pending_crlf = FALSE;
+    parser->pending_crlf = false;
 }
 
 void _Wikitext_emit_pending_crlf_if_necessary(parser_t *parser)
@@ -539,7 +529,7 @@ void _Wikitext_emit_pending_crlf_if_necessary(parser_t *parser)
     if (parser->pending_crlf)
     {
         rb_str_cat(parser->output, parser->line_ending->ptr, parser->line_ending->len);
-        parser->pending_crlf = FALSE;
+        parser->pending_crlf = false;
     }
 }
 
@@ -866,7 +856,7 @@ VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 {
     parser_t parser;
     parser.link_target              = in;
-    parser.space_to_underscore      = FALSE;
+    parser.space_to_underscore      = false;
     _Wikitext_parser_encode_link_target(&parser);
     return parser.link_target;
 }
@@ -876,25 +866,25 @@ VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in)
 {
     parser_t parser;
     parser.link_target              = in;
-    parser.space_to_underscore      = FALSE;
+    parser.space_to_underscore      = false;
     _Wikitext_parser_encode_link_target(&parser);
     return parser.link_target;
 }
 
-// returns 1 (TRUE) if supplied string is blank (nil, empty, or all whitespace)
-// returns 0 (FALSE) otherwise
+// returns 1 (true) if supplied string is blank (nil, empty, or all whitespace)
+// returns 0 (false) otherwise
 int _Wikitext_blank(VALUE str)
 {
     if (NIL_P(str) || RSTRING_LEN(str) == 0)
-        return TRUE;
+        return true;
     for (char *ptr = RSTRING_PTR(str),
         *end = RSTRING_PTR(str) + RSTRING_LEN(str);
         ptr < end; ptr++)
     {
         if (*ptr != ' ')
-            return FALSE;
+            return false;
     }
-    return TRUE;
+    return true;
 }
 
 void _Wikitext_rollback_failed_internal_link(parser_t *parser)
@@ -1077,9 +1067,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     GC_WRAP_ARY(parser->line, line_gc);
     parser->line_buffer             = ary_new();
     GC_WRAP_ARY(parser->line_buffer, line_buffer_gc);
-    parser->pending_crlf            = FALSE;
-    parser->autolink                = rb_iv_get(self, "@autolink") == Qtrue ? TRUE : FALSE;
-    parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore") == Qtrue ? TRUE : FALSE;
+    parser->pending_crlf            = false;
+    parser->autolink                = rb_iv_get(self, "@autolink") == Qtrue ? true : false;
+    parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore") == Qtrue ? true : false;
     parser->line_ending             = str_new_from_string(line_ending);
     GC_WRAP_STR(parser->line_ending, line_ending_gc);
     parser->base_indent             = base_indent;
@@ -1174,7 +1164,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
                 if (!IN(PRE))
                 {
-                    parser->pending_crlf = FALSE;
+                    parser->pending_crlf = false;
                     _Wikitext_pop_from_stack_up_to(parser, Qnil, BLOCKQUOTE, Qfalse);
                     _Wikitext_indent(parser);
                     rb_str_cat(parser->output, pre_start, sizeof(pre_start) - 1);
@@ -2461,7 +2451,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case CRLF:
                 i = parser->pending_crlf;
-                parser->pending_crlf = FALSE;
+                parser->pending_crlf = false;
                 _Wikitext_rollback_failed_link(parser); // if any
                 if (IN(NO_WIKI_START) || IN(PRE_START))
                 {
@@ -2496,14 +2486,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             _Wikitext_pop_from_stack_up_to(parser, parser->output, PRE, Qtrue);
                         else
                             // potentially will emit
-                            parser->pending_crlf = TRUE;
+                            parser->pending_crlf = true;
 
                         continue; // jump back to top of loop to handle token grabbed via lookahead
                     }
                 }
                 else
                 {
-                    parser->pending_crlf = TRUE;
+                    parser->pending_crlf = true;
 
                     // count number of BLOCKQUOTE tokens in line buffer (can be zero) and pop back to that level
                     // as a side effect, this handles any open span-level elements and unclosed blocks
@@ -2513,7 +2503,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         if (parser->scope->count > 0 && ary_entry(parser->scope, -1) == LI)
                         {
-                            parser->pending_crlf = FALSE;
+                            parser->pending_crlf = false;
                             break;
                         }
 
@@ -2526,7 +2516,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             if (NO_ITEM(ary_entry(parser->line_buffer, -2)) ||
                                 (ary_entry(parser->line_buffer, -2) == BLOCKQUOTE && !IN(BLOCKQUOTE_START)))
                                 // paragraph break
-                                parser->pending_crlf = FALSE;
+                                parser->pending_crlf = false;
                             else
                                 // not a paragraph break!
                                 continue;
