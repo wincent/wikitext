@@ -2204,7 +2204,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         rb_str_cat(parser->output, link_end, sizeof(link_end) - 1);
                         break;
                     }
-                    if (NIL_P(parser->link_text) || RSTRING_LEN(parser->link_text) == 0)
+                    if (NIL_P(parser->link_text) ||
+                        RSTRING_LEN(parser->link_text) == 0 ||
+                        _Wikitext_blank(parser->link_text))
                         // use link target as link text
                         parser->link_text = _Wikitext_parser_sanitize_link_target(parser, Qfalse);
                     else

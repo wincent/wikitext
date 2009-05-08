@@ -823,8 +823,14 @@ describe Wikitext::Parser, 'internal links (space to underscore on)' do
     end
 
     describe 'missing link text' do
-      it 'should use link target' do
+      it 'should use link target (zero-width link text)' do
         @parser.parse('[[foo|]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+      end
+
+      # was a bug in version <= 1.6
+      # emitted: <p><a href="/wiki/foo"></a></p>\n
+      it 'should use link target (blank link text)' do
+        @parser.parse('[[foo| ]]').should == %Q{<p><a href="/wiki/foo">foo</a></p>\n}
       end
     end
 
