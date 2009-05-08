@@ -47,7 +47,7 @@ typedef struct
     ary_t   *line_buffer;           // stack for tracking raw tokens (not scope) on current line
     VALUE   pending_crlf;           // boolean (Qtrue or Qfalse)
     VALUE   autolink;               // boolean (Qtrue or Qfalse)
-    VALUE   space_to_underscore;    // boolean (Qtrue or Qfalse)
+    int     space_to_underscore;    // boolean (1/true or 0/false)
     str_t   *line_ending;
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
     int     current_indent;         // fluctuates according to currently nested structures
@@ -829,7 +829,7 @@ static void _Wikitext_parser_encode_link_target(parser_t *parser)
         }
         else if (*input == ' ' && input == start)
             start++;                    // we eat leading space
-        else if (*input == ' ' && parser->space_to_underscore == Qtrue)
+        else if (*input == ' ' && parser->space_to_underscore)
             *dest++     = '_';
         else    // everything else gets URL-encoded
         {
@@ -854,7 +854,7 @@ VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
 {
     parser_t parser;
     parser.link_target              = in;
-    parser.space_to_underscore      = Qfalse;
+    parser.space_to_underscore      = 0; // false
     _Wikitext_parser_encode_link_target(&parser);
     return parser.link_target;
 }
@@ -864,7 +864,7 @@ VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in)
 {
     parser_t parser;
     parser.link_target              = in;
-    parser.space_to_underscore      = Qfalse;
+    parser.space_to_underscore      = 0; // false
     _Wikitext_parser_encode_link_target(&parser);
     return parser.link_target;
 }
@@ -1067,7 +1067,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     GC_WRAP_ARY(parser->line_buffer, line_buffer_gc);
     parser->pending_crlf            = Qfalse;
     parser->autolink                = rb_iv_get(self, "@autolink");
-    parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore");
+    parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore") == Qtrue ? 1 : 0;
     parser->line_ending             = str_new_from_string(line_ending);
     GC_WRAP_STR(parser->line_ending, line_ending_gc);
     parser->base_indent             = base_indent;
