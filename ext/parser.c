@@ -908,16 +908,16 @@ void _Wikitext_rollback_failed_external_link(parser_t *parser)
 {
     if (!IN(EXT_LINK_START))
         return; // nothing to do!
-    int scope_includes_space = IN(SPACE); // remember these before popping
-    int scope_includes_path  = IN(PATH);
+
+    // store a couple of values before popping
+    int scope_includes_space = IN(SPACE);
+    VALUE link_class = IN(PATH) ? Qnil : parser->external_link_class;
     _Wikitext_pop_from_stack_up_to(parser, Qnil, EXT_LINK_START, Qtrue);
+
     rb_str_cat(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
     if (!NIL_P(parser->link_target))
     {
-        if (scope_includes_path) // don't use external link class
-            _Wikitext_append_hyperlink(parser, Qnil, parser->link_target, parser->link_target, Qnil, Qtrue);
-        else
-            _Wikitext_append_hyperlink(parser, Qnil, parser->link_target, parser->link_target, parser->external_link_class, Qtrue);
+        _Wikitext_append_hyperlink(parser, Qnil, parser->link_target, parser->link_target, link_class, Qtrue);
         if (scope_includes_space)
         {
             rb_str_cat(parser->output, space, sizeof(space) - 1);
