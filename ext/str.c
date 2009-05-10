@@ -23,6 +23,10 @@
 
 #include "str.h"
 
+// when allocating memory, reserve a little more than was asked for,
+// which can help to avoid subsequent allocations
+#define STR_OVERALLOC 256
+
 str_t *str_new(void)
 {
     str_t *str      = ALLOC_N(str_t, 1);
@@ -35,19 +39,19 @@ str_t *str_new(void)
 str_t *str_new_size(long len)
 {
     str_t *str      = ALLOC_N(str_t, 1);
-    str->ptr        = ALLOC_N(char, len);
+    str->ptr        = ALLOC_N(char, len + STR_OVERALLOC);
     str->len        = 0;
-    str->capacity   = len;
+    str->capacity   = len + STR_OVERALLOC;
     return str;
 }
 
 str_t *str_new_copy(const char *src, long len)
 {
     str_t *str      = ALLOC_N(str_t, 1);
-    str->ptr        = ALLOC_N(char, len);
+    str->ptr        = ALLOC_N(char, len + STR_OVERALLOC);
     memcpy(str->ptr, src, len);
     str->len        = len;
-    str->capacity   = len;
+    str->capacity   = len + STR_OVERALLOC;
     return str;
 }
 
@@ -76,27 +80,23 @@ void str_grow(str_t *str, long len)
     if (str->capacity < len)
     {
         if (str->ptr)
-            REALLOC_N(str->ptr, char, len);
+            REALLOC_N(str->ptr, char, len + STR_OVERALLOC);
         else
-            str->ptr = ALLOC_N(char, len);
-        str->capacity = len;
+            str->ptr = ALLOC_N(char, len + STR_OVERALLOC);
+        str->capacity = len + STR_OVERALLOC;
     }
 }
 
-// try overallocating once we've switched more things over to str_t
-// ie. allocate 32 bytes too much, 64 bytes etc
-// and run benchmarks to see if it runs faster
-// and other tests to count the number of allocations
 void str_append(str_t *str, const char *src, long len)
 {
     long new_len = str->len + len;
     if (str->capacity < new_len)
     {
         if (str->ptr)
-            REALLOC_N(str->ptr, char, new_len);
+            REALLOC_N(str->ptr, char, new_len + STR_OVERALLOC);
         else
-            str->ptr = ALLOC_N(char, new_len);
-        str->capacity = new_len;
+            str->ptr = ALLOC_N(char, new_len + STR_OVERALLOC);
+        str->capacity = new_len + STR_OVERALLOC;
     }
     memcpy(str->ptr + str->len, src, len);
     str->len = new_len;
