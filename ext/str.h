@@ -43,10 +43,6 @@ str_t *str_new_size(long len);
 // create a new string struct and initialize it with a copy of the buffer of length len pointed to by src
 str_t *str_new_copy(const char *src, long len);
 
-// create a new string struct and initialize it with the buffer of length len pointed to by src
-// no copy is made; the struct takes ownership of the buffer and will free it when the struct is disposed of
-str_t *str_new_no_copy(char *src, long len);
-
 // convenience method for testing
 str_t *str_new_from_string(VALUE string);
 

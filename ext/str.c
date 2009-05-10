@@ -55,15 +55,6 @@ str_t *str_new_copy(const char *src, long len)
     return str;
 }
 
-str_t *str_new_no_copy(char *src, long len)
-{
-    str_t *str      = ALLOC_N(str_t, 1);
-    str->ptr        = src;
-    str->len        = len;
-    str->capacity   = len;
-    return str;
-}
-
 str_t *str_new_from_string(VALUE string)
 {
     string = StringValue(string);
