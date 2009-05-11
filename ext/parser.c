@@ -2576,7 +2576,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 // TODO: replace this with a different append function
                 str_grow(output, output->len + 8);
                 _Wikitext_append_entity_from_utf32_char(output->ptr + output->len, token->code_point);
-                output->len = output->len + 8;
+                output->len += 8;
                 break;
 
             case END_OF_FILE:
