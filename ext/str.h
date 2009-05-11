@@ -37,9 +37,6 @@ typedef struct
 // create a new, empty string struct
 str_t *str_new(void);
 
-// create a new, empty string struct with capacity len
-str_t *str_new_size(long len);
-
 // create a new string struct and initialize it with a copy of the buffer of length len pointed to by src
 str_t *str_new_copy(const char *src, long len);
 

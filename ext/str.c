@@ -36,15 +36,6 @@ str_t *str_new(void)
     return str;
 }
 
-str_t *str_new_size(long len)
-{
-    str_t *str      = ALLOC_N(str_t, 1);
-    str->ptr        = ALLOC_N(char, len + STR_OVERALLOC);
-    str->len        = 0;
-    str->capacity   = len + STR_OVERALLOC;
-    return str;
-}
-
 str_t *str_new_copy(const char *src, long len)
 {
     str_t *str      = ALLOC_N(str_t, 1);
