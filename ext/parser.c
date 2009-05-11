@@ -276,22 +276,22 @@ void _Wikitext_downcase_bang(char *ptr, long len)
 // if check_autolink is true, checks parser->autolink to decide whether to emit a real hyperlink
 // or merely the literal link target
 // if link_text is Qnil, the link_target is re-used for the link text
-void _Wikitext_append_hyperlink(parser_t *parser, VALUE link_prefix, VALUE link_target, VALUE link_text, VALUE link_class, bool check_autolink)
+void _Wikitext_append_hyperlink(parser_t *parser, VALUE link_prefix, str_t *link_target, VALUE link_text, VALUE link_class, bool check_autolink)
 {
     if (check_autolink && !parser->autolink)
-        str_append_string(parser->output, link_target);
+        str_append_str(parser->output, link_target);
     else
     {
         str_append(parser->output, a_start, sizeof(a_start) - 1);               // <a href="
         if (!NIL_P(link_prefix))
             str_append_string(parser->output, link_prefix);
-        str_append_string(parser->output, link_target);
+        str_append_str(parser->output, link_target);
 
         // special handling for mailto URIs
         const char *mailto = "mailto:";
         if (NIL_P(link_prefix) &&
-            RSTRING_LEN(link_target) >= (long)sizeof(mailto) &&
-            strncmp(mailto, RSTRING_PTR(link_target), sizeof(mailto)) == 0)
+            link_target->len >= (long)sizeof(mailto) &&
+            strncmp(mailto, link_target->ptr, sizeof(mailto)) == 0)
             link_class = parser->mailto_class; // use mailto_class from parser
         if (link_class != Qnil)
         {
@@ -300,7 +300,7 @@ void _Wikitext_append_hyperlink(parser_t *parser, VALUE link_prefix, VALUE link_
         }
         str_append(parser->output, a_start_close, sizeof(a_start_close) - 1);   // ">
         if (NIL_P(link_text)) // re-use link_target
-            str_append_string(parser->output, link_target);
+            str_append_str(parser->output, link_target);
         else
             str_append_string(parser->output, link_text);
         str_append(parser->output, a_end, sizeof(a_end) - 1);                   // </a>
@@ -997,7 +997,7 @@ void _Wikitext_rollback_failed_external_link(parser_t *parser)
     str_append(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
     if (parser->link_target->len > 0)
     {
-        _Wikitext_append_hyperlink(parser, Qnil, string_from_str(parser->link_target), Qnil, link_class, true);
+        _Wikitext_append_hyperlink(parser, Qnil, parser->link_target, Qnil, link_class, true);
         if (scope_includes_space)
         {
             str_append(parser->output, space, sizeof(space) - 1);
@@ -1178,7 +1178,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         long i                      = 0;
         long j                      = 0;
         long k                      = 0;
-        str_t *output		    = NULL;
+        str_t *output               = NULL;
+        str_t _token_str;
+        str_t *token_str            = &_token_str;
 
         // The following giant switch statement contains cases for all the possible token types.
         // In the most basic sense we are emitting the HTML that corresponds to each token,
@@ -2034,7 +2036,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
-                    _Wikitext_append_hyperlink(parser, rb_str_new2("mailto:"), TOKEN_TEXT(token), Qnil, mailto_class, true);
+                    token_str->ptr = token->start;
+                    token_str->len = TOKEN_LEN(token);
+                    _Wikitext_append_hyperlink(parser, rb_str_new2("mailto:"), token_str, Qnil, mailto_class, true);
                 }
                 break;
 
@@ -2047,19 +2051,22 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     // if the URI were allowed it would have been handled already in LINK_START
                     _Wikitext_rollback_failed_internal_link(parser);
-                    _Wikitext_append_hyperlink(parser, Qnil, TOKEN_TEXT(token), Qnil, parser->external_link_class, true);
+                    token_str->ptr = token->start;
+                    token_str->len = TOKEN_LEN(token);
+                    _Wikitext_append_hyperlink(parser, Qnil, token_str, Qnil, parser->external_link_class, true);
                 }
                 else if (IN(EXT_LINK_START))
                 {
                     if (parser->link_target->len == 0)
                     {
                         // this must be our link target: look ahead to make sure we see the space we're expecting to see
-                        i = TOKEN_TEXT(token);
+                        token_str->ptr = token->start;
+                        token_str->len = TOKEN_LEN(token);
                         NEXT_TOKEN();
                         if (token->type == SPACE)
                         {
                             ary_push(parser->scope, SPACE);
-                            str_append_string(parser->link_target, i);
+                            str_append_str(parser->link_target, token_str);
                             str_clear(parser->link_text);
                             parser->capture     = parser->link_text;
                             token               = NULL; // silently consume space
@@ -2071,7 +2078,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             _Wikitext_pop_excess_elements(parser);
                             _Wikitext_start_para_if_necessary(parser);
                             str_append(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
-                            _Wikitext_append_hyperlink(parser, Qnil, i, Qnil, parser->external_link_class, true);
+                            _Wikitext_append_hyperlink(parser, Qnil, token_str, Qnil, parser->external_link_class, true);
                         }
                     }
                     else
@@ -2081,7 +2088,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     _Wikitext_pop_excess_elements(parser);
                     _Wikitext_start_para_if_necessary(parser);
-                    _Wikitext_append_hyperlink(parser, Qnil, TOKEN_TEXT(token), Qnil, parser->external_link_class, true);
+                    token_str->ptr = token->start;
+                    token_str->len = TOKEN_LEN(token);
+                    _Wikitext_append_hyperlink(parser, Qnil, token_str, Qnil, parser->external_link_class, true);
                 }
                 break;
 
@@ -2093,13 +2102,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (parser->link_target->len == 0)
                     {
                         // this must be our link target: look ahead to make sure we see the space we're expecting to see
-                        i = TOKEN_TEXT(token);
+                        token_str->ptr = token->start;
+                        token_str->len = TOKEN_LEN(token);
                         NEXT_TOKEN();
                         if (token->type == SPACE)
                         {
                             ary_push(parser->scope, PATH);
                             ary_push(parser->scope, SPACE);
-                            str_append_string(parser->link_target, i);
+                            str_append_str(parser->link_target, token_str);
                             str_clear(parser->link_text);
                             parser->capture     = parser->link_text;
                             token               = NULL; // silently consume space
@@ -2111,7 +2121,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             _Wikitext_pop_excess_elements(parser);
                             _Wikitext_start_para_if_necessary(parser);
                             str_append(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
-                            str_append_string(parser->output, i);
+                            str_append_str(parser->output, token_str);
                         }
                     }
                     else
@@ -2270,7 +2280,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     _Wikitext_parser_encode_link_target(parser);
                     _Wikitext_pop_from_stack_up_to(parser, output, LINK_START, true);
                     parser->capture = NULL;
-                    _Wikitext_append_hyperlink(parser, prefix, string_from_str(parser->link_target), string_from_str(parser->link_text), Qnil, false);
+                    _Wikitext_append_hyperlink(parser, prefix, parser->link_target, string_from_str(parser->link_text), Qnil, false);
                     str_clear(parser->link_target);
                     str_clear(parser->link_text);
                 }
@@ -2346,7 +2356,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         j = IN(PATH) ? Qnil : parser->external_link_class;
                         _Wikitext_pop_from_stack_up_to(parser, output, EXT_LINK_START, true);
                         parser->capture = NULL;
-                        _Wikitext_append_hyperlink(parser, Qnil, string_from_str(parser->link_target), string_from_str(parser->link_text), j, false);
+                        _Wikitext_append_hyperlink(parser, Qnil, parser->link_target, string_from_str(parser->link_text), j, false);
                     }
                     str_clear(parser->link_target);
                     str_clear(parser->link_text);
