@@ -616,7 +616,7 @@ void _Wikitext_pop_excess_elements(parser_t *parser)
     }
 }
 
-#define INVALID_ENCODING(msg)  do { if (dest_ptr) free(dest_ptr); rb_raise(eWikitextParserError, "invalid encoding: " msg); } while(0)
+#define INVALID_ENCODING(msg)  do { rb_raise(eWikitextParserError, "invalid encoding: " msg); } while(0)
 
 // Convert a single UTF-8 codepoint to UTF-32
 //
@@ -626,10 +626,8 @@ void _Wikitext_pop_excess_elements(parser_t *parser)
 // in the UTF-8 character (between 1 and 4) is returned by reference in
 // width_out.
 //
-// Raises a RangeError if the supplied character is invalid UTF-8 (in which
-// case it also frees the block of memory indicated by dest_ptr if it is
-// non-NULL).
-uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out, void *dest_ptr)
+// Raises a RangeError if the supplied character is invalid UTF-8.
+uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out)
 {
     uint32_t dest;
     if ((unsigned char)src[0] <= 0x7f)
@@ -751,82 +749,63 @@ void _Wikitext_trim_link_text(parser_t *parser)
 // - if trim is false, leading and trailing whitespace trimmed
 void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, bool trim)
 {
-    char    *src    = parser->link_target->ptr;
-    char    *start  = src;                  // remember this so we can check if we're at the start
-    long    len     = parser->link_target->len;
-    char    *end    = src + len;
-
-    // start with a destination buffer twice the size of the source, will realloc if necessary
-    // slop = (len / 8) * 8 (ie. one in every 8 characters can be converted into an entity, each entity requires 8 bytes)
-    // this efficiently handles the most common case (where the size of the buffer doesn't change much)
-    char    *dest       = ALLOC_N(char, len * 2);
-    char    *dest_ptr   = dest; // hang on to this so we can pass it to free() later
+    char    *src        = parser->link_target->ptr;
+    char    *start      = src;  // remember this so we can check if we're at the start
+    long    len         = parser->link_target->len;
+    char    *end        = src + len;
+    char    *dest       = output->ptr + output->len;
     char    *non_space  = dest; // remember last non-space character output
     while (src < end)
     {
-        // need at most 8 characters (8 bytes) to display each character
-        if (dest + 8 > dest_ptr + len)                      // outgrowing buffer, must reallocate
+        // need at most 8 bytes to display each input character (&#x0000;)
+        if (output->ptr + output->len + 8 > output->ptr + output->capacity) // outgrowing buffer, must grow
         {
-            char *old_dest      = dest;
-            char *old_dest_ptr  = dest_ptr;
-            len                 = len + (end - src) * 8;    // allocate enough for worst case
-            dest                = realloc(dest_ptr, len);   // will never have to realloc more than once
-            if (dest == NULL)
+            char *old_ptr       = output->ptr;
+            len                 = output->len + (end - src) * 8;    // allocate enough for worst case
+            str_grow(output, len);
+            if (old_ptr != output->ptr) // may have moved
             {
-                // would have used reallocf, but this has to run on Linux too, not just Darwin
-                free(dest_ptr);
-                rb_raise(rb_eNoMemError, "failed to re-allocate temporary storage (memory allocation error)");
+                non_space       += output->ptr - old_ptr;
+                dest            += output->ptr - old_ptr;
             }
-            dest_ptr    = dest;
-            dest        = dest_ptr + (old_dest - old_dest_ptr);
-            non_space   = dest_ptr + (non_space - old_dest_ptr);
         }
 
         if (*src == '"')
         {
             char quot_entity_literal[] = { '&', 'q', 'u', 'o', 't', ';' };  // no trailing NUL
-            memcpy(dest, quot_entity_literal, sizeof(quot_entity_literal));
-            dest += sizeof(quot_entity_literal);
+            str_append(output, quot_entity_literal, sizeof(quot_entity_literal));
         }
         else if (*src == '&')
         {
             char amp_entity_literal[] = { '&', 'a', 'm', 'p', ';' };    // no trailing NUL
-            memcpy(dest, amp_entity_literal, sizeof(amp_entity_literal));
-            dest += sizeof(amp_entity_literal);
+            str_append(output, amp_entity_literal, sizeof(amp_entity_literal));
         }
         else if (*src == '<' || *src == '>')
-        {
-            free(dest_ptr);
             rb_raise(rb_eRangeError, "invalid link text (\"%c\" may not appear in link text)", *src);
-        }
         else if (*src == ' ' && src == start && !trim)
             start++;                            // we eat leading space
         else if (*src >= 0x20 && *src <= 0x7e)  // printable ASCII
         {
-            *dest = *src;
-            dest++;
+            *(output->ptr + output->len) = *src;
+            output->len++;
         }
         else    // all others: must convert to entities
         {
             long        width;
-            _Wikitext_append_entity_from_utf32_char(dest, _Wikitext_utf8_to_utf32(src, end, &width, dest_ptr));
-            dest        += 8; // always  8 characters (&#x0000;)
+            _Wikitext_append_entity_from_utf32_char(output->ptr + output->len, _Wikitext_utf8_to_utf32(src, end, &width));
+            output->len += 8;
             src         += width;
-            non_space   = dest;
+            non_space   = output->ptr + output->len;
             continue;
         }
         if (*src != ' ')
-            non_space = dest;
+            non_space = output->ptr + output->len;
         src++;
     }
 
     // trim trailing space if necessary
-    if (!trim && non_space > dest_ptr && dest != non_space)
-        len = non_space - dest_ptr;
-    else
-        len = dest - dest_ptr;
-    str_append(output, dest_ptr, len);
-    free(dest_ptr);
+    if (!trim && non_space > dest && output->ptr + output->len != non_space)
+        output->len -= (output->ptr + output->len) - non_space;
 }
 
 VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
