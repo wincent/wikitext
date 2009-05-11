@@ -716,10 +716,9 @@ void _Wikitext_parser_trim_link_text(parser_t *parser)
 // - if rollback is false, leading and trailing whitespace trimmed
 VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, bool rollback)
 {
-    VALUE   string  = string_from_str(parser->link_target);
-    char    *src    = RSTRING_PTR(string);
+    char    *src    = parser->link_target->ptr;
     char    *start  = src;                  // remember this so we can check if we're at the start
-    long    len     = RSTRING_LEN(string);
+    long    len     = parser->link_target->len;
     char    *end    = src + len;
 
     // start with a destination buffer twice the size of the source, will realloc if necessary
