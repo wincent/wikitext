@@ -751,8 +751,7 @@ void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, boo
     char    *start      = src;  // remember this so we can check if we're at the start
     long    len         = parser->link_target->len;
     char    *end        = src + len;
-    char    *dest       = output->ptr + output->len;
-    char    *non_space  = dest; // remember last non-space character output
+    char    *non_space  = output->ptr + output->len; // remember last non-space character output
     while (src < end)
     {
         // need at most 8 bytes to display each input character (&#x0000;)
@@ -762,10 +761,7 @@ void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, boo
             len                 = output->len + (end - src) * 8;    // allocate enough for worst case
             str_grow(output, len);
             if (old_ptr != output->ptr) // may have moved
-            {
                 non_space       += output->ptr - old_ptr;
-                dest            += output->ptr - old_ptr;
-            }
         }
 
         if (*src == '"')
@@ -802,7 +798,7 @@ void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, boo
     }
 
     // trim trailing space if necessary
-    if (trim && non_space > dest && output->ptr + output->len != non_space)
+    if (trim && output->ptr + output->len != non_space)
         output->len -= (output->ptr + output->len) - non_space;
 }
 
