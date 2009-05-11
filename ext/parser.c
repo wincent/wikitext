@@ -718,7 +718,7 @@ void _Wikitext_append_entity_from_utf32_char(char *output, uint32_t character)
 }
 
 // trim parser->link_text in place
-void _Wikitext_parser_trim_link_text(parser_t *parser)
+void _Wikitext_trim_link_text(parser_t *parser)
 {
     char    *src        = parser->link_text->ptr;
     char    *start      = src;                  // remember this so we can check if we're at the start
@@ -749,7 +749,7 @@ void _Wikitext_parser_trim_link_text(parser_t *parser)
 // - QUOT and AMP characters converted to named entities
 // - if trim is true, there is no special treatment of spaces
 // - if trim is false, leading and trailing whitespace trimmed
-void _Wikitext_parser_append_sanitized_link_target(parser_t *parser, str_t *output, bool trim)
+void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, bool trim)
 {
     char    *src    = parser->link_target->ptr;
     char    *start  = src;                  // remember this so we can check if we're at the start
@@ -836,7 +836,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
     GC_WRAP_STR(parser.link_target, link_target_gc);
     str_t *output = str_new();
     GC_WRAP_STR(output, output_gc);
-    _Wikitext_parser_append_sanitized_link_target(&parser, output, false);
+    _Wikitext_append_sanitized_link_target(&parser, output, false);
     return string_from_str(output);
 }
 
@@ -848,7 +848,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 //         ...the [[foo]] is...
 // to be equivalent to:
 //         thing. [[Foo]] was...
-static void _Wikitext_parser_encode_link_target(parser_t *parser)
+static void _Wikitext_encode_link_target(parser_t *parser)
 {
     char        *input      = parser->link_target->ptr;
     char        *start      = input;            // remember this so we can check if we're at the start
@@ -930,7 +930,7 @@ VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
     parser.space_to_underscore      = false;
     parser.link_target              = str_new_from_string(in);
     GC_WRAP_STR(parser.link_target, link_target_gc);
-    _Wikitext_parser_encode_link_target(&parser);
+    _Wikitext_encode_link_target(&parser);
     return string_from_str(parser.link_target);
 }
 
@@ -941,7 +941,7 @@ VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in)
     parser.space_to_underscore      = false;
     parser.link_target              = str_new_from_string(in);
     GC_WRAP_STR(parser.link_target, link_target_gc);
-    _Wikitext_parser_encode_link_target(&parser);
+    _Wikitext_encode_link_target(&parser);
     return string_from_str(parser.link_target);
 }
 
@@ -970,7 +970,7 @@ void _Wikitext_rollback_failed_internal_link(parser_t *parser)
     str_append(parser->output, link_start, sizeof(link_start) - 1);
     if (parser->link_target->len > 0)
     {
-        _Wikitext_parser_append_sanitized_link_target(parser, parser->output, true);
+        _Wikitext_append_sanitized_link_target(parser, parser->output, true);
         if (scope_includes_separator)
         {
             str_append(parser->output, separator, sizeof(separator) - 1);
@@ -2272,11 +2272,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // use link target as link text
                         str_clear(parser->link_text);
-                        _Wikitext_parser_append_sanitized_link_target(parser, parser->link_text, false);
+                        _Wikitext_append_sanitized_link_target(parser, parser->link_text, false);
                     }
                     else
-                        _Wikitext_parser_trim_link_text(parser);
-                    _Wikitext_parser_encode_link_target(parser);
+                        _Wikitext_trim_link_text(parser);
+                    _Wikitext_encode_link_target(parser);
                     _Wikitext_pop_from_stack_up_to(parser, output, LINK_START, true);
                     parser->capture = NULL;
                     _Wikitext_append_hyperlink(parser, prefix, parser->link_target, parser->link_text, Qnil, false);
