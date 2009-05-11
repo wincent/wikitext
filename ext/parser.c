@@ -743,8 +743,8 @@ void _Wikitext_trim_link_text(parser_t *parser)
 
 // - non-printable (non-ASCII) characters converted to numeric entities
 // - QUOT and AMP characters converted to named entities
-// - if trim is true, there is no special treatment of spaces
-// - if trim is false, leading and trailing whitespace trimmed
+// - if trim is true, leading and trailing whitespace trimmed
+// - if trim is false, there is no special treatment of spaces
 void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, bool trim)
 {
     char    *src        = parser->link_target->ptr;
@@ -780,7 +780,7 @@ void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, boo
         }
         else if (*src == '<' || *src == '>')
             rb_raise(rb_eRangeError, "invalid link text (\"%c\" may not appear in link text)", *src);
-        else if (*src == ' ' && src == start && !trim)
+        else if (*src == ' ' && src == start && trim)
             start++;                            // we eat leading space
         else if (*src >= 0x20 && *src <= 0x7e)  // printable ASCII
         {
@@ -802,7 +802,7 @@ void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, boo
     }
 
     // trim trailing space if necessary
-    if (!trim && non_space > dest && output->ptr + output->len != non_space)
+    if (trim && non_space > dest && output->ptr + output->len != non_space)
         output->len -= (output->ptr + output->len) - non_space;
 }
 
@@ -813,7 +813,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
     GC_WRAP_STR(parser.link_target, link_target_gc);
     str_t *output = str_new();
     GC_WRAP_STR(output, output_gc);
-    _Wikitext_append_sanitized_link_target(&parser, output, false);
+    _Wikitext_append_sanitized_link_target(&parser, output, true);
     return string_from_str(output);
 }
 
@@ -947,7 +947,7 @@ void _Wikitext_rollback_failed_internal_link(parser_t *parser)
     str_append(parser->output, link_start, sizeof(link_start) - 1);
     if (parser->link_target->len > 0)
     {
-        _Wikitext_append_sanitized_link_target(parser, parser->output, true);
+        _Wikitext_append_sanitized_link_target(parser, parser->output, false);
         if (scope_includes_separator)
         {
             str_append(parser->output, separator, sizeof(separator) - 1);
@@ -2249,7 +2249,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // use link target as link text
                         str_clear(parser->link_text);
-                        _Wikitext_append_sanitized_link_target(parser, parser->link_text, false);
+                        _Wikitext_append_sanitized_link_target(parser, parser->link_text, true);
                     }
                     else
                         _Wikitext_trim_link_text(parser);
