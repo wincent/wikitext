@@ -2309,16 +2309,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (IN(LINK_START))
                 {
                     // already in internal link scope!
-                    if (parser->link_target->len == 0)
-                        // this must be the first character of our link target
+                    if (parser->link_target->len == 0 || !IN(SPACE))
                         str_append(parser->link_target, ext_link_start, sizeof(ext_link_start) - 1);
-                    else if (IN(SPACE))
-                        // link target has already been scanned
+                    else // link target has already been scanned
                         str_append(parser->link_text, ext_link_start, sizeof(ext_link_start) - 1);
-                    else
-                        // TODO: possibly roll this condition into the above
-                        // add to existing link target
-                        str_append(parser->link_target, ext_link_start, sizeof(ext_link_start) - 1);
                 }
                 else // not in external link scope yet
                 {
