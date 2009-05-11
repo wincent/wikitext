@@ -748,10 +748,10 @@ void _Wikitext_trim_link_text(parser_t *parser)
 void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, bool trim)
 {
     char    *src        = parser->link_target->ptr;
-    char    *start      = src;  // remember this so we can check if we're at the start
+    char    *start      = src;                          // remember this so we can check if we're at the start
+    char    *non_space  = output->ptr + output->len;    // remember last non-space character output
     long    len         = parser->link_target->len;
     char    *end        = src + len;
-    char    *non_space  = output->ptr + output->len; // remember last non-space character output
     while (src < end)
     {
         // need at most 8 bytes to display each input character (&#x0000;)
