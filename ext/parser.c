@@ -56,6 +56,7 @@ typedef struct
     bool    space_to_underscore;
 } parser_t;
 
+const char null_str[]                   = { 0 };
 const char escaped_no_wiki_start[]      = "&lt;nowiki&gt;";
 const char escaped_no_wiki_end[]        = "&lt;/nowiki&gt;";
 const char literal_strong_em[]          = "'''''";
@@ -1079,6 +1080,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     char *p = RSTRING_PTR(string);
     long len = RSTRING_LEN(string);
     char *pe = p + len;
+
+    // the eventual return value
+    VALUE out = rb_str_new2("");
 
     // access these once per parse
     VALUE line_ending   = rb_iv_get(self, "@line_ending");
@@ -2579,6 +2583,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         token = NULL;
     } while (1);
 return_output:
-    // TODO: make this fast
-    return string_from_str(parser->output);
+    // nasty hack to avoid re-allocating our return value
+    str_append(parser->output, null_str, 1); // null-terminate
+
+    // won't work for Ruby 1.9
+    free(RSTRING(out)->ptr);
+    RSTRING(out)->ptr = parser->output->ptr;
+    RSTRING(out)->len = parser->output->len - 1; // don't count null termination
+    parser->output->ptr = NULL; // don't double-free
+    return out;
 }
