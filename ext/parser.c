@@ -342,12 +342,12 @@ void _Wikitext_indent(parser_t *parser)
     parser->current_indent += 2;
 }
 
-void _Wikitext_dedent(parser_t *parser, VALUE emit)
+void _Wikitext_dedent(parser_t *parser, bool emit)
 {
     if (parser->base_indent == -1) // indentation disabled
         return;
     parser->current_indent -= 2;
-    if (emit != Qtrue)
+    if (!emit)
         return;
     int space_count = parser->current_indent + parser->base_indent;
     if (space_count > 0)
@@ -380,12 +380,12 @@ void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
         case PRE_START:
             str_append(target, pre_end, sizeof(pre_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, Qfalse);
+            _Wikitext_dedent(parser, false);
             break;
 
         case BLOCKQUOTE:
         case BLOCKQUOTE_START:
-            _Wikitext_dedent(parser, Qtrue);
+            _Wikitext_dedent(parser, true);
             str_append(target, blockquote_end, sizeof(blockquote_end) - 1);
             str_append_str(target, parser->line_ending);
             break;
@@ -410,13 +410,13 @@ void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
             break;
 
         case OL:
-            _Wikitext_dedent(parser, Qtrue);
+            _Wikitext_dedent(parser, true);
             str_append(target, ol_end, sizeof(ol_end) - 1);
             str_append_str(target, parser->line_ending);
             break;
 
         case UL:
-            _Wikitext_dedent(parser, Qtrue);
+            _Wikitext_dedent(parser, true);
             str_append(target, ul_end, sizeof(ul_end) - 1);
             str_append_str(target, parser->line_ending);
             break;
@@ -427,50 +427,50 @@ void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
             // and other times we want it to behave like BLOCKQUOTE (ie. when it has a nested list inside)
             // hence this hack: we do an emitting dedent on behalf of the LI that we know must be coming
             // and then when we pop the actual LI itself (below) we do the standard non-emitting indent
-            _Wikitext_dedent(parser, Qtrue);    // we really only want to emit the spaces
+            _Wikitext_dedent(parser, true);     // we really only want to emit the spaces
             parser->current_indent += 2;        // we don't want to decrement the actual indent level, so put it back
             break;
 
         case LI:
             str_append(target, li_end, sizeof(li_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, Qfalse);
+            _Wikitext_dedent(parser, false);
             break;
 
         case H6_START:
             str_append(target, h6_end, sizeof(h6_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, Qfalse);
+            _Wikitext_dedent(parser, false);
             break;
 
         case H5_START:
             str_append(target, h5_end, sizeof(h5_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, Qfalse);
+            _Wikitext_dedent(parser, false);
             break;
 
         case H4_START:
             str_append(target, h4_end, sizeof(h4_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, Qfalse);
+            _Wikitext_dedent(parser, false);
             break;
 
         case H3_START:
             str_append(target, h3_end, sizeof(h3_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, Qfalse);
+            _Wikitext_dedent(parser, false);
             break;
 
         case H2_START:
             str_append(target, h2_end, sizeof(h2_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, Qfalse);
+            _Wikitext_dedent(parser, false);
             break;
 
         case H1_START:
             str_append(target, h1_end, sizeof(h1_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, Qfalse);
+            _Wikitext_dedent(parser, false);
             break;
 
         case LINK_START:
@@ -496,7 +496,7 @@ void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
         case P:
             str_append(target, p_end, sizeof(p_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, Qfalse);
+            _Wikitext_dedent(parser, false);
             break;
 
         case END_OF_FILE:
