@@ -850,10 +850,9 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 //         thing. [[Foo]] was...
 static void _Wikitext_parser_encode_link_target(parser_t *parser)
 {
-    VALUE in                = string_from_str(parser->link_target);
-    char        *input      = RSTRING_PTR(in);
+    char        *input      = parser->link_target->ptr;
     char        *start      = input;            // remember this so we can check if we're at the start
-    long        len         = RSTRING_LEN(in);
+    long        len         = parser->link_target->len;
     if (!(len > 0))
         return;
     char        *end        = input + len;
