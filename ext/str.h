@@ -60,10 +60,6 @@ void str_append_str(str_t *str, str_t *other);
 // appends the "other" string (a Ruby String) onto str
 void str_append_string(str_t *str, VALUE other);
 
-// this is a temporary convenience measure
-// later on if I develop in-place variants of some functions this won't be needed
-void str_swap(str_t **a, str_t **b);
-
 // don't actually free the memory yet
 // this makes str structs very useful when reusing buffers because it avoids reallocation
 void str_clear(str_t *str);
