@@ -720,8 +720,7 @@ void _Wikitext_trim_link_text(parser_t *parser)
     char    *start      = src;                  // remember this so we can check if we're at the start
     char    *left       = src;
     char    *non_space  = src;                  // remember last non-space character output
-    long    len         = parser->link_text->len;
-    char    *end        = src + len;
+    char    *end        = src + parser->link_text->len;
     while (src < end)
     {
         if (*src == ' ')
@@ -750,18 +749,16 @@ void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, boo
     char    *src        = parser->link_target->ptr;
     char    *start      = src;                          // remember this so we can check if we're at the start
     char    *non_space  = output->ptr + output->len;    // remember last non-space character output
-    long    len         = parser->link_target->len;
-    char    *end        = src + len;
+    char    *end        = src + parser->link_target->len;
     while (src < end)
     {
         // need at most 8 bytes to display each input character (&#x0000;)
         if (output->ptr + output->len + 8 > output->ptr + output->capacity) // outgrowing buffer, must grow
         {
-            char *old_ptr       = output->ptr;
-            len                 = output->len + (end - src) * 8;    // allocate enough for worst case
-            str_grow(output, len);
+            char *old_ptr = output->ptr;
+            str_grow(output, output->len + (end - src) * 8);    // allocate enough for worst case
             if (old_ptr != output->ptr) // may have moved
-                non_space       += output->ptr - old_ptr;
+                non_space += output->ptr - old_ptr;
         }
 
         if (*src == '"')
