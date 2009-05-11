@@ -747,9 +747,9 @@ void _Wikitext_parser_trim_link_text(parser_t *parser)
 
 // - non-printable (non-ASCII) characters converted to numeric entities
 // - QUOT and AMP characters converted to named entities
-// - if rollback is true, there is no special treatment of spaces
-// - if rollback is false, leading and trailing whitespace trimmed
-void _Wikitext_parser_append_sanitized_link_target(parser_t *parser, str_t *output, bool rollback)
+// - if trim is true, there is no special treatment of spaces
+// - if trim is false, leading and trailing whitespace trimmed
+void _Wikitext_parser_append_sanitized_link_target(parser_t *parser, str_t *output, bool trim)
 {
     char    *src    = parser->link_target->ptr;
     char    *start  = src;                  // remember this so we can check if we're at the start
@@ -799,7 +799,7 @@ void _Wikitext_parser_append_sanitized_link_target(parser_t *parser, str_t *outp
             free(dest_ptr);
             rb_raise(rb_eRangeError, "invalid link text (\"%c\" may not appear in link text)", *src);
         }
-        else if (*src == ' ' && src == start && !rollback)
+        else if (*src == ' ' && src == start && !trim)
             start++;                            // we eat leading space
         else if (*src >= 0x20 && *src <= 0x7e)  // printable ASCII
         {
@@ -821,7 +821,7 @@ void _Wikitext_parser_append_sanitized_link_target(parser_t *parser, str_t *outp
     }
 
     // trim trailing space if necessary
-    if (!rollback && non_space > dest_ptr && dest != non_space)
+    if (!trim && non_space > dest_ptr && dest != non_space)
         len = non_space - dest_ptr;
     else
         len = dest - dest_ptr;
