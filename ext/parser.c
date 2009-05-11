@@ -616,8 +616,6 @@ void _Wikitext_pop_excess_elements(parser_t *parser)
     }
 }
 
-#define INVALID_ENCODING(msg)  do { rb_raise(eWikitextParserError, "invalid encoding: " msg); } while(0)
-
 // Convert a single UTF-8 codepoint to UTF-32
 //
 // Expects an input buffer, src, containing a UTF-8 encoded character (which
@@ -641,14 +639,14 @@ uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out)
         // byte starts with 110..... : this should be a two-byte sequence
         if (src + 1 >= end)
             // no second byte
-            INVALID_ENCODING("truncated byte sequence");
+            rb_raise(eWikitextParserError, "invalid encoding: truncated byte sequence");
         else if (((unsigned char)src[0] == 0xc0) ||
                 ((unsigned char)src[0] == 0xc1))
             // overlong encoding: lead byte of 110..... but code point <= 127
-            INVALID_ENCODING("overlong encoding");
+            rb_raise(eWikitextParserError, "invalid encoding: overlong encoding");
         else if ((src[1] & 0xc0) != 0x80 )
             // should have second byte starting with 10......
-            INVALID_ENCODING("malformed byte sequence");
+            rb_raise(eWikitextParserError, "invalid encoding: malformed byte sequence");
 
         dest =
             ((uint32_t)(src[0] & 0x1f)) << 6 |
@@ -660,11 +658,11 @@ uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out)
         // byte starts with 1110.... : this should be a three-byte sequence
         if (src + 2 >= end)
             // missing second or third byte
-            INVALID_ENCODING("truncated byte sequence");
+            rb_raise(eWikitextParserError, "invalid encoding: truncated byte sequence");
         else if (((src[1] & 0xc0) != 0x80 ) ||
                 ((src[2] & 0xc0) != 0x80 ))
             // should have second and third bytes starting with 10......
-            INVALID_ENCODING("malformed byte sequence");
+            rb_raise(eWikitextParserError, "invalid encoding: malformed byte sequence");
 
         dest =
             ((uint32_t)(src[0] & 0x0f)) << 12 |
@@ -677,16 +675,16 @@ uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out)
         // bytes starts with 11110... : this should be a four-byte sequence
         if (src + 3 >= end)
             // missing second, third, or fourth byte
-            INVALID_ENCODING("truncated byte sequence");
+            rb_raise(eWikitextParserError, "invalid encoding: truncated byte sequence");
         else if ((unsigned char)src[0] >= 0xf5 &&
                 (unsigned char)src[0] <= 0xf7)
             // disallowed by RFC 3629 (codepoints above 0x10ffff)
-            INVALID_ENCODING("overlong encoding");
+            rb_raise(eWikitextParserError, "invalid encoding: overlong encoding");
         else if (((src[1] & 0xc0) != 0x80 ) ||
                 ((src[2] & 0xc0) != 0x80 ) ||
                 ((src[3] & 0xc0) != 0x80 ))
             // should have second and third bytes starting with 10......
-            INVALID_ENCODING("malformed byte sequence");
+            rb_raise(eWikitextParserError, "invalid encoding: malformed byte sequence");
 
         dest =
             ((uint32_t)(src[0] & 0x07)) << 18 |
@@ -696,7 +694,7 @@ uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out)
         *width_out = 4;
     }
     else
-        INVALID_ENCODING("unexpected byte");
+        rb_raise(eWikitextParserError, "invalid encoding: unexpected byte");
     return dest;
 }
 
