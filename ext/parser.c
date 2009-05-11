@@ -667,7 +667,7 @@ uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out, void *de
     return dest;
 }
 
-VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
+void _Wikitext_append_entity_from_utf32_char(char *output, uint32_t character)
 {
     // TODO: consider special casing some entities (ie. quot, amp, lt, gt etc)?
     char hex_string[8]  = { '&', '#', 'x', 0, 0, 0, 0, ';' };
@@ -679,7 +679,7 @@ VALUE _Wikitext_utf32_char_to_entity(uint32_t character)
     hex_string[5]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
     scratch             = character & 0x000f;
     hex_string[6]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
-    return rb_str_new((const char *)hex_string, sizeof(hex_string));
+    memcpy(output, hex_string, sizeof(hex_string));
 }
 
 // trim parser->link_text in place
@@ -774,11 +774,8 @@ VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, bool rollback)
         else    // all others: must convert to entities
         {
             long        width;
-            VALUE       entity      = _Wikitext_utf32_char_to_entity(_Wikitext_utf8_to_utf32(src, end, &width, dest_ptr));
-            char        *entity_src = RSTRING_PTR(entity);
-            long        entity_len  = RSTRING_LEN(entity); // should always be 8 characters (8 bytes)
-            memcpy(dest, entity_src, entity_len);
-            dest        += entity_len;
+            _Wikitext_append_entity_from_utf32_char(dest, _Wikitext_utf8_to_utf32(src, end, &width, dest_ptr));
+            dest        += 8; // always  8 characters (&#x0000;)
             src         += width;
             non_space   = dest;
             continue;
@@ -2555,7 +2552,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 output = parser->capture ? parser->capture : parser->output;
                 _Wikitext_pop_excess_elements(parser);
                 _Wikitext_start_para_if_necessary(parser);
-                str_append_string(output, _Wikitext_utf32_char_to_entity(token->code_point));    // convert to entity
+                //str_append_string(output, _Wikitext_utf32_char_to_entity(token->code_point));    // convert to entity
+                // TODO: replace this with a different append function
+                str_grow(output, output->len + 8);
+                _Wikitext_append_entity_from_utf32_char(output->ptr + output->len, token->code_point);
+                output->len = output->len + 8;
                 break;
 
             case END_OF_FILE:
