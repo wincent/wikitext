@@ -747,31 +747,26 @@ VALUE _Wikitext_parser_sanitize_link_target(parser_t *parser, bool rollback)
             non_space   = dest_ptr + (non_space - old_dest_ptr);
         }
 
-        if (*src == '"')                 // QUOT
+        if (*src == '"')
         {
             char quot_entity_literal[] = { '&', 'q', 'u', 'o', 't', ';' };  // no trailing NUL
             memcpy(dest, quot_entity_literal, sizeof(quot_entity_literal));
             dest += sizeof(quot_entity_literal);
         }
-        else if (*src == '&')            // AMP
+        else if (*src == '&')
         {
             char amp_entity_literal[] = { '&', 'a', 'm', 'p', ';' };    // no trailing NUL
             memcpy(dest, amp_entity_literal, sizeof(amp_entity_literal));
             dest += sizeof(amp_entity_literal);
         }
-        else if (*src == '<')           // LESS_THAN
+        else if (*src == '<' || *src == '>')
         {
             free(dest_ptr);
-            rb_raise(rb_eRangeError, "invalid link text (\"<\" may not appear in link text)");
-        }
-        else if (*src == '>')           // GREATER_THAN
-        {
-            free(dest_ptr);
-            rb_raise(rb_eRangeError, "invalid link text (\">\" may not appear in link text)");
+            rb_raise(rb_eRangeError, "invalid link text (\"%c\" may not appear in link text)", *src);
         }
         else if (*src == ' ' && src == start && !rollback)
-            start++;                // we eat leading space
-        else if (*src >= 0x20 && *src <= 0x7e)    // printable ASCII
+            start++;                            // we eat leading space
+        else if (*src >= 0x20 && *src <= 0x7e)  // printable ASCII
         {
             *dest = *src;
             dest++;
