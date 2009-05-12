@@ -2327,12 +2327,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     int     token_len   = TOKEN_LEN(token);
                     NEXT_TOKEN();
                     type = token->type;
-                    if (((type == H6_END) && IN(H6_START)) ||
-                        ((type == H5_END) && IN(H5_START)) ||
-                        ((type == H4_END) && IN(H4_START)) ||
-                        ((type == H3_END) && IN(H3_START)) ||
-                        ((type == H2_END) && IN(H2_START)) ||
-                        ((type == H1_END) && IN(H1_START)))
+                    if ((type == H6_END && IN(H6_START)) ||
+                        (type == H5_END && IN(H5_START)) ||
+                        (type == H4_END && IN(H4_START)) ||
+                        (type == H3_END && IN(H3_START)) ||
+                        (type == H2_END && IN(H2_START)) ||
+                        (type == H1_END && IN(H1_START)))
                     {
                         // will suppress emission of space (discard) if next token is a H6_END, H5_END etc and we are in the corresponding scope
                     }
