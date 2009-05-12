@@ -28,5 +28,14 @@ def missing item
   exit 1
 end
 
+case RUBY_VERSION
+when /\A1\.8/
+  $CFLAGS += ' -DRUBY_1_8_x'
+when /\A1\.9/
+  $CFLAGS += ' -DRUBY_1_9_x'
+else
+  raise "unsupported Ruby version: #{RUBY_VERSION}"
+end
+
 have_header('ruby.h') or missing 'ruby.h'
 create_makefile('wikitext')
