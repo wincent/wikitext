@@ -853,13 +853,13 @@ static void _Wikitext_encode_link_target(parser_t *parser)
         }
 
         // pass through unreserved characters
-        if (((*src >= 'a') && (*src <= 'z')) ||
-            ((*src >= 'A') && (*src <= 'Z')) ||
-            ((*src >= '0') && (*src <= '9')) ||
-            (*src == '-') ||
-            (*src == '_') ||
-            (*src == '.') ||
-            (*src == '~'))
+        if ((*src >= 'a' && *src <= 'z') ||
+            (*src >= 'A' && *src <= 'Z') ||
+            (*src >= '0' && *src <= '9') ||
+            *src == '-' ||
+            *src == '_' ||
+            *src == '.' ||
+            *src == '~')
         {
             *dest++     = *src;
             non_space   = dest;
