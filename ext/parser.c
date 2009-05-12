@@ -22,6 +22,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdbool.h>
+#include <ruby/version.h> /* for conditional compilation on Ruby 1.8.x/1.9.x */
 
 #include "parser.h"
 #include "ary.h"
@@ -1083,9 +1084,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     char *p = RSTRING_PTR(string);
     long len = RSTRING_LEN(string);
     char *pe = p + len;
-
-    // the eventual return value
-    VALUE out = rb_str_new2("");
 
     // access these once per parse
     VALUE line_ending   = rb_iv_get(self, "@line_ending");
@@ -2592,11 +2590,31 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 return_output:
     // nasty hack to avoid re-allocating our return value
     str_append(parser->output, null_str, 1); // null-terminate
+    len = parser->output->len - 1; // don't count null termination
+#ifndef RUBY_VERSION
+#error RUBY_VERSION not defined
+#else
 
-    // won't work for Ruby 1.9
-    free(RSTRING(out)->ptr);
+// unfortunately this version check doesn't work properly in 1.9
+// (version.h not installed with 1.9, so likely other sytem-installed version.h gets picked up)
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 9
+    // Ruby 1.9.x
+    VALUE out = rb_str_buf_new(RSTRING_EMBED_LEN_MAX + 1);
+    free(RSTRING_PTR(out));
+    RSTRING(out)->as.heap.aux.capa = len;
+    RSTRING(out)->as.heap.ptr = parser->output->ptr;
+    RSTRING(out)->as.heap.len = len;
+#elif RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8
+    // Ruby 1.8.x
+    VALUE out = rb_str_new2("");
+    free(RSTRING_PTR(out));
+    RSTRING(out)->len = len;
+    RSTRING(out)->aux.capa = len;
     RSTRING(out)->ptr = parser->output->ptr;
-    RSTRING(out)->len = parser->output->len - 1; // don't count null termination
+#else
+#error unsupported RUBY_VERSION
+#endif
+#endif
     parser->output->ptr = NULL; // don't double-free
     return out;
 }
