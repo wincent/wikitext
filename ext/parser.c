@@ -22,7 +22,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdbool.h>
-#include <ruby/version.h> /* for conditional compilation on Ruby 1.8.x/1.9.x */
 
 #include "parser.h"
 #include "ary.h"
