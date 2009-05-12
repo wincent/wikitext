@@ -68,12 +68,6 @@ const char escaped_strong_start[]       = "&lt;strong&gt;";
 const char escaped_strong_end[]         = "&lt;/strong&gt;";
 const char escaped_tt_start[]           = "&lt;tt&gt;";
 const char escaped_tt_end[]             = "&lt;/tt&gt;";
-const char literal_h6[]                 = "======";
-const char literal_h5[]                 = "=====";
-const char literal_h4[]                 = "====";
-const char literal_h3[]                 = "===";
-const char literal_h2[]                 = "==";
-const char literal_h1[]                 = "=";
 const char pre_start[]                  = "<pre>";
 const char pre_end[]                    = "</pre>";
 const char escaped_pre_start[]          = "&lt;pre&gt;";
@@ -1862,109 +1856,29 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 continue;
 
             case H6_END:
-                if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
-                {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
-                    str_append(parser->output, literal_h6, sizeof(literal_h6) - 1);
-                }
-                else
-                {
-                    _Wikitext_rollback_failed_external_link(parser); // if any
-                    if (!IN(H6_START))
-                    {
-                        // literal output only if not in h6 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(parser);
-                        str_append(parser->output, literal_h6, sizeof(literal_h6) - 1);
-                    }
-                }
-                break;
-
             case H5_END:
-                if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
-                {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
-                    str_append(parser->output, literal_h5, sizeof(literal_h5) - 1);
-                }
-                else
-                {
-                    _Wikitext_rollback_failed_external_link(parser); // if any
-                    if (!IN(H5_START))
-                    {
-                        // literal output only if not in h5 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(parser);
-                        str_append(parser->output, literal_h5, sizeof(literal_h5) - 1);
-                    }
-                }
-                break;
-
             case H4_END:
-                if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
-                {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
-                    str_append(parser->output, literal_h4, sizeof(literal_h4) - 1);
-                }
-                else
-                {
-                    _Wikitext_rollback_failed_external_link(parser); // if any
-                    if (!IN(H4_START))
-                    {
-                        // literal output only if not in h4 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(parser);
-                        str_append(parser->output, literal_h4, sizeof(literal_h4) - 1);
-                    }
-                }
-                break;
-
             case H3_END:
-                if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
-                {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
-                    str_append(parser->output, literal_h3, sizeof(literal_h3) - 1);
-                }
-                else
-                {
-                    _Wikitext_rollback_failed_external_link(parser); // if any
-                    if (!IN(H3_START))
-                    {
-                        // literal output only if not in h3 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(parser);
-                        str_append(parser->output, literal_h3, sizeof(literal_h3) - 1);
-                    }
-                }
-                break;
-
             case H2_END:
-                if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
-                {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
-                    str_append(parser->output, literal_h2, sizeof(literal_h2) - 1);
-                }
-                else
-                {
-                    _Wikitext_rollback_failed_external_link(parser); // if any
-                    if (!IN(H2_START))
-                    {
-                        // literal output only if not in h2 scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(parser);
-                        str_append(parser->output, literal_h2, sizeof(literal_h2) - 1);
-                    }
-                }
-                break;
-
             case H1_END:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
                     _Wikitext_emit_pending_crlf_if_necessary(parser);
-                    str_append(parser->output, literal_h1, sizeof(literal_h1) - 1);
+                    str_append(parser->output, token->start, TOKEN_LEN(token));
                 }
                 else
                 {
                     _Wikitext_rollback_failed_external_link(parser); // if any
-                    if (!IN(H1_START))
+                    if ((type == H6_END && !IN(H6_START)) ||
+                        (type == H5_END && !IN(H5_START)) ||
+                        (type == H4_END && !IN(H4_START)) ||
+                        (type == H3_END && !IN(H3_START)) ||
+                        (type == H2_END && !IN(H2_START)) ||
+                        (type == H1_END && !IN(H1_START)))
                     {
-                        // literal output only if not in h1 scope (we stay silent in that case)
+                        // literal output only if not in appropriate scope (we stay silent in that case)
                         _Wikitext_start_para_if_necessary(parser);
-                        str_append(parser->output, literal_h1, sizeof(literal_h1) - 1);
+                        str_append(parser->output, token->start, TOKEN_LEN(token));
                     }
                 }
                 break;
