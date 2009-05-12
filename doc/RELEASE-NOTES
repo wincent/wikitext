@@ -6,6 +6,21 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 1.7
+
+* many optimizations for speed: performance has improved for
+  all input types and in some cases has more than doubled
+  (the biggest gains are for inputs with more multi-byte UTF-8
+  characters)
+* uses less memory and usage tends to remain more constant
+  due to less creation of temporary objects
+* smaller memory footprint due to removal of dead code
+* handle blank link text such as <tt>[[foo| ]]</tt>, making
+  behaviour consistent with existing handling of zero-width
+  link text (<tt>[[foo|]]</tt>)
+* don't apply "external" CSS class when rolling back failed
+  internal links
+
 = Changes in 1.6
 
 * zero-length image targets (<tt>{{}}</tt>) are now passed through unchanged
