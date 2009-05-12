@@ -820,12 +820,12 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 //         thing. [[Foo]] was...
 static void _Wikitext_encode_link_target(parser_t *parser)
 {
-    char        *input      = parser->link_target->ptr;
-    char        *start      = input;            // remember this so we can check if we're at the start
+    char        *src        = parser->link_target->ptr;
+    char        *start      = src;  // remember this so we can check if we're at the start
     long        len         = parser->link_target->len;
     if (!(len > 0))
         return;
-    char        *end        = input + len;
+    char        *end        = src + len;
     static char hex[]       = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
     // to avoid most reallocations start with a destination buffer twice the size of the source
@@ -836,7 +836,7 @@ static void _Wikitext_encode_link_target(parser_t *parser)
     char        *dest       = ALLOC_N(char, dest_len);
     char        *dest_ptr   = dest; // hang on to this so we can pass it to free() later
     char        *non_space  = dest; // remember last non-space character output
-    for (; input < end; input++)
+    for (; src < end; src++)
     {
         if ((dest + 3) > (dest_ptr + dest_len))     // worst case: a single character may grow to 3 characters once encoded
         {
@@ -857,27 +857,27 @@ static void _Wikitext_encode_link_target(parser_t *parser)
         }
 
         // pass through unreserved characters
-        if (((*input >= 'a') && (*input <= 'z')) ||
-            ((*input >= 'A') && (*input <= 'Z')) ||
-            ((*input >= '0') && (*input <= '9')) ||
-            (*input == '-') ||
-            (*input == '_') ||
-            (*input == '.') ||
-            (*input == '~'))
+        if (((*src >= 'a') && (*src <= 'z')) ||
+            ((*src >= 'A') && (*src <= 'Z')) ||
+            ((*src >= '0') && (*src <= '9')) ||
+            (*src == '-') ||
+            (*src == '_') ||
+            (*src == '.') ||
+            (*src == '~'))
         {
-            *dest++     = *input;
+            *dest++     = *src;
             non_space   = dest;
         }
-        else if (*input == ' ' && input == start)
+        else if (*src == ' ' && src == start)
             start++;                    // we eat leading space
-        else if (*input == ' ' && parser->space_to_underscore)
+        else if (*src == ' ' && parser->space_to_underscore)
             *dest++     = '_';
         else    // everything else gets URL-encoded
         {
             *dest++     = '%';
-            *dest++     = hex[(unsigned char)(*input) / 16];   // left
-            *dest++     = hex[(unsigned char)(*input) % 16];   // right
-            if (*input != ' ')
+            *dest++     = hex[(unsigned char)(*src) / 16];   // left
+            *dest++     = hex[(unsigned char)(*src) % 16];   // right
+            if (*src != ' ')
                 non_space = dest;
         }
     }
