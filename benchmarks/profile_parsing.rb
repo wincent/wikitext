@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 # Copyright 2008-2009 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
