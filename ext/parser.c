@@ -883,8 +883,6 @@ static void _Wikitext_encode_link_target(parser_t *parser)
         dest_len = non_space - dest_ptr;
     else
         dest_len = dest - dest_ptr;
-
-    // TOOD: try to avoid this copy by working directly inside link_target buffer
     str_clear(parser->link_target);
     str_append(parser->link_target, dest_ptr, dest_len);
     free(dest_ptr);
