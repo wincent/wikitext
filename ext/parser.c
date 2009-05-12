@@ -700,7 +700,6 @@ uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out)
 
 void _Wikitext_append_entity_from_utf32_char(char *output, uint32_t character)
 {
-    // TODO: consider special casing some entities (ie. quot, amp, lt, gt etc)?
     char hex_string[8]  = { '&', '#', 'x', 0, 0, 0, 0, ';' };
     char scratch        = (character & 0xf000) >> 12;
     hex_string[3]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
