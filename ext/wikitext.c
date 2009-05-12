@@ -44,7 +44,6 @@ void Init_wikitext()
     rb_define_method(cWikitextParser, "fulltext_tokenize", Wikitext_parser_fulltext_tokenize, -1);
     rb_define_singleton_method(cWikitextParser, "sanitize_link_target", Wikitext_parser_sanitize_link_target, 1);
     rb_define_singleton_method(cWikitextParser, "encode_link_target", Wikitext_parser_encode_link_target, 1);
-    rb_define_singleton_method(cWikitextParser, "encode_special_link_target", Wikitext_parser_encode_special_link_target, 1);
     rb_define_attr(cWikitextParser, "line_ending", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "internal_link_prefix", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "img_prefix", Qtrue, Qtrue);

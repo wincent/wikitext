@@ -894,17 +894,6 @@ VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
     return string_from_str(parser.link_target);
 }
 
-// this method exposed for testing only
-VALUE Wikitext_parser_encode_special_link_target(VALUE self, VALUE in)
-{
-    parser_t parser;
-    parser.space_to_underscore      = false;
-    parser.link_target              = str_new_from_string(in);
-    GC_WRAP_STR(parser.link_target, link_target_gc);
-    _Wikitext_encode_link_target(&parser);
-    return string_from_str(parser.link_target);
-}
-
 // returns 1 (true) if supplied string is blank (nil, empty, or all whitespace)
 // returns 0 (false) otherwise
 bool _Wikitext_blank(str_t *str)
