@@ -130,7 +130,7 @@ describe Wikitext::Parser, 'regressions' do
 
   # this is the general case of the bug covered in the previous spec
   # any token that appears as the first token after a PRE token can manifest this bug
-  # PRINTABLE didn't only because it called _Wikitext_start_para_if_necessary(), which handled the pending CRLF
+  # PRINTABLE didn't only because it called wiki_start_para_if_necessary(), which handled the pending CRLF
   it 'should emit pending newlines for all token types found inside PRE and PRE_START blocks' do
     # PRE_START
     input = dedent <<-END
@@ -441,7 +441,7 @@ describe Wikitext::Parser, 'regressions' do
     END
     @parser.parse(input).should == expected
 
-    # these tokens weren't affected by the bug, seeing as they either call _Wikitext_start_para_if_necessary()
+    # these tokens weren't affected by the bug, seeing as they either call wiki_start_para_if_necessary()
     # or they can only appear in PRE_START (not PRE) thanks to the tokenizer
     # but we add specs for them to make sure that the issue never crops up for them in the future
 

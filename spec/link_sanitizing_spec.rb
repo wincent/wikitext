@@ -103,7 +103,7 @@ describe Wikitext, 'sanitizing a link target' do
     Wikitext::Parser.sanitize_link_target('foo, "bar" & baz €').should == 'foo, &quot;bar&quot; &amp; baz &#x20ac;'
   end
 
-  # here we're exercising the _Wikitext_utf8_to_utf32 function
+  # here we're exercising the wiki_utf8_to_utf32 function
   describe 'with invalidly encoded input' do
     it 'should raise an exception for missing second byte' do
       lambda {

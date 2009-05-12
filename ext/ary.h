@@ -43,7 +43,6 @@ void ary_push(ary_t *ary, int val);
 int ary_includes(ary_t *ary, int val);
 
 // returns a count indicating the number of times the value appears in the collection
-// refactored from _Wikitext_count()
 int ary_count(ary_t *ary, int item);
 
 void ary_free(ary_t *ary);

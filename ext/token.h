@@ -114,4 +114,4 @@ enum token_types {
 
 VALUE Wikitext_parser_token_types(VALUE self);
 
-VALUE _Wikitext_token(token_t *token);
+VALUE wiki_token(token_t *token);

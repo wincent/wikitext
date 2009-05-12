@@ -105,7 +105,7 @@ VALUE Wikitext_parser_token_types(VALUE self)
 }
 
 // for testing and debugging only
-VALUE _Wikitext_token(token_t *token)
+VALUE wiki_token(token_t *token)
 {
     VALUE object = rb_class_new_instance(0, NULL, cWikitextParserToken);
     (void)rb_iv_set(object, "@start",           LONG2NUM((long)token->start));

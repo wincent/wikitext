@@ -181,11 +181,11 @@ VALUE Wikitext_parser_tokenize(VALUE self, VALUE string)
     char *pe = p + len;
     token_t token;
     next_token(&token, NULL, p, pe);
-    rb_ary_push(tokens, _Wikitext_token(&token));
+    rb_ary_push(tokens, wiki_token(&token));
     while (token.type != END_OF_FILE)
     {
         next_token(&token, &token, NULL, pe);
-        rb_ary_push(tokens, _Wikitext_token(&token));
+        rb_ary_push(tokens, wiki_token(&token));
     }
     return tokens;
 }
