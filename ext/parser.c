@@ -698,7 +698,7 @@ uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out)
     return dest;
 }
 
-void _Wikitext_append_entity_from_utf32_char(char *output, uint32_t character)
+void _Wikitext_append_entity_from_utf32_char(str_t *output, uint32_t character)
 {
     char hex_string[8]  = { '&', '#', 'x', 0, 0, 0, 0, ';' };
     char scratch        = (character & 0xf000) >> 12;
@@ -709,7 +709,7 @@ void _Wikitext_append_entity_from_utf32_char(char *output, uint32_t character)
     hex_string[5]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
     scratch             = character & 0x000f;
     hex_string[6]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
-    memcpy(output, hex_string, sizeof(hex_string));
+    str_append(output, hex_string, sizeof(hex_string));
 }
 
 // trim parser->link_text in place
@@ -782,8 +782,7 @@ void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, boo
         else    // all others: must convert to entities
         {
             long        width;
-            _Wikitext_append_entity_from_utf32_char(output->ptr + output->len, _Wikitext_utf8_to_utf32(src, end, &width));
-            output->len += 8;
+            _Wikitext_append_entity_from_utf32_char(output, _Wikitext_utf8_to_utf32(src, end, &width));
             src         += width;
             non_space   = output->ptr + output->len;
             continue;
@@ -2538,11 +2537,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 output = parser->capture ? parser->capture : parser->output;
                 _Wikitext_pop_excess_elements(parser);
                 _Wikitext_start_para_if_necessary(parser);
-                //str_append_string(output, _Wikitext_utf32_char_to_entity(token->code_point));    // convert to entity
-                // TODO: replace this with a different append function
-                str_grow(output, output->len + 8);
-                _Wikitext_append_entity_from_utf32_char(output->ptr + output->len, token->code_point);
-                output->len += 8;
+                _Wikitext_append_entity_from_utf32_char(output, token->code_point);
                 break;
 
             case END_OF_FILE:
