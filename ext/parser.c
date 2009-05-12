@@ -257,7 +257,7 @@ VALUE Wikitext_parser_fulltext_tokenize(int argc, VALUE *argv, VALUE self)
 }
 
 // we downcase "in place", overwriting the original contents of the buffer
-void _Wikitext_downcase_bang(char *ptr, long len)
+void wiki_downcase_bang(char *ptr, long len)
 {
     for (long i = 0; i < len; i++)
     {
@@ -270,7 +270,7 @@ void _Wikitext_downcase_bang(char *ptr, long len)
 // if check_autolink is true, checks parser->autolink to decide whether to emit a real hyperlink
 // or merely the literal link target
 // if link_text is Qnil, the link_target is re-used for the link text
-void _Wikitext_append_hyperlink(parser_t *parser, VALUE link_prefix, str_t *link_target, str_t *link_text, VALUE link_class, bool check_autolink)
+void wiki_append_hyperlink(parser_t *parser, VALUE link_prefix, str_t *link_target, str_t *link_text, VALUE link_class, bool check_autolink)
 {
     if (check_autolink && !parser->autolink)
         str_append_str(parser->output, link_target);
@@ -301,7 +301,7 @@ void _Wikitext_append_hyperlink(parser_t *parser, VALUE link_prefix, str_t *link
     }
 }
 
-void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_len)
+void wiki_append_img(parser_t *parser, char *token_ptr, int token_len)
 {
     str_append(parser->output, img_start, sizeof(img_start) - 1);   // <img src="
     if (!NIL_P(parser->img_prefix) && *token_ptr != '/')            // len always > 0
@@ -315,7 +315,7 @@ void _Wikitext_append_img(parser_t *parser, char *token_ptr, int token_len)
 // will emit indentation only if we are about to emit any of:
 //      <blockquote>, <p>, <ul>, <ol>, <li>, <h1> etc, <pre>
 // each time we enter one of those spans must ++ the indentation level
-void _Wikitext_indent(parser_t *parser)
+void wiki_indent(parser_t *parser)
 {
     if (parser->base_indent == -1) // indentation disabled
         return;
@@ -336,7 +336,7 @@ void _Wikitext_indent(parser_t *parser)
     parser->current_indent += 2;
 }
 
-void _Wikitext_dedent(parser_t *parser, bool emit)
+void wiki_dedent(parser_t *parser, bool emit)
 {
     if (parser->base_indent == -1) // indentation disabled
         return;
@@ -351,7 +351,7 @@ void _Wikitext_dedent(parser_t *parser, bool emit)
 // Pops a single item off the parser's scope stack.
 // A corresponding closing tag is written to the target string.
 // The target string may be the main output buffer, or a substring capturing buffer if a link is being scanned.
-void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
+void wiki_pop_from_stack(parser_t *parser, str_t *target)
 {
     int top = ary_entry(parser->scope, -1);
     if (NO_ITEM(top))
@@ -374,12 +374,12 @@ void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
         case PRE_START:
             str_append(target, pre_end, sizeof(pre_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, false);
+            wiki_dedent(parser, false);
             break;
 
         case BLOCKQUOTE:
         case BLOCKQUOTE_START:
-            _Wikitext_dedent(parser, true);
+            wiki_dedent(parser, true);
             str_append(target, blockquote_end, sizeof(blockquote_end) - 1);
             str_append_str(target, parser->line_ending);
             break;
@@ -404,13 +404,13 @@ void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
             break;
 
         case OL:
-            _Wikitext_dedent(parser, true);
+            wiki_dedent(parser, true);
             str_append(target, ol_end, sizeof(ol_end) - 1);
             str_append_str(target, parser->line_ending);
             break;
 
         case UL:
-            _Wikitext_dedent(parser, true);
+            wiki_dedent(parser, true);
             str_append(target, ul_end, sizeof(ul_end) - 1);
             str_append_str(target, parser->line_ending);
             break;
@@ -421,50 +421,50 @@ void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
             // and other times we want it to behave like BLOCKQUOTE (ie. when it has a nested list inside)
             // hence this hack: we do an emitting dedent on behalf of the LI that we know must be coming
             // and then when we pop the actual LI itself (below) we do the standard non-emitting indent
-            _Wikitext_dedent(parser, true);     // we really only want to emit the spaces
-            parser->current_indent += 2;        // we don't want to decrement the actual indent level, so put it back
+            wiki_dedent(parser, true);      // we really only want to emit the spaces
+            parser->current_indent += 2;    // we don't want to decrement the actual indent level, so put it back
             break;
 
         case LI:
             str_append(target, li_end, sizeof(li_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, false);
+            wiki_dedent(parser, false);
             break;
 
         case H6_START:
             str_append(target, h6_end, sizeof(h6_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, false);
+            wiki_dedent(parser, false);
             break;
 
         case H5_START:
             str_append(target, h5_end, sizeof(h5_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, false);
+            wiki_dedent(parser, false);
             break;
 
         case H4_START:
             str_append(target, h4_end, sizeof(h4_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, false);
+            wiki_dedent(parser, false);
             break;
 
         case H3_START:
             str_append(target, h3_end, sizeof(h3_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, false);
+            wiki_dedent(parser, false);
             break;
 
         case H2_START:
             str_append(target, h2_end, sizeof(h2_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, false);
+            wiki_dedent(parser, false);
             break;
 
         case H1_START:
             str_append(target, h1_end, sizeof(h1_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, false);
+            wiki_dedent(parser, false);
             break;
 
         case LINK_START:
@@ -490,7 +490,7 @@ void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
         case P:
             str_append(target, p_end, sizeof(p_end) - 1);
             str_append_str(target, parser->line_ending);
-            _Wikitext_dedent(parser, false);
+            wiki_dedent(parser, false);
             break;
 
         case END_OF_FILE:
@@ -507,7 +507,7 @@ void _Wikitext_pop_from_stack(parser_t *parser, str_t *target)
 // Pops items off the top of parser's scope stack, accumulating closing tags for them into the target string, until item is reached.
 // If including is true then the item itself is also popped.
 // The target string may be the main output buffer, or a substring capturing buffer when scanning links.
-void _Wikitext_pop_from_stack_up_to(parser_t *parser, str_t *target, int item, bool including)
+void wiki_pop_from_stack_up_to(parser_t *parser, str_t *target, int item, bool including)
 {
     int continue_looping = 1;
     do
@@ -521,17 +521,17 @@ void _Wikitext_pop_from_stack_up_to(parser_t *parser, str_t *target, int item, b
                 return;
             continue_looping = 0;
         }
-        _Wikitext_pop_from_stack(parser, target);
+        wiki_pop_from_stack(parser, target);
     } while (continue_looping);
 }
 
-void _Wikitext_pop_all_from_stack(parser_t *parser)
+void wiki_pop_all_from_stack(parser_t *parser)
 {
     for (int i = 0, max = parser->scope->count; i < max; i++)
-        _Wikitext_pop_from_stack(parser, NULL);
+        wiki_pop_from_stack(parser, NULL);
 }
 
-void _Wikitext_start_para_if_necessary(parser_t *parser)
+void wiki_start_para_if_necessary(parser_t *parser)
 {
     if (parser->capture)
         return;
@@ -541,7 +541,7 @@ void _Wikitext_start_para_if_necessary(parser_t *parser)
         ary_entry(parser->scope, -1) == BLOCKQUOTE ||
         ary_entry(parser->scope, -1) == BLOCKQUOTE_START)
     {
-        _Wikitext_indent(parser);
+        wiki_indent(parser);
         str_append(parser->output, p_start, sizeof(p_start) - 1);
         ary_push(parser->scope, P);
         ary_push(parser->line, P);
@@ -558,7 +558,7 @@ void _Wikitext_start_para_if_necessary(parser_t *parser)
     parser->pending_crlf = false;
 }
 
-void _Wikitext_emit_pending_crlf_if_necessary(parser_t *parser)
+void wiki_emit_pending_crlf_if_necessary(parser_t *parser)
 {
     if (parser->pending_crlf)
     {
@@ -589,7 +589,7 @@ void _Wikitext_emit_pending_crlf_if_necessary(parser_t *parser)
 // on the line scope.
 // Luckily, BLOCKQUOTE_START tokens can only appear at the start of the scope array, so we can check for them first before
 // entering the for loop.
-void _Wikitext_pop_excess_elements(parser_t *parser)
+void wiki_pop_excess_elements(parser_t *parser)
 {
     if (parser->capture)
         return;
@@ -606,7 +606,7 @@ void _Wikitext_pop_excess_elements(parser_t *parser)
                 continue;
             }
         }
-        _Wikitext_pop_from_stack(parser, NULL);
+        wiki_pop_from_stack(parser, NULL);
     }
 }
 
@@ -619,7 +619,7 @@ void _Wikitext_pop_excess_elements(parser_t *parser)
 // width_out.
 //
 // Raises a RangeError if the supplied character is invalid UTF-8.
-uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out)
+uint32_t wiki_utf8_to_utf32(char *src, char *end, long *width_out)
 {
     uint32_t dest;
     if ((unsigned char)src[0] <= 0x7f)
@@ -692,7 +692,7 @@ uint32_t _Wikitext_utf8_to_utf32(char *src, char *end, long *width_out)
     return dest;
 }
 
-void _Wikitext_append_entity_from_utf32_char(str_t *output, uint32_t character)
+void wiki_append_entity_from_utf32_char(str_t *output, uint32_t character)
 {
     char hex_string[8]  = { '&', '#', 'x', 0, 0, 0, 0, ';' };
     char scratch        = (character & 0xf000) >> 12;
@@ -707,7 +707,7 @@ void _Wikitext_append_entity_from_utf32_char(str_t *output, uint32_t character)
 }
 
 // trim parser->link_text in place
-void _Wikitext_trim_link_text(parser_t *parser)
+void wiki_trim_link_text(parser_t *parser)
 {
     char    *src        = parser->link_text->ptr;
     char    *start      = src;                  // remember this so we can check if we're at the start
@@ -737,7 +737,7 @@ void _Wikitext_trim_link_text(parser_t *parser)
 // - QUOT and AMP characters converted to named entities
 // - if trim is true, leading and trailing whitespace trimmed
 // - if trim is false, there is no special treatment of spaces
-void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, bool trim)
+void wiki_append_sanitized_link_target(parser_t *parser, str_t *output, bool trim)
 {
     char    *src        = parser->link_target->ptr;
     char    *start      = src;                          // remember this so we can check if we're at the start
@@ -776,7 +776,7 @@ void _Wikitext_append_sanitized_link_target(parser_t *parser, str_t *output, boo
         else    // all others: must convert to entities
         {
             long        width;
-            _Wikitext_append_entity_from_utf32_char(output, _Wikitext_utf8_to_utf32(src, end, &width));
+            wiki_append_entity_from_utf32_char(output, wiki_utf8_to_utf32(src, end, &width));
             src         += width;
             non_space   = output->ptr + output->len;
             continue;
@@ -798,7 +798,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
     GC_WRAP_STR(parser.link_target, link_target_gc);
     str_t *output = str_new();
     GC_WRAP_STR(output, output_gc);
-    _Wikitext_append_sanitized_link_target(&parser, output, true);
+    wiki_append_sanitized_link_target(&parser, output, true);
     return string_from_str(output);
 }
 
@@ -806,7 +806,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 //
 // Leading and trailing whitespace trimmed. Spaces are converted to
 // underscores if the parser space_to_underscore member is true.
-static void _Wikitext_encode_link_target(parser_t *parser)
+static void wiki_encode_link_target(parser_t *parser)
 {
     char        *src        = parser->link_target->ptr;
     char        *start      = src;  // remember this so we can check if we're at the start
@@ -882,13 +882,13 @@ VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in)
     parser.space_to_underscore      = false;
     parser.link_target              = str_new_from_string(in);
     GC_WRAP_STR(parser.link_target, link_target_gc);
-    _Wikitext_encode_link_target(&parser);
+    wiki_encode_link_target(&parser);
     return string_from_str(parser.link_target);
 }
 
 // returns 1 (true) if supplied string is blank (nil, empty, or all whitespace)
 // returns 0 (false) otherwise
-bool _Wikitext_blank(str_t *str)
+bool wiki_blank(str_t *str)
 {
     if (str->len == 0)
         return true;
@@ -902,16 +902,16 @@ bool _Wikitext_blank(str_t *str)
     return true;
 }
 
-void _Wikitext_rollback_failed_internal_link(parser_t *parser)
+void wiki_rollback_failed_internal_link(parser_t *parser)
 {
     if (!IN(LINK_START))
         return; // nothing to do!
     int scope_includes_separator = IN(SEPARATOR);
-    _Wikitext_pop_from_stack_up_to(parser, NULL, LINK_START, true);
+    wiki_pop_from_stack_up_to(parser, NULL, LINK_START, true);
     str_append(parser->output, link_start, sizeof(link_start) - 1);
     if (parser->link_target->len > 0)
     {
-        _Wikitext_append_sanitized_link_target(parser, parser->output, false);
+        wiki_append_sanitized_link_target(parser, parser->output, false);
         if (scope_includes_separator)
         {
             str_append(parser->output, separator, sizeof(separator) - 1);
@@ -924,7 +924,7 @@ void _Wikitext_rollback_failed_internal_link(parser_t *parser)
     str_clear(parser->link_text);
 }
 
-void _Wikitext_rollback_failed_external_link(parser_t *parser)
+void wiki_rollback_failed_external_link(parser_t *parser)
 {
     if (!IN(EXT_LINK_START))
         return; // nothing to do!
@@ -932,12 +932,12 @@ void _Wikitext_rollback_failed_external_link(parser_t *parser)
     // store a couple of values before popping
     int scope_includes_space = IN(SPACE);
     VALUE link_class = IN(PATH) ? Qnil : parser->external_link_class;
-    _Wikitext_pop_from_stack_up_to(parser, NULL, EXT_LINK_START, true);
+    wiki_pop_from_stack_up_to(parser, NULL, EXT_LINK_START, true);
 
     str_append(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
     if (parser->link_target->len > 0)
     {
-        _Wikitext_append_hyperlink(parser, Qnil, parser->link_target, NULL, link_class, true);
+        wiki_append_hyperlink(parser, Qnil, parser->link_target, NULL, link_class, true);
         if (scope_includes_space)
         {
             str_append(parser->output, space, sizeof(space) - 1);
@@ -950,10 +950,10 @@ void _Wikitext_rollback_failed_external_link(parser_t *parser)
     str_clear(parser->link_text);
 }
 
-void _Wikitext_rollback_failed_link(parser_t *parser)
+void wiki_rollback_failed_link(parser_t *parser)
 {
-    _Wikitext_rollback_failed_internal_link(parser);
-    _Wikitext_rollback_failed_external_link(parser);
+    wiki_rollback_failed_internal_link(parser);
+    wiki_rollback_failed_external_link(parser);
 }
 
 VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
@@ -1145,8 +1145,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (IN(BLOCKQUOTE_START))
                 {
                     // this kind of nesting not allowed (to avoid user confusion)
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     output = parser->capture ? parser->capture : parser->output;
                     str_append(output, space, sizeof(space) - 1);
                     break;
@@ -1160,14 +1160,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     // must pop (reduce nesting level)
                     for (i = j - i; i > 0; i--)
-                        _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, true);
+                        wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, true);
                 }
 
                 if (!IN(PRE))
                 {
                     parser->pending_crlf = false;
-                    _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, false);
-                    _Wikitext_indent(parser);
+                    wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, false);
+                    wiki_indent(parser);
                     str_append(parser->output, pre_start, sizeof(pre_start) - 1);
                     ary_push(parser->scope, PRE);
                 }
@@ -1176,14 +1176,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case PRE_START:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_pre_start, sizeof(escaped_pre_start) - 1);
                 }
                 else if (IN(BLOCKQUOTE_START))
                 {
-                    _Wikitext_rollback_failed_link(parser); // if any
-                    _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE_START, false);
-                    _Wikitext_indent(parser);
+                    wiki_rollback_failed_link(parser); // if any
+                    wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE_START, false);
+                    wiki_indent(parser);
                     str_append(parser->output, pre_start, sizeof(pre_start) - 1);
                     ary_push(parser->scope, PRE_START);
                     ary_push(parser->line, PRE_START);
@@ -1192,9 +1192,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (token->column_start == 1) // only allowed in first column
                     {
-                        _Wikitext_rollback_failed_link(parser); // if any
-                        _Wikitext_pop_all_from_stack(parser);
-                        _Wikitext_indent(parser);
+                        wiki_rollback_failed_link(parser); // if any
+                        wiki_pop_all_from_stack(parser);
+                        wiki_indent(parser);
                         str_append(parser->output, pre_start, sizeof(pre_start) - 1);
                         ary_push(parser->scope, PRE_START);
                         ary_push(parser->line, PRE_START);
@@ -1202,16 +1202,16 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     else // PRE_START illegal here
                     {
                         output = parser->capture ? parser->capture : parser->output;
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, escaped_pre_start, sizeof(escaped_pre_start) - 1);
                     }
                 }
                 else
                 {
-                    _Wikitext_rollback_failed_link(parser); // if any
-                    _Wikitext_pop_from_stack_up_to(parser, NULL, P, true);
-                    _Wikitext_indent(parser);
+                    wiki_rollback_failed_link(parser); // if any
+                    wiki_pop_from_stack_up_to(parser, NULL, P, true);
+                    wiki_indent(parser);
                     str_append(parser->output, pre_start, sizeof(pre_start) - 1);
                     ary_push(parser->scope, PRE_START);
                     ary_push(parser->line, PRE_START);
@@ -1221,18 +1221,18 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case PRE_END:
                 if (IN(NO_WIKI_START) || IN(PRE))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_pre_end, sizeof(escaped_pre_end) - 1);
                 }
                 else
                 {
                     if (IN(PRE_START))
-                        _Wikitext_pop_from_stack_up_to(parser, parser->output, PRE_START, true);
+                        wiki_pop_from_stack_up_to(parser, parser->output, PRE_START, true);
                     else
                     {
                         output = parser->capture ? parser->capture : parser->output;
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, escaped_pre_end, sizeof(escaped_pre_end) - 1);
                     }
                 }
@@ -1245,8 +1245,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (IN(BLOCKQUOTE_START))
                 {
                     // this kind of nesting not allowed (to avoid user confusion)
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     output = parser->capture ? parser->capture : parser->output;
                     str_append(output, escaped_blockquote, TOKEN_LEN(token) + 3); // will either emit "&gt;" or "&gt; "
                     break;
@@ -1270,10 +1270,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     if (i > j)
                     {
                         // must push (increase nesting level)
-                        _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, false);
+                        wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, false);
                         for (i = i - j; i > 0; i--)
                         {
-                            _Wikitext_indent(parser);
+                            wiki_indent(parser);
                             str_append(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
                             str_append_str(parser->output, parser->line_ending);
                             ary_push(parser->scope, BLOCKQUOTE);
@@ -1283,7 +1283,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // must pop (reduce nesting level)
                         for (i = j - i; i > 0; i--)
-                            _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, true);
+                            wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, true);
                     }
 
                     // jump to top of the loop to process token we scanned during lookahead
@@ -1294,15 +1294,15 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case BLOCKQUOTE_START:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_blockquote_start, sizeof(escaped_blockquote_start) - 1);
                 }
                 else if (IN(BLOCKQUOTE_START))
                 {
                     // nesting is fine here
-                    _Wikitext_rollback_failed_link(parser); // if any
-                    _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE_START, false);
-                    _Wikitext_indent(parser);
+                    wiki_rollback_failed_link(parser); // if any
+                    wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE_START, false);
+                    wiki_indent(parser);
                     str_append(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
                     str_append_str(parser->output, parser->line_ending);
                     ary_push(parser->scope, BLOCKQUOTE_START);
@@ -1312,9 +1312,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     if (token->column_start == 1) // only allowed in first column
                     {
-                        _Wikitext_rollback_failed_link(parser); // if any
-                        _Wikitext_pop_all_from_stack(parser);
-                        _Wikitext_indent(parser);
+                        wiki_rollback_failed_link(parser); // if any
+                        wiki_pop_all_from_stack(parser);
+                        wiki_indent(parser);
                         str_append(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
                         str_append_str(parser->output, parser->line_ending);
                         ary_push(parser->scope, BLOCKQUOTE_START);
@@ -1323,17 +1323,17 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     else // BLOCKQUOTE_START illegal here
                     {
                         output = parser->capture ? parser->capture : parser->output;
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, escaped_blockquote_start, sizeof(escaped_blockquote_start) - 1);
                     }
                 }
                 else
                 {
                     // would be nice to eliminate the repetition here but it's probably the clearest way
-                    _Wikitext_rollback_failed_link(parser); // if any
-                    _Wikitext_pop_from_stack_up_to(parser, NULL, P, true);
-                    _Wikitext_indent(parser);
+                    wiki_rollback_failed_link(parser); // if any
+                    wiki_pop_from_stack_up_to(parser, NULL, P, true);
+                    wiki_indent(parser);
                     str_append(parser->output, blockquote_start, sizeof(blockquote_start) - 1);
                     str_append_str(parser->output, parser->line_ending);
                     ary_push(parser->scope, BLOCKQUOTE_START);
@@ -1344,18 +1344,18 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case BLOCKQUOTE_END:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_blockquote_end, sizeof(escaped_blockquote_end) - 1);
                 }
                 else
                 {
                     if (IN(BLOCKQUOTE_START))
-                        _Wikitext_pop_from_stack_up_to(parser, parser->output, BLOCKQUOTE_START, true);
+                        wiki_pop_from_stack_up_to(parser, parser->output, BLOCKQUOTE_START, true);
                     else
                     {
                         output = parser->capture ? parser->capture : parser->output;
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, escaped_blockquote_end, sizeof(escaped_blockquote_end) - 1);
                     }
                 }
@@ -1364,13 +1364,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case NO_WIKI_START:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_no_wiki_start, sizeof(escaped_no_wiki_start) - 1);
                 }
                 else
                 {
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     ary_push(parser->scope, NO_WIKI_START);
                     ary_push(parser->line, NO_WIKI_START);
                 }
@@ -1379,11 +1379,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case NO_WIKI_END:
                 if (IN(NO_WIKI_START))
                     // <nowiki> should always only ever be the last item in the stack, but use the helper routine just in case
-                    _Wikitext_pop_from_stack_up_to(parser, NULL, NO_WIKI_START, true);
+                    wiki_pop_from_stack_up_to(parser, NULL, NO_WIKI_START, true);
                 else
                 {
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     str_append(parser->output, escaped_no_wiki_end, sizeof(escaped_no_wiki_end) - 1);
                 }
                 break;
@@ -1391,13 +1391,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case STRONG_EM:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, literal_strong_em, sizeof(literal_strong_em) - 1);
                     break;
                 }
 
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
+                wiki_pop_excess_elements(parser);
 
                 // if you've seen STRONG/STRONG_START or EM/EM_START, must close them in the reverse order that you saw them!
                 // otherwise, must open them
@@ -1445,7 +1445,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else    // no strong or em to remove, so this must be a new opening of both
                 {
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_start_para_if_necessary(parser);
                     str_append(output, strong_em_start, sizeof(strong_em_start) - 1);
                     ary_push(parser->scope, STRONG);
                     ary_push(parser->line, STRONG);
@@ -1457,7 +1457,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case STRONG:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, literal_strong, sizeof(literal_strong) - 1);
                 }
                 else
@@ -1468,12 +1468,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         str_append(output, literal_strong, sizeof(literal_strong) - 1);
                     else if (IN(STRONG))
                         // STRONG already seen, this is a closing tag
-                        _Wikitext_pop_from_stack_up_to(parser, output, STRONG, true);
+                        wiki_pop_from_stack_up_to(parser, output, STRONG, true);
                     else
                     {
                         // this is a new opening
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, strong_start, sizeof(strong_start) - 1);
                         ary_push(parser->scope, STRONG);
                         ary_push(parser->line, STRONG);
@@ -1484,7 +1484,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case STRONG_START:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_strong_start, sizeof(escaped_strong_start) - 1);
                 }
                 else
@@ -1494,8 +1494,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         str_append(output, escaped_strong_start, sizeof(escaped_strong_start) - 1);
                     else
                     {
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, strong_start, sizeof(strong_start) - 1);
                         ary_push(parser->scope, STRONG_START);
                         ary_push(parser->line, STRONG_START);
@@ -1506,19 +1506,19 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case STRONG_END:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_strong_end, sizeof(escaped_strong_end) - 1);
                 }
                 else
                 {
                     output = parser->capture ? parser->capture : parser->output;
                     if (IN(STRONG_START))
-                        _Wikitext_pop_from_stack_up_to(parser, output, STRONG_START, true);
+                        wiki_pop_from_stack_up_to(parser, output, STRONG_START, true);
                     else
                     {
                         // no STRONG_START in scope, so must interpret the STRONG_END without any special meaning
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, escaped_strong_end, sizeof(escaped_strong_end) - 1);
                     }
                 }
@@ -1527,7 +1527,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case EM:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, literal_em, sizeof(literal_em) - 1);
                 }
                 else
@@ -1538,12 +1538,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         str_append(output, literal_em, sizeof(literal_em) - 1);
                     else if (IN(EM))
                         // EM already seen, this is a closing tag
-                        _Wikitext_pop_from_stack_up_to(parser, output, EM, true);
+                        wiki_pop_from_stack_up_to(parser, output, EM, true);
                     else
                     {
                         // this is a new opening
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, em_start, sizeof(em_start) - 1);
                         ary_push(parser->scope, EM);
                         ary_push(parser->line, EM);
@@ -1554,7 +1554,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case EM_START:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_em_start, sizeof(escaped_em_start) - 1);
                 }
                 else
@@ -1564,8 +1564,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         str_append(output, escaped_em_start, sizeof(escaped_em_start) - 1);
                     else
                     {
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, em_start, sizeof(em_start) - 1);
                         ary_push(parser->scope, EM_START);
                         ary_push(parser->line, EM_START);
@@ -1576,19 +1576,19 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case EM_END:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_em_end, sizeof(escaped_em_end) - 1);
                 }
                 else
                 {
                     output = parser->capture ? parser->capture : parser->output;
                     if (IN(EM_START))
-                        _Wikitext_pop_from_stack_up_to(parser, output, EM_START, true);
+                        wiki_pop_from_stack_up_to(parser, output, EM_START, true);
                     else
                     {
                         // no EM_START in scope, so must interpret the TT_END without any special meaning
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, escaped_em_end, sizeof(escaped_em_end) - 1);
                     }
                 }
@@ -1597,7 +1597,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case TT:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, backtick, sizeof(backtick) - 1);
                 }
                 else
@@ -1608,12 +1608,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         str_append(output, backtick, sizeof(backtick) - 1);
                     else if (IN(TT))
                         // TT (`) already seen, this is a closing tag
-                        _Wikitext_pop_from_stack_up_to(parser, output, TT, true);
+                        wiki_pop_from_stack_up_to(parser, output, TT, true);
                     else
                     {
                         // this is a new opening
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, tt_start, sizeof(tt_start) - 1);
                         ary_push(parser->scope, TT);
                         ary_push(parser->line, TT);
@@ -1624,7 +1624,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case TT_START:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_tt_start, sizeof(escaped_tt_start) - 1);
                 }
                 else
@@ -1634,8 +1634,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         str_append(output, escaped_tt_start, sizeof(escaped_tt_start) - 1);
                     else
                     {
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, tt_start, sizeof(tt_start) - 1);
                         ary_push(parser->scope, TT_START);
                         ary_push(parser->line, TT_START);
@@ -1646,19 +1646,19 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case TT_END:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, escaped_tt_end, sizeof(escaped_tt_end) - 1);
                 }
                 else
                 {
                     output = parser->capture ? parser->capture : parser->output;
                     if (IN(TT_START))
-                        _Wikitext_pop_from_stack_up_to(parser, output, TT_START, true);
+                        wiki_pop_from_stack_up_to(parser, output, TT_START, true);
                     else
                     {
                         // no TT_START in scope, so must interpret the TT_END without any special meaning
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, escaped_tt_end, sizeof(escaped_tt_end) - 1);
                     }
                 }
@@ -1709,7 +1709,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                                 // item just pushed onto line does not match corresponding slot of scope!
                                 for (; j >= i - 2; j--)
                                     // must pop back before emitting
-                                    _Wikitext_pop_from_stack(parser, NULL);
+                                    wiki_pop_from_stack(parser, NULL);
 
                                 // will emit UL or OL, then LI
                                 break;
@@ -1723,13 +1723,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         // not a OL or UL token!
                         if (j == i)
                             // must close existing LI and re-open new one
-                            _Wikitext_pop_from_stack(parser, NULL);
+                            wiki_pop_from_stack(parser, NULL);
                         else if (j > i)
                         {
                             // item just pushed onto line does not match corresponding slot of scope!
                             for (; j >= i; j--)
                                 // must pop back before emitting
-                                _Wikitext_pop_from_stack(parser, NULL);
+                                wiki_pop_from_stack(parser, NULL);
                         }
                         break;
                     }
@@ -1750,13 +1750,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // this is a new list
                         if (IN(BLOCKQUOTE_START))
-                            _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE_START, false);
+                            wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE_START, false);
                         else
-                            _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, false);
+                            wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, false);
                     }
 
                     // emit
-                    _Wikitext_indent(parser);
+                    wiki_indent(parser);
                     if (type == OL)
                         str_append(parser->output, ol_start, sizeof(ol_start) - 1);
                     else if (type == UL)
@@ -1768,7 +1768,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // silently throw away the optional SPACE token after final list marker
                     token = NULL;
 
-                _Wikitext_indent(parser);
+                wiki_indent(parser);
                 str_append(parser->output, li_start, sizeof(li_start) - 1);
                 ary_push(parser->scope, LI);
 
@@ -1809,9 +1809,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
                 // pop up to but not including the last BLOCKQUOTE on the scope stack
                 if (IN(BLOCKQUOTE_START))
-                    _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE_START, false);
+                    wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE_START, false);
                 else
-                    _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, false);
+                    wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, false);
 
                 // count number of BLOCKQUOTE tokens in line buffer and in scope stack
                 ary_push(parser->line, type);
@@ -1823,7 +1823,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     // must pop (reduce nesting level)
                     for (i = j - i; i > 0; i--)
-                        _Wikitext_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, true);
+                        wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, true);
                 }
 
                 // discard any whitespace here (so that "== foo ==" will be translated to "<h2>foo</h2>" rather than "<h2> foo </h2")
@@ -1831,7 +1831,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     ; // discard
 
                 ary_push(parser->scope, type);
-                _Wikitext_indent(parser);
+                wiki_indent(parser);
 
                 // take base_heading_level into account
                 type += base_heading_level;
@@ -1863,12 +1863,12 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case H1_END:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, token->start, TOKEN_LEN(token));
                 }
                 else
                 {
-                    _Wikitext_rollback_failed_external_link(parser); // if any
+                    wiki_rollback_failed_external_link(parser); // if any
                     if ((type == H6_END && !IN(H6_START)) ||
                         (type == H5_END && !IN(H5_START)) ||
                         (type == H4_END && !IN(H4_START)) ||
@@ -1877,7 +1877,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         (type == H1_END && !IN(H1_START)))
                     {
                         // literal output only if not in appropriate scope (we stay silent in that case)
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(parser->output, token->start, TOKEN_LEN(token));
                     }
                 }
@@ -1886,16 +1886,16 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case MAIL:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, token->start, TOKEN_LEN(token));
                 }
                 else
                 {
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     token_str->ptr = token->start;
                     token_str->len = TOKEN_LEN(token);
-                    _Wikitext_append_hyperlink(parser, rb_str_new2("mailto:"), token_str, NULL, mailto_class, true);
+                    wiki_append_hyperlink(parser, rb_str_new2("mailto:"), token_str, NULL, mailto_class, true);
                 }
                 break;
 
@@ -1907,10 +1907,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (IN(LINK_START))
                 {
                     // if the URI were allowed it would have been handled already in LINK_START
-                    _Wikitext_rollback_failed_internal_link(parser);
+                    wiki_rollback_failed_internal_link(parser);
                     token_str->ptr = token->start;
                     token_str->len = TOKEN_LEN(token);
-                    _Wikitext_append_hyperlink(parser, Qnil, token_str, NULL, parser->external_link_class, true);
+                    wiki_append_hyperlink(parser, Qnil, token_str, NULL, parser->external_link_class, true);
                 }
                 else if (IN(EXT_LINK_START))
                 {
@@ -1931,11 +1931,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         else
                         {
                             // didn't see the space! this must be an error
-                            _Wikitext_pop_from_stack(parser, NULL);
-                            _Wikitext_pop_excess_elements(parser);
-                            _Wikitext_start_para_if_necessary(parser);
+                            wiki_pop_from_stack(parser, NULL);
+                            wiki_pop_excess_elements(parser);
+                            wiki_start_para_if_necessary(parser);
                             str_append(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
-                            _Wikitext_append_hyperlink(parser, Qnil, token_str, NULL, parser->external_link_class, true);
+                            wiki_append_hyperlink(parser, Qnil, token_str, NULL, parser->external_link_class, true);
                         }
                     }
                     else
@@ -1943,11 +1943,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 }
                 else
                 {
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     token_str->ptr = token->start;
                     token_str->len = TOKEN_LEN(token);
-                    _Wikitext_append_hyperlink(parser, Qnil, token_str, NULL, parser->external_link_class, true);
+                    wiki_append_hyperlink(parser, Qnil, token_str, NULL, parser->external_link_class, true);
                 }
                 break;
 
@@ -1974,9 +1974,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         else
                         {
                             // didn't see the space! this must be an error
-                            _Wikitext_pop_from_stack(parser, NULL);
-                            _Wikitext_pop_excess_elements(parser);
-                            _Wikitext_start_para_if_necessary(parser);
+                            wiki_pop_from_stack(parser, NULL);
+                            wiki_pop_excess_elements(parser);
+                            wiki_start_para_if_necessary(parser);
                             str_append(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
                             str_append_str(parser->output, token_str);
                         }
@@ -1987,8 +1987,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else
                 {
                     output = parser->capture ? parser->capture : parser->output;
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     str_append(output, token->start, TOKEN_LEN(token));
                 }
                 break;
@@ -2019,7 +2019,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 output = parser->capture ? parser->capture : parser->output;
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(output, link_start, sizeof(link_start) - 1);
                 }
                 else if (IN(EXT_LINK_START))
@@ -2028,7 +2028,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else if (IN(LINK_START))
                 {
                     // already in internal link scope! this is a syntax error
-                    _Wikitext_rollback_failed_internal_link(parser);
+                    wiki_rollback_failed_internal_link(parser);
                     str_append(parser->output, link_start, sizeof(link_start) - 1);
                 }
                 else if (IN(SEPARATOR))
@@ -2038,8 +2038,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else // not in internal link scope yet
                 {
                     // will either emit a link, or the rollback of a failed link, so start the para now
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     ary_push(parser->scope, LINK_START);
 
                     // look ahead and try to gobble up link target
@@ -2078,13 +2078,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         else if (type == LINK_END)
                         {
                             if (parser->link_target->len == 0) // bail for inputs like "[[]]"
-                                _Wikitext_rollback_failed_internal_link(parser);
+                                wiki_rollback_failed_internal_link(parser);
                             break; // jump back to top of loop (will handle this in LINK_END case below)
                         }
                         else if (type == SEPARATOR)
                         {
                             if (parser->link_target->len == 0) // bail for inputs like "[[|"
-                                _Wikitext_rollback_failed_internal_link(parser);
+                                wiki_rollback_failed_internal_link(parser);
                             else
                             {
                                 ary_push(parser->scope, SEPARATOR);
@@ -2096,7 +2096,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         }
                         else // unexpected token (syntax error)
                         {
-                            _Wikitext_rollback_failed_internal_link(parser);
+                            wiki_rollback_failed_internal_link(parser);
                             break; // jump back to top of loop to handle unexpected token
                         }
                     }
@@ -2110,7 +2110,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 output = parser->capture ? parser->capture : parser->output;
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(output, link_end, sizeof(link_end) - 1);
                 }
                 else if (IN(EXT_LINK_START))
@@ -2118,33 +2118,33 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     str_append(output, link_end, sizeof(link_end) - 1);
                 else if (IN(LINK_START)) // in internal link scope!
                 {
-                    if (_Wikitext_blank(parser->link_target))
+                    if (wiki_blank(parser->link_target))
                     {
                         // special case for inputs like "[[    ]]"
-                        _Wikitext_rollback_failed_internal_link(parser);
+                        wiki_rollback_failed_internal_link(parser);
                         str_append(parser->output, link_end, sizeof(link_end) - 1);
                         break;
                     }
                     if (parser->link_text->len == 0 ||
-                        _Wikitext_blank(parser->link_text))
+                        wiki_blank(parser->link_text))
                     {
                         // use link target as link text
                         str_clear(parser->link_text);
-                        _Wikitext_append_sanitized_link_target(parser, parser->link_text, true);
+                        wiki_append_sanitized_link_target(parser, parser->link_text, true);
                     }
                     else
-                        _Wikitext_trim_link_text(parser);
-                    _Wikitext_encode_link_target(parser);
-                    _Wikitext_pop_from_stack_up_to(parser, output, LINK_START, true);
+                        wiki_trim_link_text(parser);
+                    wiki_encode_link_target(parser);
+                    wiki_pop_from_stack_up_to(parser, output, LINK_START, true);
                     parser->capture = NULL;
-                    _Wikitext_append_hyperlink(parser, prefix, parser->link_target, parser->link_text, Qnil, false);
+                    wiki_append_hyperlink(parser, prefix, parser->link_target, parser->link_text, Qnil, false);
                     str_clear(parser->link_target);
                     str_clear(parser->link_text);
                 }
                 else // wasn't in internal link scope
                 {
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     str_append(output, link_end, sizeof(link_end) - 1);
                 }
                 break;
@@ -2158,7 +2158,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 output = parser->capture ? parser->capture : parser->output;
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(output, ext_link_start, sizeof(ext_link_start) - 1);
                 }
                 else if (IN(EXT_LINK_START))
@@ -2175,8 +2175,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else // not in external link scope yet
                 {
                     // will either emit a link, or the rollback of a failed link, so start the para now
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
 
                     // look ahead: expect an absolute URI (with protocol) or "relative" (path) URI
                     NEXT_TOKEN();
@@ -2193,37 +2193,37 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 output = parser->capture ? parser->capture : parser->output;
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(output, ext_link_end, sizeof(ext_link_end) - 1);
                 }
                 else if (IN(EXT_LINK_START))
                 {
                     if (parser->link_text->len == 0)
                         // syntax error: external link with no link text
-                        _Wikitext_rollback_failed_external_link(parser);
+                        wiki_rollback_failed_external_link(parser);
                     else
                     {
                         // success!
                         j = IN(PATH) ? Qnil : parser->external_link_class;
-                        _Wikitext_pop_from_stack_up_to(parser, output, EXT_LINK_START, true);
+                        wiki_pop_from_stack_up_to(parser, output, EXT_LINK_START, true);
                         parser->capture = NULL;
-                        _Wikitext_append_hyperlink(parser, Qnil, parser->link_target, parser->link_text, j, false);
+                        wiki_append_hyperlink(parser, Qnil, parser->link_target, parser->link_text, j, false);
                     }
                     str_clear(parser->link_target);
                     str_clear(parser->link_text);
                 }
                 else
                 {
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
                     str_append(parser->output, ext_link_end, sizeof(ext_link_end) - 1);
                 }
                 break;
 
             case SEPARATOR:
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
-                _Wikitext_start_para_if_necessary(parser);
+                wiki_pop_excess_elements(parser);
+                wiki_start_para_if_necessary(parser);
                 str_append(output, separator, sizeof(separator) - 1);
                 break;
 
@@ -2231,7 +2231,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 output = parser->capture ? parser->capture : parser->output;
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(output, token->start, TOKEN_LEN(token));
                 }
                 else
@@ -2253,8 +2253,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     else
                     {
                         // emit the space
-                        _Wikitext_pop_excess_elements(parser);
-                        _Wikitext_start_para_if_necessary(parser);
+                        wiki_pop_excess_elements(parser);
+                        wiki_start_para_if_necessary(parser);
                         str_append(output, token_ptr, token_len);
                     }
 
@@ -2269,52 +2269,52 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case DECIMAL_ENTITY:
                 // pass these through unaltered as they are case sensitive
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
-                _Wikitext_start_para_if_necessary(parser);
+                wiki_pop_excess_elements(parser);
+                wiki_start_para_if_necessary(parser);
                 str_append(output, token->start, TOKEN_LEN(token));
                 break;
 
             case HEX_ENTITY:
                 // normalize hex entities (downcase them)
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
-                _Wikitext_start_para_if_necessary(parser);
+                wiki_pop_excess_elements(parser);
+                wiki_start_para_if_necessary(parser);
                 str_append(output, token->start, TOKEN_LEN(token));
-                _Wikitext_downcase_bang(output->ptr + output->len - TOKEN_LEN(token), TOKEN_LEN(token));
+                wiki_downcase_bang(output->ptr + output->len - TOKEN_LEN(token), TOKEN_LEN(token));
                 break;
 
             case QUOT:
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
-                _Wikitext_start_para_if_necessary(parser);
+                wiki_pop_excess_elements(parser);
+                wiki_start_para_if_necessary(parser);
                 str_append(output, quot_entity, sizeof(quot_entity) - 1);
                 break;
 
             case AMP:
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
-                _Wikitext_start_para_if_necessary(parser);
+                wiki_pop_excess_elements(parser);
+                wiki_start_para_if_necessary(parser);
                 str_append(output, amp_entity, sizeof(amp_entity) - 1);
                 break;
 
             case LESS:
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
-                _Wikitext_start_para_if_necessary(parser);
+                wiki_pop_excess_elements(parser);
+                wiki_start_para_if_necessary(parser);
                 str_append(output, lt_entity, sizeof(lt_entity) - 1);
                 break;
 
             case GREATER:
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
-                _Wikitext_start_para_if_necessary(parser);
+                wiki_pop_excess_elements(parser);
+                wiki_start_para_if_necessary(parser);
                 str_append(output, gt_entity, sizeof(gt_entity) - 1);
                 break;
 
             case IMG_START:
                 if (IN(NO_WIKI_START) || IN(PRE) || IN(PRE_START))
                 {
-                    _Wikitext_emit_pending_crlf_if_necessary(parser);
+                    wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, token->start, TOKEN_LEN(token));
                 }
                 else if (parser->capture)
@@ -2322,8 +2322,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 else
                 {
                     // not currently capturing: will be emitting something on success or failure, so get ready
-                    _Wikitext_pop_excess_elements(parser);
-                    _Wikitext_start_para_if_necessary(parser);
+                    wiki_pop_excess_elements(parser);
+                    wiki_start_para_if_necessary(parser);
 
                     // scan ahead consuming PATH, PRINTABLE, ALNUM and SPECIAL_URI_CHARS tokens
                     // will cheat here and abuse the link_target capture buffer to accumulate text
@@ -2334,7 +2334,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         else if (type == IMG_END && parser->link_target->len > 0)
                         {
                             // success
-                            _Wikitext_append_img(parser, parser->link_target->ptr, parser->link_target->len);
+                            wiki_append_img(parser, parser->link_target->ptr, parser->link_target->len);
                             token = NULL;
                             break;
                         }
@@ -2357,7 +2357,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case CRLF:
                 i = parser->pending_crlf;
                 parser->pending_crlf = false;
-                _Wikitext_rollback_failed_link(parser); // if any
+                wiki_rollback_failed_link(parser); // if any
                 if (IN(NO_WIKI_START) || IN(PRE_START))
                 {
                     ary_clear(parser->line_buffer);
@@ -2369,7 +2369,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     // beware when BLOCKQUOTE on line buffer (not line stack!) prior to CRLF, that must be end of PRE block
                     if (ary_entry(parser->line_buffer, -2) == BLOCKQUOTE)
                         // don't emit in this case
-                        _Wikitext_pop_from_stack_up_to(parser, parser->output, PRE, true);
+                        wiki_pop_from_stack_up_to(parser, parser->output, PRE, true);
                     else
                     {
                         if (ary_entry(parser->line_buffer, -2) == PRE)
@@ -2388,7 +2388,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         type = token->type;
                         if (type != BLOCKQUOTE && type != PRE)
                             // this is definitely the end of the block, so don't emit
-                            _Wikitext_pop_from_stack_up_to(parser, parser->output, PRE, true);
+                            wiki_pop_from_stack_up_to(parser, parser->output, PRE, true);
                         else
                             // potentially will emit
                             parser->pending_crlf = true;
@@ -2426,7 +2426,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                                 // not a paragraph break!
                                 continue;
                         }
-                        _Wikitext_pop_from_stack(parser, NULL);
+                        wiki_pop_from_stack(parser, NULL);
                     }
                 }
 
@@ -2442,16 +2442,16 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
             case LEFT_CURLY:
             case RIGHT_CURLY:
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
-                _Wikitext_start_para_if_necessary(parser);
+                wiki_pop_excess_elements(parser);
+                wiki_start_para_if_necessary(parser);
                 str_append(output, token->start, TOKEN_LEN(token));
                 break;
 
             case DEFAULT:
                 output = parser->capture ? parser->capture : parser->output;
-                _Wikitext_pop_excess_elements(parser);
-                _Wikitext_start_para_if_necessary(parser);
-                _Wikitext_append_entity_from_utf32_char(output, token->code_point);
+                wiki_pop_excess_elements(parser);
+                wiki_start_para_if_necessary(parser);
+                wiki_append_entity_from_utf32_char(output, token->code_point);
                 break;
 
             case END_OF_FILE:
@@ -2462,8 +2462,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     str_append(parser->output, parser->line_ending->ptr, parser->line_ending->len);
 
                 // close any open scopes on hitting EOF
-                _Wikitext_rollback_failed_link(parser); // if any
-                _Wikitext_pop_all_from_stack(parser);
+                wiki_rollback_failed_link(parser); // if any
+                wiki_pop_all_from_stack(parser);
                 goto return_output; // break not enough here (want to break out of outer while loop, not inner switch statement)
 
             default:
