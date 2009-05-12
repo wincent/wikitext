@@ -810,14 +810,10 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
     return string_from_str(output);
 }
 
-// encodes the input string according to RFCs 2396 and 2718
-// leading and trailing whitespace trimmed
-// note that the first character of the target link is not case-sensitive
-// (this is a recommended application-level constraint; it is not imposed at this level)
-// this is to allow links like:
-//         ...the [[foo]] is...
-// to be equivalent to:
-//         thing. [[Foo]] was...
+// Encodes the parser link_target member (in-place) according to RFCs 2396 and 2718
+//
+// Leading and trailing whitespace trimmed. Spaces are converted to
+// underscores if the parser space_to_underscore member is true.
 static void _Wikitext_encode_link_target(parser_t *parser)
 {
     char        *src        = parser->link_target->ptr;
