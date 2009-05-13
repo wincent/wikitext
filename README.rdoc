@@ -1,1 +1,325 @@
-doc/README
+The wikitext extension is a fast wikitext-to-HTML translator written
+in C and packaged as a Ruby extension.
+
+Usage is straightforward:
+
+ $ irb -r wikitext
+ >> Wikitext::Parser.new.parse("hello world!")
+ => "<p>hello world!</p>\n"
+
+= Design goals
+
+I needed a wikitext-to-HTML translator for a Rails application; a number
+of design goals flowed on from this:
+
+* _fast_: Rails has a reputation for being slow, so the translator had
+  to be part of the solution, not part of the problem
+* _efficient_: again, given how much memory Rails likes to use, the
+  translator had to be very memory-efficient
+* _robust_: on a public-facing web application that had to be up for long
+  periods, the translator had to be stable (no crashes, no resource leaks)
+* _secure_: again, accepting input from untrusted sources meant that the
+  translator had to sanitize or reject unsafe input
+* <em>easy to use</em>: for end users, the translator should provide a
+  simple, familiar markup as close as possible to what they already know
+  from other applications (such as MediaWiki, the wiki software that
+  powers Wikipedia)
+* _forgiving_: wikitext is presentation markup, not source code, so the
+  translator should do a reasonable job of formatting even the most
+  invalid markup rather than giving up
+* _informative_: when provided invalid markup the translator should
+  fail gracefully and emit HTML that provides useful visual feedback
+  about where the errors are in the input
+* <em>multilingual-friendly</em>: the translator should handle input beyond
+  printable ASCII in a compatible fashion
+* _attractive_: the emitted HTML source should be consistent and attractive
+* <em>valid output</em>: regardless of the input, the translator should
+  always produce valid XHTML output
+* <em>well-tested</em>: the translator should have a comprehensive test
+  suite to ensure that its behaviour is not only correct but also stable
+  over time
+* <em>cross-platform</em>: should work identically on Mac OS X, Linux
+  (explicitly tested platforms) and perhaps others as well
+
+Some notable things that were _not_ design goals:
+
+* implement _all_ of the MediaWiki syntax (tables etc)
+
+= Markup
+
+The markup is very close to that used by MediaWiki, the most popular wiki
+software and the one that powers Wikipedia.
+
+== Headings
+
+ = Heading 1 =
+ == Heading 2 ==
+ === Heading 3 ===
+ ==== Heading 4 ====
+ ===== Heading 5 =====
+ ====== Heading 6 ======
+
+Are marked up as:
+
+ <h1>Heading 1</h1>
+ <h2>Heading 2</h2>
+ <h3>Heading 3</h3>
+ <h4>Heading 4</h4>
+ <h5>Heading 5</h5>
+ <h6>Heading 6</h6>
+
+== Paragraphs
+
+Consecutive linebreaks are converted into paragraph breaks.
+
+ This is one paragraph.
+ Another line.
+ 
+ And this is another.
+
+Would be marked up as:
+
+ <p>This is one paragraph. Another line.</p>
+ <p>And this is another.</p>
+
+== Emphasis, Strong
+
+Emphasis is marked up as follows:
+
+  ''emphasized''
+
+Which gets translated into:
+
+  <em>emphasized</em>
+
+Strong is marked up like this:
+
+  '''strong text'''
+
+And transformed into:
+
+  <strong>strong text</strong>
+
+You can nest spans inside one another, provided you don't try to produce
+invalid HTML (for example, nesting strong inside strong). Here is a valid
+example:
+
+  '''''foo'' bar''' baz
+
+This would become:
+
+  <strong><em>foo</em> bar</strong> baz
+
+Note that the translator emits HTML on the fly, so when it sees the
+first run of five apostrophes it has no way of knowing what will come
+afterwards and so doesn't know whether you mean to say "strong em" or
+"em strong"; it therefore always assumes "strong em". If you wish to
+force the alternative interpretation you can do one of the following:
+
+ '' '''foo''' bar'' baz (ie. use whitespace)
+ ''<nowiki></nowiki>'''foo''' bar'' baz (ie. insert an empty nowiki span)
+ <em><strong>foo</strong> bar</em> baz (ie. use explicit HTML tags instead)
+ <em>'''foo''' bar</em> baz (ie. use explicit HTML tags instead)
+
+Note that to avoid ambiguity, the translator will not let you intermix
+the shorthand style with the literal HTML tag style.
+
+ <em>foo'' (ie. intermixed, invalid)
+
+== Teletype
+
+The translator recognizes both standard HTML +tt+ tags and the
+backtick (`) as a shorthand. These two are equivalent:
+
+  <tt>fixed</tt>
+  `fixed`
+
+If you need to insert a literal backtick in your text you use a +nowiki+
+span:
+
+  here follows a literal <nowiki>`</nowiki> backtick
+
+To avoid ambiguity, the translator will not let you intermix the two
+styles.
+
+== +nowiki+ spans
+
+Already mentioned above, you can use +nowiki+ tags to temporarily disable
+wikitext markup. As soon as the translator sees the opening +nowiki+ tag
+it starts emitting a literal copy of everything it sees up until the
+closing +nowiki+ tag:
+
+  Hello <nowiki>''world''</nowiki>
+
+Would be emitted as:
+
+  Hello ''world''
+
+== Blockquotes
+
+  > Hello world!
+  > Bye for now.
+
+Would be emitted as:
+
+  <blockquote><p>Hello world! Bye for now.</p></blockquote>
+
+You can nest blockquotes or any other kind of block or span inside
+blockquotes. For example:
+
+  > first quote
+  >> quote inside a quote
+
+== Preformatted text
+
+Any line indented with whitespace will be interpreted as part of a +pre+
+block. Wikitext markup inside +pre+ blocks has no special meaning. For
+example, consider the following block indented by a single space:
+
+   // source code listing
+   void foo(void)
+   {
+      x++;
+   }
+
+Would be translated into:
+
+  <pre>// source code listing
+  void foo(void)
+  {
+    x++;
+  }</pre>
+
++pre+ blocks may be nested inside +blockquote+ blocks.
+
+== Internal links
+
+  [[article title]]
+
+Would become:
+
+  <a href="/wiki/article_title">article title</a>
+
+And:
+
+  [[title|link text]]
+
+Would become:
+
+  <a href="/wiki/article">link text</a>
+
+See the Parser attributes documentation for how you can override the
+default link prefix (<em>/wiki/</em> as shown in the example).
+
+== Alternative blockquote and preformatted block syntax
+
+For +blockquote+ and +pre+ blocks that go on for many lines it may be
+more convenient to use the alternative syntax which uses standard
+HTML tags rather than special prefixes at the beginning of each line.
+
+  <blockquote>This is
+  a blockquote!</blockquote>
+  
+  <pre>And this is
+  preformatted text</pre>
+
++blockquote+ and +pre+ blocks may nest inside other +blockquote+
+blocks.
+
+Note that to avoid ambiguity, the translator will not let you intermix
+the two styles (HTML markup and wikitext markup).
+
+== External links
+
+  [http://example.com/ this site]
+
+Would become:
+
+  <a href="http://example.com/" class="external">this site</a>
+
+See the Parser attributes documentation for information on overriding
+the default external link class (+external+ in this example).
+
+Note that in addition to providing a fully-qualified URL including a
+protocol (such as "http://" or "ftp://") you also have the option of
+using an unqualified "path"-style URL. This is useful for making
+links to other pages still on the same site, but outside of the wiki:
+
+  [/issues/1024 ticket #1024]
+
+Would become:
+
+  <a href="/issues/1024">ticket #1024</a>
+
+Note that no "external" class is included in the generated link.
+
+To avoid false positives, what constitutes a "path" is
+narrowly-defined as a string that begins with a slash, optionally
+followed by zero or more "path components" consisting of upper and
+lowercase letters, numbers, underscores, hyphens or periods. Path
+components are separated by a slash, and the trailing slash after
+the last path component is optional.
+
+== Images
+
+  {{foo.png}}
+
+Would become:
+
+  <img src="/images/foo.png" alt="foo.png" />
+
+You can override the "/images/" prefix using the +img_prefix+ attribute
+of the Parser.
+
+You can also specify "absolute" image "src" attributes regardless of
+the current prefix setting by starting the image path with a forward
+slash; that is:
+
+  {{/foo.png}}
+
+Would become:
+
+  <img src="/foo.png" alt="/foo.png" />
+
+= Links
+
+* RubyForge project page: http://rubyforge.org/projects/wikitext
+* RDoc: http://wikitext.rubyforge.org
+* Source: http://git.wincent.com/wikitext.git
+* Author/maintainer: Wincent Colaiuta (win@wincent.com, http://wincent.com)
+
+= License
+
+Copyright 2007-2009 Wincent Colaiuta. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+= Feedback
+
+Please let me know if you're using the wikitext extension in your project.
+If you have any bug reports or feature requests please open a ticket in
+the issue tracker at https://wincent.com/issues.
+
+= Donations
+
+If you find this extension useful, please consider making a donation via
+PayPal to win@wincent.com.
