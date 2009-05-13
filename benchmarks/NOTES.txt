@@ -78,3 +78,36 @@ improving performance due to removal of inappropriately inlined code:
   short slab of UTF-8 text    2.310000   0.020000   2.330000 (  2.352641)
   longer slab of ASCII text  13.780000   0.100000  13.880000 ( 14.034015)
   longer slab of UTF-8 text  23.150000   0.130000  23.280000 ( 23.505007)
+
+1.7 baseline:
+
+  short slab of ASCII text    1.380000   0.010000   1.390000 (  1.390273)
+  short slab of UTF-8 text    2.150000   0.010000   2.160000 (  2.196478)
+  longer slab of ASCII text  13.210000   0.080000  13.290000 ( 13.547195)
+  longer slab of UTF-8 text  23.510000   0.170000  23.680000 ( 23.882669)
+
+  19.9% next_token
+  14.9% Wikitext_parser_parse
+   9.5% __memcpy
+   7.4% ary_includes
+   6.9% ary_count
+   5.5% str_append
+   5.5% ary_push
+   4.0% wiki_start_para_if_necessary
+
+After switching to IN_EITHER_OF and IN_ANY_OF macros:
+
+  short slab of ASCII text    1.330000   0.010000   1.340000 (  1.353676)
+  short slab of UTF-8 text    2.120000   0.010000   2.130000 (  2.158128)
+  longer slab of ASCII text  12.350000   0.070000  12.420000 ( 12.508288)
+  longer slab of UTF-8 text  22.810000   0.150000  22.960000 ( 23.160102)
+
+  21.9% next_token
+  13.5% Wikitext_parser_parse
+   9.5% __memcpy
+   7.1% ary_count
+   5.6% str_append
+   5.4% ary_push
+   4.4% wiki_pop_excess_elements
+   4.3% ary_entry
+   4.1% wiki_start_para_if_necessary

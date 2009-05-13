@@ -41,6 +41,8 @@ void ary_clear(ary_t *ary);
 int ary_pop(ary_t *ary);
 void ary_push(ary_t *ary, int val);
 int ary_includes(ary_t *ary, int val);
+int ary_includes2(ary_t *ary, int val1, int val2);
+int ary_includes3(ary_t *ary, int val1, int val2, int val3);
 
 // returns a count indicating the number of times the value appears in the collection
 int ary_count(ary_t *ary, int item);

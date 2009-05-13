@@ -75,6 +75,29 @@ int ary_includes(ary_t *ary, int val)
     return 0;
 }
 
+int ary_includes2(ary_t *ary, int val1, int val2)
+{
+    for (int i = 0, max = ary->count; i < max; i++)
+    {
+        if (ary->entries[i] == val1 ||
+            ary->entries[i] == val2)
+            return 1;
+    }
+    return 0;
+}
+
+int ary_includes3(ary_t *ary, int val1, int val2, int val3)
+{
+    for (int i = 0, max = ary->count; i < max; i++)
+    {
+        if (ary->entries[i] == val1 ||
+            ary->entries[i] == val2 ||
+            ary->entries[i] == val3)
+            return 1;
+    }
+    return 0;
+}
+
 int ary_count(ary_t *ary, int item)
 {
     int count = 0;
