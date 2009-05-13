@@ -34,7 +34,7 @@
 #define IN_ANY_OF(type1, type2, type3) ary_includes3(parser->scope, type1, type2, type3)
 
 // poor man's object orientation in C:
-// instead of parsing around multiple parameters between functions in the parser
+// instead of passing around multiple parameters between functions in the parser
 // we pack everything into a struct and pass around only a pointer to that
 typedef struct
 {
