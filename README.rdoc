@@ -229,6 +229,20 @@ blocks.
 Note that to avoid ambiguity, the translator will not let you intermix
 the two styles (HTML markup and wikitext markup).
 
++pre+ blocks may also contain a custom +lang+ attribute for the purposes
+of marking up a block for syntax-highlighting (note that the highlighting
+itself would be provided by JavaScript in the browser and is not actually
+part of the wikitext extension). For example:
+
+  <pre lang="ruby">puts @person.name</pre>
+
+Would be translated into:
+
+  <pre class="ruby-syntax">puts @person.name</pre>
+
+The +lang+ attribute may only contain letters, so "Objective-C", for
+example would need to be written as "objc" or similar.
+
 == External links
 
   [http://example.com/ this site]
