@@ -127,6 +127,8 @@ const char literal_img_start[]          = "{{";
 const char img_start[]                  = "<img src=\"";
 const char img_end[]                    = "\" />";
 const char img_alt[]                    = "\" alt=\"";
+const char pre_class_start[]            = "<pre class=\"";
+const char pre_class_end[]              = "-syntax\">";
 
 // Mark the parser struct designated by ptr as a participant in Ruby's
 // mark-and-sweep garbage collection scheme. A variable named name is placed on
@@ -341,7 +343,14 @@ void wiki_indent(parser_t *parser)
 void wiki_append_pre_start(parser_t *parser, token_t *token)
 {
     wiki_indent(parser);
-    str_append(parser->output, pre_start, sizeof(pre_start) - 1);
+    if ((size_t)TOKEN_LEN(token) > sizeof(pre_start) - 1)
+    {
+        str_append(parser->output, pre_class_start, sizeof(pre_class_start) - 1);   // <pre class="
+        str_append(parser->output, token->start + 11, TOKEN_LEN(token) - 13);       // (the "lang" substring)
+        str_append(parser->output, pre_class_end, sizeof(pre_class_end) - 1);       // -syntax">
+    }
+    else
+        str_append(parser->output, pre_start, sizeof(pre_start) - 1);
     ary_push(parser->scope, PRE_START);
     ary_push(parser->line, PRE_START);
 }

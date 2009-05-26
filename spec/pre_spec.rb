@@ -477,4 +477,23 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
   it 'should automatically close open PRE_START blocks on hitting the end-of-file' do
     @parser.parse('<pre>foo').should == "<pre>foo</pre>\n"
   end
+
+  it 'should handle an optional "lang" attribute' do
+    @parser.parse('<pre lang="ruby">foo</pre>').should == %Q{<pre class="ruby-syntax">foo</pre>\n}
+  end
+
+  it 'should reject excess internal whitespace in PRE_START tags which have a "lang" attribute' do
+    @parser.parse('<pre  lang="ruby">foo</pre>').should == %Q{<p>&lt;pre  lang=&quot;ruby&quot;&gt;foo&lt;/pre&gt;</p>\n}
+    @parser.parse('<pre lang ="ruby">foo</pre>').should == %Q{<p>&lt;pre lang =&quot;ruby&quot;&gt;foo&lt;/pre&gt;</p>\n}
+    @parser.parse('<pre lang= "ruby">foo</pre>').should == %Q{<p>&lt;pre lang= &quot;ruby&quot;&gt;foo&lt;/pre&gt;</p>\n}
+    @parser.parse('<pre lang="ruby" >foo</pre>').should == %Q{<p>&lt;pre lang=&quot;ruby&quot; &gt;foo&lt;/pre&gt;</p>\n}
+  end
+
+  it 'should reject non-alpha characters in "lang" attribute' do
+    @parser.parse('<pre lang="obj-c">foo</pre>').should == %Q{<p>&lt;pre lang=&quot;obj-c&quot;&gt;foo&lt;/pre&gt;</p>\n}
+  end
+
+  it 'should reject empty "lang" attributes' do
+    @parser.parse('<pre lang="">foo</pre>').should == %Q{<p>&lt;pre lang=&quot;&quot;&gt;foo&lt;/pre&gt;</p>\n}
+  end
 end

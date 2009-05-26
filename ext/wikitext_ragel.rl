@@ -104,6 +104,12 @@
             fbreak;
         };
 
+        '<pre lang="' alpha+ '">'
+        {
+            EMIT(PRE_START);
+            fbreak;
+        };
+
         '</pre>'i
         {
             EMIT(PRE_END);
