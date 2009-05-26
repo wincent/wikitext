@@ -338,6 +338,14 @@ void wiki_indent(parser_t *parser)
     parser->current_indent += 2;
 }
 
+void wiki_append_pre_start(parser_t *parser, token_t *token)
+{
+    wiki_indent(parser);
+    str_append(parser->output, pre_start, sizeof(pre_start) - 1);
+    ary_push(parser->scope, PRE_START);
+    ary_push(parser->line, PRE_START);
+}
+
 void wiki_dedent(parser_t *parser, bool emit)
 {
     if (parser->base_indent == -1) // indentation disabled
@@ -1185,10 +1193,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     wiki_rollback_failed_link(parser); // if any
                     wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE_START, false);
-                    wiki_indent(parser);
-                    str_append(parser->output, pre_start, sizeof(pre_start) - 1);
-                    ary_push(parser->scope, PRE_START);
-                    ary_push(parser->line, PRE_START);
+                    wiki_append_pre_start(parser, token);
                 }
                 else if (IN(BLOCKQUOTE))
                 {
@@ -1196,10 +1201,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         wiki_rollback_failed_link(parser); // if any
                         wiki_pop_all_from_stack(parser);
-                        wiki_indent(parser);
-                        str_append(parser->output, pre_start, sizeof(pre_start) - 1);
-                        ary_push(parser->scope, PRE_START);
-                        ary_push(parser->line, PRE_START);
+                        wiki_append_pre_start(parser, token);
                     }
                     else // PRE_START illegal here
                     {
@@ -1213,10 +1215,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     wiki_rollback_failed_link(parser); // if any
                     wiki_pop_from_stack_up_to(parser, NULL, P, true);
-                    wiki_indent(parser);
-                    str_append(parser->output, pre_start, sizeof(pre_start) - 1);
-                    ary_push(parser->scope, PRE_START);
-                    ary_push(parser->line, PRE_START);
+                    wiki_append_pre_start(parser, token);
                 }
                 break;
 
