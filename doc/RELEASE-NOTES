@@ -6,6 +6,13 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 1.8 (not yet released)
+
+* "pre" tags may now take an optional "lang" attribute to mark
+  up the translated text for syntax-highlighting
+* optimize use of ary_includes function, yielding a boost in
+  performance of several percent
+
 = Changes in 1.7
 
 * many optimizations for speed: performance has improved for
