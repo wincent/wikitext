@@ -6,7 +6,7 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
-= Changes in 1.8 (not yet released)
+= Changes in 1.8
 
 * "pre" tags may now take an optional "lang" attribute to mark
   up the translated text for syntax-highlighting
