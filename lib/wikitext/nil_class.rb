@@ -25,7 +25,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'ext',
   'wikitext'))
 
 class NilClass
-  def to_wikitext
+  def to_wikitext options = {}
     ''
   end
   alias :w :to_wikitext

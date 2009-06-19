@@ -33,4 +33,8 @@ describe NilClass, 'wikitext extensions' do
   it 'should provide a w method on the nil singleton' do
     nil.w.should == ''
   end
+
+  it 'should accept and ignore an optional options hash' do
+    lambda { nil.w :base_heading_level => 3 }.should_not raise_error
+  end
 end
