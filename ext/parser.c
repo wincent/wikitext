@@ -1042,6 +1042,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     // process options hash
     int base_indent = 0;
     int base_heading_level = NUM2INT(rb_iv_get(self, "@base_heading_level"));
+    VALUE link_proc = Qnil;
     if (!NIL_P(options) && TYPE(options) == T_HASH)
     {
         // :indent => 0 (or more)
@@ -1061,6 +1062,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         // :base_heading_level => 0/1/2/3/4/5/6
         if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("base_heading_level"))) == Qtrue)
             base_heading_level = NUM2INT(rb_hash_aref(options, ID2SYM(rb_intern("base_heading_level"))));
+
+        // :link_proc => lambda { |link_target| ... }
+        // TODO: refactor to avoid some repeated calls to ID2SYM and rb_intern
+        if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("link_proc"))) == Qtrue)
+            link_proc = rb_hash_aref(options, ID2SYM(rb_intern("link_proc")));
     }
 
     // normalize, regardless of whether this came from instance variable or override
@@ -2144,10 +2150,20 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     }
                     else
                         wiki_trim_link_text(parser);
+
+                    // perform "redlink" check before manipulating link_target
+                    if (NIL_P(link_proc))
+                        j = Qnil;
+                    else
+                    {
+                        j = rb_funcall(link_proc, rb_intern("call"), 1, string_from_str(parser->link_target));
+                        if (!NIL_P(j))
+                            j = StringValue(j);
+                    }
                     wiki_encode_link_target(parser);
                     wiki_pop_from_stack_up_to(parser, output, LINK_START, true);
                     parser->capture = NULL;
-                    wiki_append_hyperlink(parser, prefix, parser->link_target, parser->link_text, Qnil, false);
+                    wiki_append_hyperlink(parser, prefix, parser->link_target, parser->link_text, j, false);
                     str_clear(parser->link_target);
                     str_clear(parser->link_text);
                 }

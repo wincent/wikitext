@@ -114,6 +114,119 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
     @parser.parse('foo [[bar]] baz').should == expected # was a bug
   end
 
+  describe '"red link" support' do
+    it 'should accept a Proc object via the optional "link_proc" parameter' do
+      @parser.parse('foo', :link_proc => Proc.new { }).should == %Q{<p>foo</p>\n}
+    end
+
+    it 'should accept a lambda via the optional "link_proc" parameter' do
+      @parser.parse('foo', :link_proc => lambda { }).should == %Q{<p>foo</p>\n}
+    end
+
+    it 'should apply custom link CSS when supplied (Proc object version)' do
+      link_proc = Proc.new { |target| target == 'bar' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo">foo</a> <a href="/wiki/bar" class="redlink">bar</a></p>\n}
+      @parser.parse('[[foo]] [[bar]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should apply custom link CSS when supplied (lambda version)' do
+      link_proc = lambda { |target| target == 'bar' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo">foo</a> <a href="/wiki/bar" class="redlink">bar</a></p>\n}
+      @parser.parse('[[foo]] [[bar]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should apply no custom link CSS when supplied nil (Proc object version)' do
+      expected = %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+      @parser.parse('[[foo]]', :link_proc => Proc.new { |target| nil }).should == expected
+    end
+
+    it 'should apply no custom link CSS when supplied nil (lambda version)' do
+      expected = %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+      @parser.parse('[[foo]]', :link_proc => lambda { |target| nil }).should == expected
+    end
+
+    it 'should let exceptions bubble up from the link proc (Proc object version)' do
+      lambda { @parser.parse('[[foo]]', :link_proc => Proc.new { |target| raise 'bar' }) }.should raise_error(RuntimeError, /bar/)
+    end
+
+    it 'should let exceptions bubble up from the link proc (lambda version)' do
+      lambda { @parser.parse('[[foo]]', :link_proc => lambda { |target| raise 'bar' }) }.should raise_error(RuntimeError, /bar/)
+    end
+
+    it 'should complain if the link proc returns a non-stringy object (Proc object version)' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => Proc.new { 1 }
+      }.should raise_error(TypeError, /can't convert/)
+    end
+
+    it 'should complain if the link proc returns a non-stringy object (lambda version)' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => lambda { 1 }
+      }.should raise_error(TypeError, /can't convert/)
+    end
+
+    # a couple of Ruby's idiosynchrasies: different behaviour of lambdas and Procs
+    it 'should not complain if the Proc object accepts too many arguments' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => Proc.new { |a,b| }
+      }.should_not raise_error(ArgumentError, /wrong number/)
+    end
+
+    it 'should complain if the lambda accepts too many arguments' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => lambda { |a,b| }
+      }.should raise_error(ArgumentError, /wrong number/)
+    end
+
+    it 'should complain when "return" is used inside a "Proc.new" block' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => Proc.new { return 'bar' }
+      }.should raise_error(LocalJumpError)
+    end
+
+    it 'should not complain when "return" is used inside a lambda' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => lambda { return 'bar' }
+      }.should_not raise_error(LocalJumpError)
+    end
+
+    it 'should interact correctly with spaces in link targets (Proc object version)' do
+      link_proc = Proc.new { |target| target == 'bar b' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo%20a">foo a</a> <a href="/wiki/bar%20b" class="redlink">bar b</a></p>\n}
+      @parser.parse('[[foo a]] [[bar b]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should interact correctly with spaces in link targets (lambda version)' do
+      link_proc = lambda { |target| target == 'bar b' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo%20a">foo a</a> <a href="/wiki/bar%20b" class="redlink">bar b</a></p>\n}
+      @parser.parse('[[foo a]] [[bar b]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should interact correctly with explicit link text (Proc object version)' do
+      link_proc = Proc.new { |target| target == 'bar b' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo%20a">hello</a> <a href="/wiki/bar%20b" class="redlink">world</a></p>\n}
+      @parser.parse('[[foo a|hello]] [[bar b|world]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should interact correctly with explicit link text (lambda version)' do
+      link_proc = lambda { |target| target == 'bar b' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo%20a">hello</a> <a href="/wiki/bar%20b" class="redlink">world</a></p>\n}
+      @parser.parse('[[foo a|hello]] [[bar b|world]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should handle link targets with encoded parts (Proc object version)' do
+      link_proc = Proc.new { |target| target == 'información' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/informaci%c3%b3n" class="redlink">informaci&#x00f3;n</a> <a href="/wiki/bar">bar</a></p>\n}
+      @parser.parse('[[información]] [[bar]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should handle link targets with encoded parts (lambda version)' do
+      link_proc = lambda { |target| target == 'información' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/informaci%c3%b3n" class="redlink">informaci&#x00f3;n</a> <a href="/wiki/bar">bar</a></p>\n}
+      @parser.parse('[[información]] [[bar]]', :link_proc => link_proc).should == expected
+    end
+  end
+
   describe 'custom link text' do
     it 'should recognize link text placed after the separator' do
       @parser.parse('[[foo|bar]]').should == %Q{<p><a href="/wiki/foo">bar</a></p>\n}
@@ -539,6 +652,119 @@ describe Wikitext::Parser, 'internal links (space to underscore on)' do
   it 'should handle links in paragraph flows' do
     expected = %Q{<p>foo <a href="/wiki/bar">bar</a> baz</p>\n}
     @parser.parse('foo [[bar]] baz').should == expected # was a bug
+  end
+
+  describe '"red link" support' do
+    it 'should accept a Proc object via the optional "link_proc" parameter' do
+      @parser.parse('foo', :link_proc => Proc.new { }).should == %Q{<p>foo</p>\n}
+    end
+
+    it 'should accept a lambda via the optional "link_proc" parameter' do
+      @parser.parse('foo', :link_proc => lambda { }).should == %Q{<p>foo</p>\n}
+    end
+
+    it 'should apply custom link CSS when supplied (Proc object version)' do
+      link_proc = Proc.new { |target| target == 'bar' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo">foo</a> <a href="/wiki/bar" class="redlink">bar</a></p>\n}
+      @parser.parse('[[foo]] [[bar]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should apply custom link CSS when supplied (lambda version)' do
+      link_proc = lambda { |target| target == 'bar' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo">foo</a> <a href="/wiki/bar" class="redlink">bar</a></p>\n}
+      @parser.parse('[[foo]] [[bar]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should apply no custom link CSS when supplied nil (Proc object version)' do
+      expected = %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+      @parser.parse('[[foo]]', :link_proc => Proc.new { |target| nil }).should == expected
+    end
+
+    it 'should apply no custom link CSS when supplied nil (lambda version)' do
+      expected = %Q{<p><a href="/wiki/foo">foo</a></p>\n}
+      @parser.parse('[[foo]]', :link_proc => lambda { |target| nil }).should == expected
+    end
+
+    it 'should let exceptions bubble up from the link proc (Proc object version)' do
+      lambda { @parser.parse('[[foo]]', :link_proc => Proc.new { |target| raise 'bar' }) }.should raise_error(RuntimeError, /bar/)
+    end
+
+    it 'should let exceptions bubble up from the link proc (lambda version)' do
+      lambda { @parser.parse('[[foo]]', :link_proc => lambda { |target| raise 'bar' }) }.should raise_error(RuntimeError, /bar/)
+    end
+
+    it 'should complain if the link proc returns a non-stringy object (Proc object version)' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => Proc.new { 1 }
+      }.should raise_error(TypeError, /can't convert/)
+    end
+
+    it 'should complain if the link proc returns a non-stringy object (lambda version)' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => lambda { 1 }
+      }.should raise_error(TypeError, /can't convert/)
+    end
+
+    # a couple of Ruby's idiosynchrasies: different behaviour of lambdas and Procs
+    it 'should not complain if the Proc object accepts too many arguments' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => Proc.new { |a,b| }
+      }.should_not raise_error(ArgumentError, /wrong number/)
+    end
+
+    it 'should complain if the lambda accepts too many arguments' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => lambda { |a,b| }
+      }.should raise_error(ArgumentError, /wrong number/)
+    end
+
+    it 'should complain when "return" is used inside a "Proc.new" block' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => Proc.new { return 'bar' }
+      }.should raise_error(LocalJumpError)
+    end
+
+    it 'should not complain when "return" is used inside a lambda' do
+      lambda {
+        @parser.parse '[[foo]]', :link_proc => lambda { return 'bar' }
+      }.should_not raise_error(LocalJumpError)
+    end
+
+    it 'should interact correctly with spaces in link targets (Proc object version)' do
+      link_proc = Proc.new { |target| target == 'bar b' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo_a">foo a</a> <a href="/wiki/bar_b" class="redlink">bar b</a></p>\n}
+      @parser.parse('[[foo a]] [[bar b]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should interact correctly with spaces in link targets (lambda version)' do
+      link_proc = lambda { |target| target == 'bar b' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo_a">foo a</a> <a href="/wiki/bar_b" class="redlink">bar b</a></p>\n}
+      @parser.parse('[[foo a]] [[bar b]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should interact correctly with explicit link text (Proc object version)' do
+      link_proc = Proc.new { |target| target == 'bar b' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo_a">hello</a> <a href="/wiki/bar_b" class="redlink">world</a></p>\n}
+      @parser.parse('[[foo a|hello]] [[bar b|world]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should interact correctly with explicit link text (lambda version)' do
+      link_proc = lambda { |target| target == 'bar b' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/foo_a">hello</a> <a href="/wiki/bar_b" class="redlink">world</a></p>\n}
+      @parser.parse('[[foo a|hello]] [[bar b|world]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should handle link targets with encoded parts (Proc object version)' do
+      link_proc = Proc.new { |target| target == 'información' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/informaci%c3%b3n" class="redlink">informaci&#x00f3;n</a> <a href="/wiki/bar">bar</a></p>\n}
+      @parser.parse('[[información]] [[bar]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'should handle link targets with encoded parts (lambda version)' do
+      link_proc = lambda { |target| target == 'información' ? 'redlink' : nil }
+      expected = %Q{<p><a href="/wiki/informaci%c3%b3n" class="redlink">informaci&#x00f3;n</a> <a href="/wiki/bar">bar</a></p>\n}
+      @parser.parse('[[información]] [[bar]]', :link_proc => link_proc).should == expected
+    end
   end
 
   describe 'custom link text' do

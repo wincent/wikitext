@@ -9,6 +9,10 @@ the source code repository at: http://git.wincent.com.
 = Changes in 1.9
 
 * NilClass#w method now accepts and optional parameters hash
+* new +link_proc+ option to Wikitext::Parser#parse allows you to
+  dynamically apply a custom CSS class based on the link target;
+  this can be used, for example, to provide "red links" for
+  articles which do not exist yet
 
 = Changes in 1.8
 
