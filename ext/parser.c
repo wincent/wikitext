@@ -1046,9 +1046,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     if (!NIL_P(options) && TYPE(options) == T_HASH)
     {
         // :indent => 0 (or more)
-        if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("indent"))) == Qtrue)
+        ID has_key = rb_intern("has_key?");
+        ID id = ID2SYM(rb_intern("indent"));
+        if (rb_funcall(options, has_key, 1, id) == Qtrue)
         {
-            VALUE indent = rb_hash_aref(options, ID2SYM(rb_intern("indent")));
+            VALUE indent = rb_hash_aref(options, id);
             if (indent == Qfalse)
                 base_indent = -1; // indentation disabled
             else
@@ -1060,13 +1062,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         }
 
         // :base_heading_level => 0/1/2/3/4/5/6
-        if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("base_heading_level"))) == Qtrue)
-            base_heading_level = NUM2INT(rb_hash_aref(options, ID2SYM(rb_intern("base_heading_level"))));
+        id = ID2SYM(rb_intern("base_heading_level"));
+        if (rb_funcall(options, has_key, 1, id) == Qtrue)
+            base_heading_level = NUM2INT(rb_hash_aref(options, id));
 
         // :link_proc => lambda { |link_target| ... }
-        // TODO: refactor to avoid some repeated calls to ID2SYM and rb_intern
-        if (rb_funcall(options, rb_intern("has_key?"), 1, ID2SYM(rb_intern("link_proc"))) == Qtrue)
-            link_proc = rb_hash_aref(options, ID2SYM(rb_intern("link_proc")));
+        id = ID2SYM(rb_intern("link_proc"));
+        if (rb_funcall(options, has_key, 1, id) == Qtrue)
+            link_proc = rb_hash_aref(options, id);
     }
 
     // normalize, regardless of whether this came from instance variable or override
