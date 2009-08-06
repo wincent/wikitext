@@ -209,7 +209,10 @@ Would become:
   <a href="/wiki/article">link text</a>
 
 See the Parser attributes documentation for how you can override the
-default link prefix (<em>/wiki/</em> as shown in the example).
+default link prefix (<em>/wiki/</em> as shown in the example), and how
+"red links" can be implemented by applying custom CSS depending on the
+link target (this can be used to make links to non-existent pages appear
+in a different color).
 
 == Alternative blockquote and preformatted block syntax
 

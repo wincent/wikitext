@@ -128,6 +128,25 @@ module Wikitext
   # users from inappropriately employing "h1" tags in deeply-nested
   # contexts where they would otherwise disturb the visual harmony of
   # the page.
+  #
+  # == +link_proc+ (lambda or Proc object)
+  #
+  # "Red links" can be implemented by providing a custom +link_proc+ block
+  # at parse time. This can be used to check for existing or non-existent
+  # link targets and apply custom CSS styling accordingly. For example,
+  # consider:
+  #
+  #    link_proc = lambda { |target| target == 'bar' ? 'redlink' : nil }
+  #    Wikitext::Parser.new.parse '[[foo]] [[bar]]', :link_proc => link_proc
+  #
+  # This would add the "redlink" CSS class to the "bar" link but not the
+  # "foo" link. Please note that if your +link_proc+ involves database
+  # queries then you should implement an appropriate caching strategy to
+  # ensure that markup with many links does not overwhelm your database.
+  #
+  # Many more examples of link procs can be found in the spec suite:
+  #
+  # * http://git.wincent.com/wikitext.git/blob/HEAD:/spec/internal_link_spec.rb
   class Parser
 
     # Sanitizes an internal link target for inclusion within the HTML
