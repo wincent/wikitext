@@ -2158,7 +2158,10 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         j = rb_funcall(link_proc, rb_intern("call"), 1, string_from_str(parser->link_target));
                         if (!NIL_P(j))
-                            j = StringValue(j);
+                        {
+                            VALUE l = j; // can't cast inside StringValue macro
+                            j = StringValue(l);
+                        }
                     }
                     wiki_encode_link_target(parser);
                     wiki_pop_from_stack_up_to(parser, output, LINK_START, true);
