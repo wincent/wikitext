@@ -24,8 +24,12 @@
 
 require File.join(File.dirname(__FILE__), '..', 'ext', 'wikitext')
 require File.join(File.dirname(__FILE__), '..', 'lib', 'wikitext', 'version')
-require 'rubygems'
-require 'highline'
+begin
+  require 'highline'
+rescue LoadError
+  require 'rubygems'
+  require 'highline'
+end
 
 def pretty_print tokens
   tokens.each do |token|
