@@ -31,6 +31,10 @@ rescue LoadError
   require 'highline'
 end
 
+def interactive?
+  STDOUT.tty? && STDIN.tty?
+end
+
 def pretty_print tokens
   tokens.each do |token|
     puts <<-END
@@ -44,21 +48,22 @@ END
   end
 end
 
-puts "wikitext #{Wikitext::VERSION}"
+puts "wikitext #{Wikitext::VERSION}" if interactive?
 highline  = HighLine.new
 parser    = Wikitext::Parser.new
 method    = (ARGV[0] =~ /\A--tok/) ? :tokenize : :parse
 begin
   while true
-    puts highline.color('(Ctrl+D to process, Ctrl+C to exit)>>', :bold)
+    puts highline.color('(Ctrl+D to process, Ctrl+C to exit)>>', :bold) if interactive?
     input = STDIN.read
-    puts '-' * highline.output_cols
+    puts '-' * highline.output_cols if interactive?
     if method == :tokenize
       pretty_print parser.tokenize(input)
     else
       puts parser.parse(input)
     end
-    puts '-' * highline.output_cols
+    puts '-' * highline.output_cols if interactive?
+    exit unless interactive?
   end
 rescue Interrupt
 end
