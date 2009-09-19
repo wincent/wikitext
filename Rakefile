@@ -107,8 +107,15 @@ SPEC = Gem::Specification.new do |s|
   ENDDESC
   s.require_paths     = ['ext', 'lib']
   s.has_rdoc          = true
-  s.files             = FileList['spec/*', 'ext/wikitext_ragel.c', 'ext/*.{rb,c,h}', 'ext/depend', 'lib/wikitext/*', 'rails/init.rb'].to_a
+  s.files             = FileList[ 'bin/*',
+                                  'ext/wikitext_ragel.c',
+                                  'ext/*.{rb,c,h}',
+                                  'ext/depend',
+                                  'lib/wikitext/*',
+                                  'rails/init.rb',
+                                  'spec/*' ].to_a
   s.extensions        = ['ext/extconf.rb']
+  s.executables       = ['wikitext']
 end
 
 task :gem => [:make]
