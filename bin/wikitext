@@ -24,12 +24,6 @@
 
 require File.join(File.dirname(__FILE__), '..', 'ext', 'wikitext')
 require File.join(File.dirname(__FILE__), '..', 'lib', 'wikitext', 'version')
-begin
-  require 'highline'
-rescue LoadError
-  require 'rubygems'
-  require 'highline'
-end
 
 def interactive?
   STDOUT.tty? && STDIN.tty?
@@ -48,8 +42,17 @@ END
   end
 end
 
+if interactive?
+  begin
+    require 'highline'
+  rescue LoadError
+    require 'rubygems'
+    require 'highline'
+  end
+end
+
 puts "wikitext #{Wikitext::VERSION}" if interactive?
-highline  = HighLine.new
+highline  = HighLine.new if interactive?
 parser    = Wikitext::Parser.new
 method    = (ARGV[0] =~ /\A--tok/) ? :tokenize : :parse
 begin
