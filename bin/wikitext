@@ -27,8 +27,10 @@ require File.join(File.dirname(__FILE__), '..', 'lib', 'wikitext', 'version')
 
 module Wikitext
   module Tool
+    INPUT_FILES = []
+
     def self.interactive?
-      STDOUT.tty? && STDIN.tty?
+      STDOUT.tty? && STDIN.tty? && INPUT_FILES.empty?
     end
 
     def self.pretty_print tokens
@@ -44,6 +46,15 @@ module Wikitext
       end
     end
 
+    method = :parse
+    ARGV.each do |arg|
+      if arg =~ /\A--tok/
+        method = :tokenize
+      else
+        INPUT_FILES << arg
+      end
+    end
+
     if interactive?
       begin
         require 'highline'
@@ -51,26 +62,41 @@ module Wikitext
         require 'rubygems'
         require 'highline'
       end
+      puts "wikitext #{Wikitext::VERSION}"
+      highline = HighLine.new
     end
 
-    puts "wikitext #{Wikitext::VERSION}" if interactive?
-    highline  = HighLine.new if interactive?
-    parser    = Parser.new
-    method    = (ARGV[0] =~ /\A--tok/) ? :tokenize : :parse
-    begin
-      while true
-        puts highline.color('(Ctrl+D to process, Ctrl+C to exit)>>', :bold) if interactive?
-        input = STDIN.read
-        puts '-' * highline.output_cols if interactive?
-        if method == :tokenize
-          pretty_print parser.tokenize(input)
-        else
-          puts parser.parse(input)
+    parser = Parser.new
+    if INPUT_FILES.empty?
+      begin
+        while true
+          puts highline.color('(Ctrl+D to process, Ctrl+C to exit)>>', :bold) if interactive?
+          input = STDIN.read
+          puts '-' * highline.output_cols if interactive?
+          if method == :tokenize
+            pretty_print parser.tokenize(input)
+          else
+            puts parser.parse(input)
+          end
+          puts '-' * highline.output_cols if interactive?
+          exit unless interactive?
         end
-        puts '-' * highline.output_cols if interactive?
-        exit unless interactive?
+      rescue Interrupt
       end
-    rescue Interrupt
+    else # we have INPUT_FILES
+      exit_status = 0
+      INPUT_FILES.each do |file|
+        begin
+          puts parser.parse(File.new(file).read)
+        rescue Errno::ENOENT
+          STDERR.puts "error: no such file or directory: #{file}"
+          exit_status |= 1
+        rescue Errno::EACCES
+          STDERR.puts "error: permission denied: #{file}"
+          exit_status |= 2
+        end
+      end
+      exit exit_status
     end
   end # module Tool
 end # module Wikitext
