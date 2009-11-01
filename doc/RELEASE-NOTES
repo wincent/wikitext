@@ -6,6 +6,13 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 1.10
+
+* a +wikitext+ executable is now included for processing wikitext
+  markup from the commandline: input may come from filename
+  arguments specified on the commandline, piped in via standard
+  input, or typed in interactively via a tty
+
 = Changes in 1.9
 
 * NilClass#w method now accepts and optional parameters hash
