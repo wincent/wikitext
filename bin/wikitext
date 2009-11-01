@@ -25,48 +25,52 @@
 require File.join(File.dirname(__FILE__), '..', 'ext', 'wikitext')
 require File.join(File.dirname(__FILE__), '..', 'lib', 'wikitext', 'version')
 
-def interactive?
-  STDOUT.tty? && STDIN.tty?
-end
-
-def pretty_print tokens
-  tokens.each do |token|
-    puts <<-END
-Token:          type: #{token.token_type}
-                line: #{token.line_start}..#{token.line_stop}   column: #{token.column_start}..#{token.column_stop}
-             pointer: #{token.start}..#{token.stop}
-          code_point: #{token.code_point}
-        string_value: #{token.string_value.inspect}
-
-END
-  end
-end
-
-if interactive?
-  begin
-    require 'highline'
-  rescue LoadError
-    require 'rubygems'
-    require 'highline'
-  end
-end
-
-puts "wikitext #{Wikitext::VERSION}" if interactive?
-highline  = HighLine.new if interactive?
-parser    = Wikitext::Parser.new
-method    = (ARGV[0] =~ /\A--tok/) ? :tokenize : :parse
-begin
-  while true
-    puts highline.color('(Ctrl+D to process, Ctrl+C to exit)>>', :bold) if interactive?
-    input = STDIN.read
-    puts '-' * highline.output_cols if interactive?
-    if method == :tokenize
-      pretty_print parser.tokenize(input)
-    else
-      puts parser.parse(input)
+module Wikitext
+  module Tool
+    def self.interactive?
+      STDOUT.tty? && STDIN.tty?
     end
-    puts '-' * highline.output_cols if interactive?
-    exit unless interactive?
-  end
-rescue Interrupt
-end
+
+    def self.pretty_print tokens
+      tokens.each do |token|
+        puts <<-END
+    Token:          type: #{token.token_type}
+                    line: #{token.line_start}..#{token.line_stop}   column: #{token.column_start}..#{token.column_stop}
+                 pointer: #{token.start}..#{token.stop}
+              code_point: #{token.code_point}
+            string_value: #{token.string_value.inspect}
+
+    END
+      end
+    end
+
+    if interactive?
+      begin
+        require 'highline'
+      rescue LoadError
+        require 'rubygems'
+        require 'highline'
+      end
+    end
+
+    puts "wikitext #{Wikitext::VERSION}" if interactive?
+    highline  = HighLine.new if interactive?
+    parser    = Parser.new
+    method    = (ARGV[0] =~ /\A--tok/) ? :tokenize : :parse
+    begin
+      while true
+        puts highline.color('(Ctrl+D to process, Ctrl+C to exit)>>', :bold) if interactive?
+        input = STDIN.read
+        puts '-' * highline.output_cols if interactive?
+        if method == :tokenize
+          pretty_print parser.tokenize(input)
+        else
+          puts parser.parse(input)
+        end
+        puts '-' * highline.output_cols if interactive?
+        exit unless interactive?
+      end
+    rescue Interrupt
+    end
+  end # module Tool
+end # module Wikitext
