@@ -287,9 +287,12 @@ void wiki_append_hyperlink(parser_t *parser, VALUE link_prefix, str_t *link_targ
 
         // special handling for mailto URIs
         const char *mailto = "mailto:";
-        if (NIL_P(link_prefix) &&
-            link_target->len >= (long)sizeof(mailto) &&
-            strncmp(mailto, link_target->ptr, sizeof(mailto)) == 0)
+        long mailto_len = (long)sizeof(mailto) - 1; // don't count NUL byte
+        if ((link_target->len >= mailto_len &&
+             strncmp(mailto, link_target->ptr, mailto_len) == 0) ||
+            (!NIL_P(link_prefix) &&
+             RSTRING_LEN(link_prefix) >= mailto_len &&
+             strncmp(mailto, RSTRING_PTR(link_prefix), mailto_len) == 0))
             link_class = parser->mailto_class; // use mailto_class from parser
         if (link_class != Qnil)
         {
