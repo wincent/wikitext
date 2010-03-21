@@ -112,6 +112,13 @@ SPEC = Gem::Specification.new do |s|
                                   'spec/*' ].to_a
   s.extensions        = ['ext/extconf.rb']
   s.executables       = ['wikitext']
+  if s.respond_to? :add_development_dependency
+    s.add_development_dependency 'rspec'
+    s.add_development_dependency 'wopen3'
+  else
+    s.add_dependency 'rspec'
+    s.add_dependency 'wopen3'
+  end
 end
 
 task :gem => [:make]
@@ -120,4 +127,3 @@ task :package => [:clobber, :all, :gem]
 Rake::GemPackageTask.new(SPEC) do |t|
   t.need_tar      = true
 end
-
