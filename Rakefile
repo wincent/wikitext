@@ -1,4 +1,4 @@
-# Copyright 2007-2009 Wincent Colaiuta
+# Copyright 2007-2010 Wincent Colaiuta
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -61,11 +61,7 @@ end
 
 file extension_makefile => ['ext/extconf.rb', 'ext/depend', ragel] do
   Dir.chdir('ext') do
-    if RUBY_PLATFORM =~ /darwin/
-      sh "env ARCHFLAGS='-arch i386' ruby extconf.rb"
-    else
-      ruby 'extconf.rb'
-    end
+    ruby 'extconf.rb'
   end
 end
 
