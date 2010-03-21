@@ -193,7 +193,7 @@ tr22:
         }}
 	goto st106;
 tr23:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{	switch( act ) {
 	case 21:
 	{{p = ((te))-1;}
@@ -676,12 +676,12 @@ tr212:
         }}
 	goto st106;
 st106:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{ts = 0;}
 	if ( ++p == pe )
 		goto _test_eof106;
 case 106:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{ts = p;}
 #line 687 "wikitext_ragel.c"
 	switch( (*p) ) {
@@ -857,7 +857,7 @@ case 110:
 		goto st110;
 	goto tr155;
 tr130:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 	goto st111;
 st111:
@@ -1092,7 +1092,7 @@ case 115:
 		goto tr164;
 	goto tr160;
 tr133:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 454 "wikitext_ragel.rl"
 	{act = 45;}
@@ -1201,7 +1201,7 @@ case 24:
 		goto tr29;
 	goto tr23;
 tr29:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 303 "wikitext_ragel.rl"
 	{act = 22;}
@@ -1223,7 +1223,7 @@ case 117:
 		goto tr167;
 	goto tr166;
 tr167:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 303 "wikitext_ragel.rl"
 	{act = 22;}
@@ -1245,7 +1245,7 @@ case 118:
 		goto tr168;
 	goto tr166;
 tr168:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 303 "wikitext_ragel.rl"
 	{act = 22;}
@@ -1267,7 +1267,7 @@ case 119:
 		goto tr169;
 	goto tr166;
 tr169:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 303 "wikitext_ragel.rl"
 	{act = 22;}
@@ -1289,7 +1289,7 @@ case 120:
 		goto st22;
 	goto tr166;
 tr165:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 454 "wikitext_ragel.rl"
 	{act = 45;}
@@ -1323,7 +1323,7 @@ case 121:
 		goto st22;
 	goto tr155;
 tr134:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 436 "wikitext_ragel.rl"
 	{act = 43;}
@@ -1445,7 +1445,7 @@ case 126:
 		goto st125;
 	goto tr170;
 tr136:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -1472,7 +1472,7 @@ case 127:
 		goto tr136;
 	goto tr174;
 tr137:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 	goto st128;
 st128:
@@ -2149,7 +2149,7 @@ case 131:
 		goto tr187;
 	goto tr186;
 tr140:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2178,7 +2178,7 @@ case 132:
 		goto tr136;
 	goto tr174;
 tr188:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2207,7 +2207,7 @@ case 133:
 		goto tr136;
 	goto tr174;
 tr189:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2274,7 +2274,7 @@ case 98:
 		goto tr110;
 	goto tr107;
 tr110:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 	goto st135;
 st135:
@@ -2331,7 +2331,7 @@ case 99:
 		goto st99;
 	goto tr111;
 tr141:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2360,7 +2360,7 @@ case 136:
 		goto tr136;
 	goto tr174;
 tr192:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2389,7 +2389,7 @@ case 137:
 		goto tr136;
 	goto tr174;
 tr193:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2418,7 +2418,7 @@ case 138:
 		goto tr136;
 	goto tr174;
 tr194:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2448,7 +2448,7 @@ case 139:
 		goto tr136;
 	goto tr174;
 tr142:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2477,7 +2477,7 @@ case 140:
 		goto tr136;
 	goto tr174;
 tr195:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2506,7 +2506,7 @@ case 141:
 		goto tr136;
 	goto tr174;
 tr196:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2535,7 +2535,7 @@ case 142:
 		goto tr136;
 	goto tr174;
 tr197:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2564,7 +2564,7 @@ case 143:
 		goto tr136;
 	goto tr174;
 tr198:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2593,7 +2593,7 @@ case 144:
 		goto tr136;
 	goto tr174;
 tr199:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2715,7 +2715,7 @@ case 105:
 		goto tr118;
 	goto tr23;
 tr118:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 297 "wikitext_ragel.rl"
 	{act = 21;}
@@ -2737,7 +2737,7 @@ case 146:
 		goto tr201;
 	goto tr191;
 tr201:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 297 "wikitext_ragel.rl"
 	{act = 21;}
@@ -2759,7 +2759,7 @@ case 147:
 		goto tr202;
 	goto tr191;
 tr202:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 297 "wikitext_ragel.rl"
 	{act = 21;}
@@ -2781,7 +2781,7 @@ case 148:
 		goto tr203;
 	goto tr191;
 tr203:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 297 "wikitext_ragel.rl"
 	{act = 21;}
@@ -2803,7 +2803,7 @@ case 149:
 		goto st103;
 	goto tr191;
 tr143:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
@@ -2832,7 +2832,7 @@ case 150:
 		goto tr136;
 	goto tr174;
 tr204:
-#line 1 "wikitext_ragel.rl"
+#line 1 "NONE"
 	{te = p+1;}
 #line 442 "wikitext_ragel.rl"
 	{act = 44;}
