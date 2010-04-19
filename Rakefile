@@ -14,7 +14,6 @@
 
 require 'rake'
 require 'rake/clean'
-require 'rake/gempackagetask'
 require 'rake/rdoctask'
 require 'rubygems'
 require 'spec/rake/spectask'
@@ -89,41 +88,12 @@ task :upload_rdoc => :rdoc do
   sh 'scp -r html/* rubyforge.org:/var/www/gforge-projects/wikitext/'
 end
 
-SPEC = Gem::Specification.new do |s|
-  s.name              = 'wikitext'
-  s.version           =  Wikitext::VERSION
-  s.author            = 'Wincent Colaiuta'
-  s.email             = 'win@wincent.com'
-  s.homepage          = 'http://wikitext.rubyforge.org/'
-  s.rubyforge_project = 'wikitext'
-  s.platform          = Gem::Platform::RUBY
-  s.summary           = 'Wikitext-to-HTML translator'
-  s.description       = <<-ENDDESC
-    Wikitext is a fast wikitext-to-HTML translator written in C.
-  ENDDESC
-  s.require_paths     = ['ext', 'lib']
-  s.has_rdoc          = true
-  s.files             = FileList[ 'bin/*',
-                                  'ext/wikitext_ragel.c',
-                                  'ext/*.{rb,c,h}',
-                                  'ext/depend',
-                                  'lib/wikitext/*',
-                                  'rails/init.rb',
-                                  'spec/*' ].to_a
-  s.extensions        = ['ext/extconf.rb']
-  s.executables       = ['wikitext']
-  if s.respond_to? :add_development_dependency
-    s.add_development_dependency 'rspec'
-    s.add_development_dependency 'wopen3'
-  else
-    s.add_dependency 'rspec'
-    s.add_dependency 'wopen3'
-  end
+desc 'Build gem ("gem build")'
+task :build do
+  system 'gem build wikitext.gemspec'
 end
 
-task :gem => [:make]
-
-task :package => [:clobber, :all, :gem]
-Rake::GemPackageTask.new(SPEC) do |t|
-  t.need_tar      = true
+desc 'Push gem to Gemcutter ("gem push")'
+task :push => :build do
+  system "gem push wikitext-#{Wikitext::VERSION}"
 end
