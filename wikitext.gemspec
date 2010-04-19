@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.version           =  Wikitext::VERSION
   s.author            = 'Wincent Colaiuta'
   s.email             = 'win@wincent.com'
-  s.homepage          = 'http://wikitext.rubyforge.org/'
+  s.homepage          = 'https://wincent.com/products/wikitext'
   s.rubyforge_project = 'wikitext'
   s.platform          = Gem::Platform::RUBY
   s.summary           = 'Wikitext-to-HTML translator'
