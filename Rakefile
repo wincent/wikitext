@@ -89,7 +89,7 @@ task :upload_rdoc => :rdoc do
 end
 
 desc 'Build gem ("gem build")'
-task :build do
+task :build => :make do
   system 'gem build wikitext.gemspec'
 end
 
