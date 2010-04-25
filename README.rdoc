@@ -1,4 +1,4 @@
-The wikitext extension is a fast wikitext-to-HTML translator written
+The Wikitext extension is a fast wikitext-to-HTML translator written
 in C and packaged as a Ruby extension.
 
 Usage is straightforward:
@@ -235,7 +235,7 @@ the two styles (HTML markup and wikitext markup).
 +pre+ blocks may also contain a custom +lang+ attribute for the purposes
 of marking up a block for syntax-highlighting (note that the highlighting
 itself would be provided by JavaScript in the browser and is not actually
-part of the wikitext extension). For example:
+part of the Wikitext extension). For example:
 
   <pre lang="ruby">puts @person.name</pre>
 
@@ -298,6 +298,42 @@ Would become:
 
   <img src="/foo.png" alt="/foo.png" />
 
+= Rails support
+
+The Wikitext extension provides a template handler so that templates named
+following the <tt>template_name.html.wikitext</tt> format will automatically be
+translated from wikitext markup into HTML when rendered.
+
+Likewise, a +to_wikitext+ method (aliased as +w+) is added to the +String+
+class (and also +NilClass+, for convenience) so that content can be easily
+translated.
+
+Finally, a Wikitext::Parser#shared_parser method is added to provide
+convenient access to a shared singleton instance of the parser so as to
+avoid repeatedly instantiating and setting up new parser instances as part
+of every request.
+
+== Rails 2.3
+
+The plug-in can be activated with an appropriate <tt>config.gem</tt> statement
+in your <tt>config/environment.rb</tt>:
+
+  config.gem 'wikitext'
+
+== Rails 3.0
+
+Add a line like the following to your Gemfile:
+
+  gem 'wikitext'
+
+At the time of writing, it appears that Rails 3 and Bundler do not
+automatically call the <tt>rails/init.rb</tt> file any more, so it is necessary
+to explicitly activate the Rails support (the template handler, +to_wikitext+
+and +w+ methods, and +shared_parser+ instance) by adding a line like this
+to a file under <tt>config/initializers</tt>:
+
+  require 'wikitext/rails'
+
 = Links
 
 * RubyForge project page: http://rubyforge.org/projects/wikitext
@@ -307,7 +343,7 @@ Would become:
 
 = License
 
-Copyright 2007-2009 Wincent Colaiuta. All rights reserved.
+Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -332,7 +368,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 = Feedback
 
-Please let me know if you're using the wikitext extension in your project.
+Please let me know if you're using the Wikitext extension in your project.
 If you have any bug reports or feature requests please open a ticket in
 the issue tracker at https://wincent.com/issues.
 

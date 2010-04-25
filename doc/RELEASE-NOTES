@@ -6,6 +6,16 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 1.11
+
+* extract Gem specification into separate file for compatibility
+  with Bundler's "install from Git repository" functionality
+* updates for compatibility with Rails 3
+
+= Changes in 1.10.1
+
+* fix builds on 64-bit Darwin platforms
+
 = Changes in 1.10
 
 * a +wikitext+ executable is now included for processing wikitext
@@ -15,7 +25,7 @@ the source code repository at: http://git.wincent.com.
 
 = Changes in 1.9
 
-* NilClass#w method now accepts and optional parameters hash
+* NilClass#w method now accepts an optional parameters hash
 * new +link_proc+ option to Wikitext::Parser#parse allows you to
   dynamically apply a custom CSS class based on the link target;
   this can be used, for example, to provide "red links" for
