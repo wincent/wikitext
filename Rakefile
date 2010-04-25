@@ -93,5 +93,5 @@ end
 
 desc 'Push gem to Gemcutter ("gem push")'
 task :push => :build do
-  system "gem push wikitext-#{Wikitext::VERSION}"
+  system "gem push wikitext-#{Wikitext::VERSION}.gem"
 end
