@@ -16,7 +16,6 @@ require 'rake'
 require 'rake/clean'
 require 'rake/rdoctask'
 require 'rubygems'
-require 'spec/rake/spectask'
 require File.join(File.dirname(__FILE__), 'lib', 'wikitext', 'version.rb')
 
 CLEAN.include   Rake::FileList['**/*.so', '**/*.bundle', '**/*.o', '**/mkmf.log', '**/Makefile']
@@ -71,9 +70,8 @@ file built_extension => extension_files do
 end
 
 desc 'Run specs'
-Spec::Rake::SpecTask.new('spec') do |t|
-  t.spec_files  = FileList['spec/**/*_spec.rb']
-  t.spec_opts   = ['--color']
+task :spec => :make do
+  sh 'spec spec'
 end
 
 Rake::RDocTask.new do |t|
