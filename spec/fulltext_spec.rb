@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # encoding: utf-8
 # Copyright 2008-2010 Wincent Colaiuta. All rights reserved.
 #

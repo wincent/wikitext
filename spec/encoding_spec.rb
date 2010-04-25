@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
