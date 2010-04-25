@@ -1,4 +1,4 @@
-# Copyright 2007-2009 Wincent Colaiuta. All rights reserved.
+# Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -53,7 +53,7 @@ end
 
 module Wikitext
   if not const_defined? 'BASEDIR'
-    # prepend the local "ext" directory to search path if not already present
+    # prepend local directories to search path if not already present
     BASEDIR     = Pathname.new(__FILE__).dirname + '..'
     extdir      = (BASEDIR + 'ext').realpath
     libdir      = (BASEDIR + 'lib').realpath

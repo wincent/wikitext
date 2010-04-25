@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-# Copyright 2008-2009 Wincent Colaiuta. All rights reserved.
+# Copyright 2008-2010 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 require File.join(File.dirname(__FILE__), 'spec_helper.rb')
-require 'wikitext'
 
 # this is a general-purpose file in which I'll add specs for former bugs to make sure that they don't regress
 describe Wikitext::Parser, 'regressions' do

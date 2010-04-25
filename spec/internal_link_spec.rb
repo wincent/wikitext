@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-# Copyright 2007-2009 Wincent Colaiuta. All rights reserved.
+# Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 require File.join(File.dirname(__FILE__), 'spec_helper.rb')
-require 'wikitext'
 
 describe Wikitext::Parser, 'internal links (space to underscore off)' do
   before do
