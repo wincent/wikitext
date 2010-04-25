@@ -1,4 +1,4 @@
-# Copyright 2008-2009 Wincent Colaiuta. All rights reserved.
+# Copyright 2008-2010 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -24,8 +24,8 @@
 # Avoid Rails bug #2266 by not requiring during "rake gems:build"
 # See: https://rails.lighthouseapp.com/projects/8994/tickets/2266
 unless $gems_build_rake_task
-  libdir = File.join(File.dirname(__FILE__), '..', 'lib', 'wikitext')
-  require File.expand_path(File.join(libdir, 'nil_class'))
-  require File.expand_path(File.join(libdir, 'string'))
-  require File.expand_path(File.join(libdir, 'rails'))
+  libdir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'wikitext'))
+  require File.join(libdir, 'nil_class')
+  require File.join(libdir, 'string')
+  require File.join(libdir, 'rails')
 end
