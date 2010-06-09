@@ -6,6 +6,11 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 1.12
+
+* the String#w and String#to_wikitext methods mark their returned
+  strings as html_safe under Rails 3
+
 = Changes in 1.11
 
 * extract Gem specification into separate file for compatibility
