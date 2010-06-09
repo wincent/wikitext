@@ -24,12 +24,22 @@
 require 'wikitext/nil_class'
 require 'wikitext/string'
 
-module Wikitext
-  class TemplateHandler
-    def self.call template
-      'template.source.w'
-    end
-  end
-end
+module ActionView
+  class Template
+    module Handlers
+      class Wikitext < Handler
+        include Compilable
 
-ActionView::Template.register_template_handler :wikitext, Wikitext::TemplateHandler
+        def compile template
+          "'" +
+            template.source.w.gsub("'", "\\\\'") +
+          "'"
+        end
+
+      end # class Wikitext
+    end # module Handlers
+  end # class Template
+end # module ActionView
+
+ActionView::Template.register_template_handler :wikitext,
+  ActionView::Template::Handlers::Wikitext
