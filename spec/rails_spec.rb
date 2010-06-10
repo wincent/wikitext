@@ -1,4 +1,4 @@
-# Copyright 2009 Wincent Colaiuta. All rights reserved.
+# Copyright 2009-2010 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -29,10 +29,11 @@ require 'wopen3'
 require 'ostruct'
 
 module RailsSpecs
-  TRASH_PATH    = Pathname.new(__FILE__).dirname + 'trash'
-  CLONE_PATH    = TRASH_PATH + 'rails.git'
-  RAILS_PATH    = CLONE_PATH + 'railties' + 'bin' + 'rails'
-  EDGE_APP_PATH = TRASH_PATH + 'edge-app'
+  TRASH_PATH              = Pathname.new(__FILE__).dirname + 'trash'
+  CLONE_PATH              = TRASH_PATH + 'rails.git'
+  RAILS_PATH              = CLONE_PATH + 'railties' + 'bin' + 'rails'
+  EDGE_APP_PATH           = TRASH_PATH + 'edge-app'
+  SUCCESSFUL_TEST_RESULT  = /1 tests, 3 assertions, 0 failures, 0 errors/
 
   def run cmd, *args
     result = OpenStruct.new
@@ -51,7 +52,7 @@ module RailsSpecs
     status = $?.exitstatus
     if status != 0
       command_string = ([cmd] + args).join(' ')
-      puts "*** COMMAND #{command_string} EXITED WITH NON-ZERO EXIT STATUS (#{status})"
+      puts "\n*** COMMAND #{command_string} EXITED WITH NON-ZERO EXIT STATUS (#{status})"
       puts "*** STDOUT FOR COMMAND #{command_string}:", result.stdout
       puts "*** STDERR FOR COMMAND #{command_string}:", result.stderr
       raise "non-zero exit status (#{status}) for '#{cmd}'"
@@ -192,17 +193,36 @@ TEST
   end
 end # module RailsSpecs
 
-describe 'Template handler in Rails 2.2.2' do
+describe 'Template handler in Rails 2.3.0' do
   include RailsSpecs
-  version = '2.2.2'
 
-  before(:all) do
-    setup_release_app version
-    @path = app_path(version)
+  before :all do
+    setup_release_app '2.3.0'
+    @path = app_path '2.3.0'
   end
 
   it 'should process the template using the wikitext module' do
-    run_integration_test(@path).should =~ /1 tests, 3 assertions, 0 failures, 0 errors/
+    pending 'Rack::Lint::LintError'
+    # Rack::Lint::LintError: a header value must be a String, but the value of
+    # 'Set-Cookie' is a Array
+    run_integration_test(@path).should =~ RailsSpecs::SUCCESSFUL_TEST_RESULT
+  end
+end
+
+# test other Rails 2 versions
+%w{2.2.2 2.2.3 2.3.1 2.3.2 2.3.2.1 2.3.3 2.3.3.1 2.3.4 2.3.5 2.3.6
+   2.3.7 2.3.8}.each do |version|
+  describe "Template handler in Rails #{version}" do
+    include RailsSpecs
+
+    before(:all) do
+      setup_release_app version
+      @path = app_path(version)
+    end
+
+    it 'should process the template using the wikitext module' do
+      run_integration_test(@path).should =~ RailsSpecs::SUCCESSFUL_TEST_RESULT
+    end
   end
 end
 
@@ -215,6 +235,6 @@ describe 'Template handler in Edge Rails' do
   end
 
   it 'should process the template using the wikitext module' do
-    run_integration_test(@path).should =~ /1 tests, 3 assertions, 0 failures, 0 errors/
+    run_integration_test(@path).should =~ RailsSpecs::SUCCESSFUL_TEST_RESULT
   end
 end
