@@ -34,7 +34,7 @@ of design goals flowed on from this:
   printable ASCII in a compatible fashion
 * _attractive_: the emitted HTML source should be consistent and attractive
 * <em>valid output</em>: regardless of the input, the translator should
-  always produce valid XHTML output
+  always produce valid HTML5 output
 * <em>well-tested</em>: the translator should have a comprehensive test
   suite to ensure that its behaviour is not only correct but also stable
   over time
@@ -133,6 +133,9 @@ backtick (`) as a shorthand. These two are equivalent:
 
   <tt>fixed</tt>
   `fixed`
+
+As of version 2.0, this markup is actually translated to +code+ tags
+in the output because the +tt+ tag was removed from the HTML5 standard.
 
 If you need to insert a literal backtick in your text you use a +nowiki+
 span:
@@ -324,7 +327,10 @@ in your <tt>config/environment.rb</tt>:
 
 Add a line like the following to your Gemfile:
 
-  gem 'wikitext'
+  gem 'wikitext', '>= 2.0'
+
+Note that while older versions of Wikitext do work with Rails 3 to some degree,
+for full compatibility Wikitext version 2.0 or higher should be used.
 
 At the time of writing, it appears that Rails 3 and Bundler do not
 automatically call the <tt>rails/init.rb</tt> file any more, so it is necessary

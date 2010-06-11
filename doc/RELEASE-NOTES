@@ -6,6 +6,12 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 2.0
+
+* compatibility with the Rails 3 template handler API
+* +code+ tags are now emitted instead of +tt+ tags for compliance
+  with the HTML5 specification
+
 = Changes in 1.12
 
 * the String#w and String#to_wikitext methods mark their returned
