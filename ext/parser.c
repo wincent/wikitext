@@ -1,4 +1,4 @@
-// Copyright 2007-2009 Wincent Colaiuta. All rights reserved.
+// Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -83,8 +83,8 @@ const char strong_start[]               = "<strong>";
 const char strong_end[]                 = "</strong>";
 const char em_start[]                   = "<em>";
 const char em_end[]                     = "</em>";
-const char tt_start[]                   = "<tt>";
-const char tt_end[]                     = "</tt>";
+const char code_start[]                 = "<code>";
+const char code_end[]                   = "</code>";
 const char ol_start[]                   = "<ol>";
 const char ol_end[]                     = "</ol>";
 const char ul_start[]                   = "<ul>";
@@ -422,7 +422,7 @@ void wiki_pop_from_stack(parser_t *parser, str_t *target)
 
         case TT:
         case TT_START:
-            str_append(target, tt_end, sizeof(tt_end) - 1);
+            str_append(target, code_end, sizeof(code_end) - 1);
             break;
 
         case OL:
@@ -1608,7 +1608,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         wiki_pop_from_stack_up_to(parser, output, EM_START, true);
                     else
                     {
-                        // no EM_START in scope, so must interpret the TT_END without any special meaning
+                        // no EM_START in scope, so must interpret the EM_END without any special meaning
                         wiki_pop_excess_elements(parser);
                         wiki_start_para_if_necessary(parser);
                         str_append(output, escaped_em_end, sizeof(escaped_em_end) - 1);
@@ -1636,7 +1636,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         // this is a new opening
                         wiki_pop_excess_elements(parser);
                         wiki_start_para_if_necessary(parser);
-                        str_append(output, tt_start, sizeof(tt_start) - 1);
+                        str_append(output, code_start, sizeof(code_start) - 1);
                         ary_push(parser->scope, TT);
                         ary_push(parser->line, TT);
                     }
@@ -1658,7 +1658,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         wiki_pop_excess_elements(parser);
                         wiki_start_para_if_necessary(parser);
-                        str_append(output, tt_start, sizeof(tt_start) - 1);
+                        str_append(output, code_start, sizeof(code_start) - 1);
                         ary_push(parser->scope, TT_START);
                         ary_push(parser->line, TT_START);
                     }

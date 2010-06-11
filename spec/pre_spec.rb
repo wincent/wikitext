@@ -420,7 +420,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
 
     # `
     expected = dedent <<-END
-      <p>hello <tt>my </tt></p>
+      <p>hello <code>my </code></p>
       <pre>world</pre>
     END
     @parser.parse("hello `my <pre>world</pre>").should == expected
@@ -448,7 +448,7 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
 
     # <tt>
     expected = dedent <<-END
-      <p>hello <tt>my </tt></p>
+      <p>hello <code>my </code></p>
       <pre>world</pre>
     END
     @parser.parse("hello <tt>my <pre>world</pre>").should == expected

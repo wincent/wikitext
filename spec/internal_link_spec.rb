@@ -34,7 +34,7 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
     @parser.parse("foo '']]'' bar").should == "<p>foo <em>]]</em> bar</p>\n"                        # in EM scope
     @parser.parse("foo ''']]''' bar").should == "<p>foo <strong>]]</strong> bar</p>\n"              # in STRONG scope
     @parser.parse("foo ''''']]''''' bar").should == "<p>foo <strong><em>]]</em></strong> bar</p>\n" # in STRONG_EM scope
-    @parser.parse('foo <tt>]]</tt> bar').should == "<p>foo <tt>]]</tt> bar</p>\n"                   # in TT scope
+    @parser.parse('foo <tt>]]</tt> bar').should == "<p>foo <code>]]</code> bar</p>\n"               # in TT scope
     @parser.parse('= foo ]] bar =').should == "<h1>foo ]] bar</h1>\n"                               # in H1 scope
     @parser.parse('== foo ]] bar ==').should == "<h2>foo ]] bar</h2>\n"                             # in H2 scope
     @parser.parse('=== foo ]] bar ===').should == "<h3>foo ]] bar</h3>\n"                           # in H3 scope
@@ -314,12 +314,12 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
     end
 
     it 'should allow tt markup in the custom link text' do
-      expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
+      expected = %Q{<p><a href="/wiki/foo">bar <code>baz</code></a></p>\n}
       @parser.parse('[[foo|bar <tt>baz</tt>]]').should == expected
     end
 
     it 'should automatically close unclosed tt markup in the custom link text' do
-      expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
+      expected = %Q{<p><a href="/wiki/foo">bar <code>baz</code></a></p>\n}
       @parser.parse('[[foo|bar <tt>baz]]').should == expected
     end
 
@@ -579,7 +579,7 @@ describe Wikitext::Parser, 'internal links (space to underscore on)' do
     @parser.parse("foo '']]'' bar").should == "<p>foo <em>]]</em> bar</p>\n"                        # in EM scope
     @parser.parse("foo ''']]''' bar").should == "<p>foo <strong>]]</strong> bar</p>\n"              # in STRONG scope
     @parser.parse("foo ''''']]''''' bar").should == "<p>foo <strong><em>]]</em></strong> bar</p>\n" # in STRONG_EM scope
-    @parser.parse('foo <tt>]]</tt> bar').should == "<p>foo <tt>]]</tt> bar</p>\n"                   # in TT scope
+    @parser.parse('foo <tt>]]</tt> bar').should == "<p>foo <code>]]</code> bar</p>\n"               # in TT scope
     @parser.parse('= foo ]] bar =').should == "<h1>foo ]] bar</h1>\n"                               # in H1 scope
     @parser.parse('== foo ]] bar ==').should == "<h2>foo ]] bar</h2>\n"                             # in H2 scope
     @parser.parse('=== foo ]] bar ===').should == "<h3>foo ]] bar</h3>\n"                           # in H3 scope
@@ -854,12 +854,12 @@ describe Wikitext::Parser, 'internal links (space to underscore on)' do
     end
 
     it 'should allow tt markup in the custom link text' do
-      expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
+      expected = %Q{<p><a href="/wiki/foo">bar <code>baz</code></a></p>\n}
       @parser.parse('[[foo|bar <tt>baz</tt>]]').should == expected
     end
 
     it 'should automatically close unclosed tt markup in the custom link text' do
-      expected = %Q{<p><a href="/wiki/foo">bar <tt>baz</tt></a></p>\n}
+      expected = %Q{<p><a href="/wiki/foo">bar <code>baz</code></a></p>\n}
       @parser.parse('[[foo|bar <tt>baz]]').should == expected
     end
 

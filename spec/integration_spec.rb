@@ -186,14 +186,14 @@ describe Wikitext::Parser, 'with large slab of input text' do
       syntax as you can see.</pre>
       </blockquote>
       <h2>another heading</h2>
-      <p>paragraph within <em>multiple <strong>styles</strong></em> and <tt>tt span</tt></p>
+      <p>paragraph within <em>multiple <strong>styles</strong></em> and <code>tt span</code></p>
       <p>similar, but with <strong>styles in <em>different</em> order</strong></p>
       <p>again, a <strong>different <em>order</em></strong></p>
       <ul>
         <li>list item 1 [<a href="http://google.com/" class="external">http://google.com/</a> unterminated
           <ul>
             <li>nested list item 1 with [[bad link</li>
-            <li>nested list item 2 with unclosed <tt>span</tt></li>
+            <li>nested list item 2 with unclosed <code>span</code></li>
             <li>nested list item 3</li>
           </ul>
         </li>
@@ -216,7 +216,7 @@ describe Wikitext::Parser, 'with large slab of input text' do
           <li>a</li>
           <li>list</li>
         </ul>
-        <p>And here is a link to <a href="/wiki/something">something</a>, and some <em>other</em> <tt>styled</tt> <strong>spans</strong>.</p>
+        <p>And here is a link to <a href="/wiki/something">something</a>, and some <em>other</em> <code>styled</code> <strong>spans</strong>.</p>
         <blockquote>
           <p>Finally we have a nested blockquote.</p>
           <ol>

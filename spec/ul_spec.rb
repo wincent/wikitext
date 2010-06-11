@@ -223,7 +223,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
     END
     expected = dedent <<-END
       <ul>
-        <li><tt>hello</tt></li>
+        <li><code>hello</code></li>
         <li>world</li>
       </ul>
     END
@@ -237,7 +237,7 @@ describe Wikitext::Parser, 'parsing unordered lists' do
     END
     expected = dedent <<-END
       <ul>
-        <li><tt>hello</tt></li>
+        <li><code>hello</code></li>
         <li>world</li>
       </ul>
     END

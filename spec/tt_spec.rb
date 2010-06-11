@@ -31,21 +31,23 @@ describe Wikitext::Parser, 'parsing <tt> spans' do
   end
 
   it 'should recognize paired <tt> and </tt> tags' do
-    @parser.parse('foo <tt>bar</tt> baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
+    # note how in version 2.0 and above, we output <code> tags instead of <tt>
+    # tags, seeing as the latter have been removed from HTML5
+    @parser.parse('foo <tt>bar</tt> baz').should == "<p>foo <code>bar</code> baz</p>\n"
   end
 
   it 'should recognize <tt> tags case-insensitively' do
-    @parser.parse('foo <TT>bar</tT> baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
-    @parser.parse('foo <tT>bar</Tt> baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
-    @parser.parse('foo <Tt>bar</TT> baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
+    @parser.parse('foo <TT>bar</tT> baz').should == "<p>foo <code>bar</code> baz</p>\n"
+    @parser.parse('foo <tT>bar</Tt> baz').should == "<p>foo <code>bar</code> baz</p>\n"
+    @parser.parse('foo <Tt>bar</TT> baz').should == "<p>foo <code>bar</code> baz</p>\n"
   end
 
   it 'should automatically insert missing closing tags' do
-    @parser.parse('foo <tt>bar').should == "<p>foo <tt>bar</tt></p>\n"
+    @parser.parse('foo <tt>bar').should == "<p>foo <code>bar</code></p>\n"
   end
 
   it 'should automatically close unclosed spans upon hitting newline' do
-    @parser.parse("foo <tt>bar\nbaz").should == "<p>foo <tt>bar</tt> baz</p>\n"
+    @parser.parse("foo <tt>bar\nbaz").should == "<p>foo <code>bar</code> baz</p>\n"
   end
 
   it 'should convert unexpected closing tags into entities' do
@@ -53,11 +55,11 @@ describe Wikitext::Parser, 'parsing <tt> spans' do
   end
 
   it 'should handle (illegal) nested <tt> spans' do
-    @parser.parse('foo <tt>bar <tt>inner</tt></tt> baz').should == "<p>foo <tt>bar &lt;tt&gt;inner</tt>&lt;/tt&gt; baz</p>\n"
+    @parser.parse('foo <tt>bar <tt>inner</tt></tt> baz').should == "<p>foo <code>bar &lt;tt&gt;inner</code>&lt;/tt&gt; baz</p>\n"
   end
 
   it 'should handle (illegal) interleaved spans' do
-    @parser.parse("foo <tt>bar '''inner</tt> baz'''").should == "<p>foo <tt>bar <strong>inner</strong></tt> baz<strong></strong></p>\n"
+    @parser.parse("foo <tt>bar '''inner</tt> baz'''").should == "<p>foo <code>bar <strong>inner</strong></code> baz<strong></strong></p>\n"
   end
 
   it 'should have no effect inside <pre> blocks' do
@@ -69,7 +71,7 @@ describe Wikitext::Parser, 'parsing <tt> spans' do
   end
 
   it 'should have no effect if a backtick span is already open' do
-    @parser.parse('foo `<tt>bar</tt>` baz').should == "<p>foo <tt>&lt;tt&gt;bar&lt;/tt&gt;</tt> baz</p>\n"
+    @parser.parse('foo `<tt>bar</tt>` baz').should == "<p>foo <code>&lt;tt&gt;bar&lt;/tt&gt;</code> baz</p>\n"
   end
 end
 
@@ -79,19 +81,19 @@ describe Wikitext::Parser, 'parsing backtick spans' do
   end
 
   it 'should recognize paired backticks' do
-    @parser.parse('foo `bar` baz').should == "<p>foo <tt>bar</tt> baz</p>\n"
+    @parser.parse('foo `bar` baz').should == "<p>foo <code>bar</code> baz</p>\n"
   end
 
   it 'should automatically insert missing closing backtick' do
-    @parser.parse('foo `bar').should == "<p>foo <tt>bar</tt></p>\n"
+    @parser.parse('foo `bar').should == "<p>foo <code>bar</code></p>\n"
   end
 
   it 'should automatically close unclosed spans upon hitting newline' do
-    @parser.parse("foo `bar\nbaz").should == "<p>foo <tt>bar</tt> baz</p>\n"
+    @parser.parse("foo `bar\nbaz").should == "<p>foo <code>bar</code> baz</p>\n"
   end
 
   it 'should handle (illegal) interleaved spans' do
-    @parser.parse("foo `bar '''inner` baz'''").should == "<p>foo <tt>bar <strong>inner</strong></tt> baz<strong></strong></p>\n"
+    @parser.parse("foo `bar '''inner` baz'''").should == "<p>foo <code>bar <strong>inner</strong></code> baz<strong></strong></p>\n"
   end
 
   it 'should have no effect inside <pre> blocks' do
@@ -103,7 +105,7 @@ describe Wikitext::Parser, 'parsing backtick spans' do
   end
 
   it 'should have no effect if a <tt> span is already open' do
-    @parser.parse('foo <tt>`bar`</tt> baz').should == "<p>foo <tt>`bar`</tt> baz</p>\n"
+    @parser.parse('foo <tt>`bar`</tt> baz').should == "<p>foo <code>`bar`</code> baz</p>\n"
   end
 end
 

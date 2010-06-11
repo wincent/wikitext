@@ -194,7 +194,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
     END
     expected = dedent <<-END
       <blockquote>
-        <p>link to <a href="/wiki/something">something</a>, and <em>other</em> <tt>styled</tt> <strong>spans</strong>.</p>
+        <p>link to <a href="/wiki/something">something</a>, and <em>other</em> <code>styled</code> <strong>spans</strong>.</p>
       </blockquote>
     END
     @parser.parse(input).should == expected
@@ -243,7 +243,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
           <li>a</li>
           <li>list</li>
         </ul>
-        <p>outer para with <em>styled</em> <tt>stuff</tt> in it</p>
+        <p>outer para with <em>styled</em> <code>stuff</code> in it</p>
         <blockquote>
           <p>inner blockquote</p>
           <ol>
@@ -268,7 +268,7 @@ describe Wikitext::Parser, 'standard blockquotes (">" in first column)' do
     END
     expected = dedent <<-END
       <blockquote>
-        <p>some <tt>styled</tt></p>
+        <p>some <code>styled</code></p>
       </blockquote>
     END
     @parser.parse(input).should == expected
