@@ -29,6 +29,36 @@ VALUE cWikitextParser        = 0;   // class Wikitext::Parser
 VALUE eWikitextParserError   = 0;   // class Wikitext::Parser::Error
 VALUE cWikitextParserToken   = 0;   // class Wikitext::Parser::Token
 
+// In order to replicate this Ruby code:
+//
+//   ActiveSupport.on_load(:action_view) do
+//     require 'wikitext/rails_template_handler'
+//   end
+//
+// here in C we have to jump through some hoops using the following two
+// functions.
+//
+// First we have wikitext_on_load_block(), which is a function which defines
+// the "block" of code that we want to have evaluated.
+//
+// To actually pass this block in to the ActiveSupport::on_load method we
+// need the help of an intermediate helper function,
+// wikitext_block_forwarder(), which we invoke with the aid of rb_iterate()
+// later on.
+//
+// This works because the rb_funcall() function in wikitext_block_forwarder()
+// propagates the block through to the called method.
+VALUE wikitext_on_load_block(VALUE yielded, VALUE other)
+{
+    return rb_require("wikitext/rails_template_handler");
+}
+
+VALUE wikitext_block_forwarder(VALUE receiver)
+{
+    return rb_funcall(receiver, rb_intern("on_load"), 1,
+        ID2SYM(rb_intern("action_view")));
+}
+
 void Init_wikitext()
 {
     // Wikitext
@@ -69,4 +99,24 @@ void Init_wikitext()
     rb_define_attr(cWikitextParserToken, "code_point", Qtrue, Qfalse);
     rb_define_attr(cWikitextParserToken, "token_type", Qtrue, Qfalse);
     rb_define_attr(cWikitextParserToken, "string_value", Qtrue, Qfalse);
+
+    // check to see if ::ActiveSupport is defined
+    if (rb_funcall(rb_cObject, rb_intern("const_defined?"), 1,
+        ID2SYM(rb_intern("ActiveSupport"))) == Qtrue)
+    {
+        // we are running under Rails
+        rb_require("wikitext/nil_class");
+        rb_require("wikitext/string");
+
+        // now check for Rails version
+        VALUE active_support = rb_const_get(rb_cObject,
+            rb_intern("ActiveSupport"));
+        if (rb_respond_to(active_support, rb_intern("on_load")))
+            // running under Rails 3
+            rb_iterate(wikitext_block_forwarder, active_support,
+                wikitext_on_load_block, Qnil);
+        else
+            // running under Rails 2
+            rb_require("wikitext/rails_template_handler");
+    }
 }

@@ -9,6 +9,7 @@ the source code repository at: http://git.wincent.com.
 = Changes in 2.0
 
 * compatibility with the Rails 3 template handler API
+* use Rails 3 hooks to auto-initialize when listed in Gemfile
 * +code+ tags are now emitted instead of +tt+ tags for compliance
   with the HTML5 specification
 

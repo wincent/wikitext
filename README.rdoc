@@ -332,14 +332,6 @@ Add a line like the following to your Gemfile:
 Note that while older versions of Wikitext do work with Rails 3 to some degree,
 for full compatibility Wikitext version 2.0 or higher should be used.
 
-At the time of writing, it appears that Rails 3 and Bundler do not
-automatically call the <tt>rails/init.rb</tt> file any more, so it is necessary
-to explicitly activate the Rails support (the template handler, +to_wikitext+
-and +w+ methods, and +shared_parser+ instance) by adding a line like this
-to a file under <tt>config/initializers</tt>:
-
-  require 'wikitext/rails'
-
 = Links
 
 * RubyForge project page: http://rubyforge.org/projects/wikitext
