@@ -27,5 +27,5 @@ unless $gems_build_rake_task
   libdir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'wikitext'))
   require File.join(libdir, 'nil_class')
   require File.join(libdir, 'string')
-  require File.join(libdir, 'rails')
+  require File.join(libdir, 'rails_template_handler')
 end
