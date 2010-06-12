@@ -25,7 +25,5 @@
 unless $gems_build_rake_task
   # avoid Rails bug #2266 by not requiring during "rake gems:build"
   # see: https://rails.lighthouseapp.com/projects/8994/tickets/2266
-  require 'wikitext/nil_class'
-  require 'wikitext/string'
-  require 'wikitext/rails_template_handler'
+  require 'wikitext'
 end
