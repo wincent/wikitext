@@ -21,11 +21,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-# Avoid Rails bug #2266 by not requiring during "rake gems:build"
-# See: https://rails.lighthouseapp.com/projects/8994/tickets/2266
+# this file evaluated automatically under Rails 2
 unless $gems_build_rake_task
-  libdir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'wikitext'))
-  require File.join(libdir, 'nil_class')
-  require File.join(libdir, 'string')
-  require File.join(libdir, 'rails_template_handler')
+  # avoid Rails bug #2266 by not requiring during "rake gems:build"
+  # see: https://rails.lighthouseapp.com/projects/8994/tickets/2266
+  require 'wikitext/nil_class'
+  require 'wikitext/string'
+  require 'wikitext/rails_template_handler'
 end
