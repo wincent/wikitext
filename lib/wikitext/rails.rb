@@ -35,9 +35,7 @@ module ActionView
           include Compilable
 
           def compile template
-            "'" +
-              template.source.w.gsub("'", "\\\\'") +
-              "'"
+            "'" + template.source.w.gsub("'", "\\\\'") + "'"
           end
         end # class Wikitext
 
