@@ -90,7 +90,7 @@ module RailsSpecs
     end
   end
 
-  def create_release_app version
+  def create_rails2_app version
     create_base_app_and_symlinks app_path(version) do
       FileUtils.cd CLONE_PATH do
         run 'git', 'checkout', "v#{version}"
@@ -169,8 +169,8 @@ TEST
     end
   end
 
-  def setup_release_app version
-    create_release_app version
+  def setup_rails2_app version
+    create_rails2_app version
     path = app_path(version)
     update_environment path
     create_controller path
@@ -197,7 +197,7 @@ describe 'Template handler in Rails 2.3.0' do
   include RailsSpecs
 
   before :all do
-    setup_release_app '2.3.0'
+    setup_rails2_app '2.3.0'
     @path = app_path '2.3.0'
   end
 
@@ -215,8 +215,8 @@ end
   describe "Template handler in Rails #{version}" do
     include RailsSpecs
 
-    before(:all) do
-      setup_release_app version
+    before :all do
+      setup_rails2_app version
       @path = app_path(version)
     end
 
@@ -229,7 +229,7 @@ end
 describe 'Template handler in Edge Rails' do
   include RailsSpecs
 
-  before(:all) do
+  before :all do
     setup_edge_app
     @path = RailsSpecs::EDGE_APP_PATH
   end
