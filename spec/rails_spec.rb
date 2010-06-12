@@ -73,6 +73,7 @@ module RailsSpecs
 
   def app_path version
     version = 'edge' if version.nil?
+    version = "v#{version}" if version =~ /\A3\./
     TRASH_PATH + "#{version}-app"
   end
 
@@ -249,6 +250,21 @@ end
 
     before :all do
       setup_rails2_app version
+      @path = app_path version
+    end
+
+    it 'should process the template using the wikitext module' do
+      run_integration_test(@path).should =~ RailsSpecs::SUCCESSFUL_TEST_RESULT
+    end
+  end
+end
+
+%w{3.0.0.beta4}.each do |version|
+  describe "Template handler in Rails #{version}" do
+    include RailsSpecs
+
+    before :all do
+      setup_rails3_app version
       @path = app_path version
     end
 
