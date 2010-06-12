@@ -38,9 +38,11 @@ Gem::Specification.new do |s|
   s.executables       = ['wikitext']
   if s.respond_to? :add_development_dependency
     s.add_development_dependency 'rspec'
+    s.add_development_dependency 'thor'
     s.add_development_dependency 'wopen3'
   else
     s.add_dependency 'rspec'
+    s.add_dependency 'thor'
     s.add_dependency 'wopen3'
   end
 end

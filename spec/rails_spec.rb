@@ -31,8 +31,9 @@ require 'ostruct'
 module RailsSpecs
   TRASH_PATH              = Pathname.new(__FILE__).dirname + 'trash'
   CLONE_PATH              = TRASH_PATH + 'rails.git'
-  RAILS_PATH              = CLONE_PATH + 'railties' + 'bin' + 'rails'
-  EDGE_APP_PATH           = TRASH_PATH + 'edge-app'
+  RAILS2_BIN_PATH         = CLONE_PATH + 'railties' + 'bin' + 'rails'
+  RAILS3_BIN_PATH         = CLONE_PATH + 'bin' + 'rails'
+  WIKITEXT_GEM_PATH       = TRASH_PATH + '..' + '..'
   SUCCESSFUL_TEST_RESULT  = /1 tests, 3 assertions, 0 failures, 0 errors/
 
   def run cmd, *args
@@ -71,14 +72,19 @@ module RailsSpecs
   end
 
   def app_path version
+    version = 'edge' if version.nil?
     TRASH_PATH + "#{version}-app"
   end
 
-  def create_base_app_and_symlinks app, &block
+  def create_rails2_app version
+    app = app_path version
     clone
     FileUtils.rm_r(app) if File.exist?(app)
-    yield
-    run 'ruby', RAILS_PATH, app
+    FileUtils.cd CLONE_PATH do
+      run 'git', 'checkout', '-f', "v#{version}"
+      run 'git', 'clean', '-f'
+    end
+    run 'ruby', RAILS2_BIN_PATH, app
     vendor = app + 'vendor'
     gems = vendor + 'gems'
     FileUtils.cd vendor do
@@ -90,13 +96,22 @@ module RailsSpecs
     end
   end
 
-  def create_rails2_app version
-    create_base_app_and_symlinks app_path(version) do
-      FileUtils.cd CLONE_PATH do
-        run 'git', 'checkout', "v#{version}"
-        run 'git', 'clean', '-f'
+  # if version is nil will create an "Edge" app
+  def create_rails3_app version
+    app = app_path version
+    clone
+    FileUtils.rm_r(app) if File.exist?(app)
+    FileUtils.cd CLONE_PATH do
+      if version
+        run 'git', 'checkout', '-f', "v#{version}"
+      else # "Edge"
+        run 'git', 'checkout', '-f', 'master'
+        run 'git', 'merge', 'origin/master'
       end
+      run 'git', 'clean', '-f'
     end
+    run 'ruby', RAILS3_BIN_PATH, 'new', app, '--skip-activerecord', '--dev'
+    create_gemfile app
   end
 
   def insert text, after, infile
@@ -113,8 +128,23 @@ module RailsSpecs
     raise "text '#{after}' not found" unless found
   end
 
+  # Rails 2 only
   def add_text_to_initializer text, infile
     insert text, 'Rails::Initializer.run do', infile
+  end
+
+  # Rails 3 only
+  def add_text_to_routes text, infile
+    insert text, 'Application.routes.draw', infile
+  end
+
+  def create_gemfile app
+    File.open(app + 'Gemfile', 'w') do |f|
+      f.write <<-GEMFILE
+        gem 'rails', :path => "#{CLONE_PATH.realpath}"
+        gem 'wikitext', :path => "#{WIKITEXT_GEM_PATH.realpath}"
+      GEMFILE
+    end
   end
 
   def create_controller app
@@ -151,16 +181,7 @@ TEST
       end
   end
 
-  def create_edge_app
-    create_base_app_and_symlinks EDGE_APP_PATH do
-      FileUtils.cd CLONE_PATH do
-        run 'git', 'checkout', 'master'
-        run 'git', 'merge', 'origin/master'
-        run 'git', 'clean', '-f'
-      end
-    end
-  end
-
+  # Rails 2 only
   def update_environment app
     environment =  app + 'config' + 'environment.rb'
     add_text_to_initializer "  config.gem 'wikitext', :version => '#{Wikitext::VERSION}'", environment
@@ -169,21 +190,32 @@ TEST
     end
   end
 
+  # Rails 3 only
+  def update_routes app
+    routes = app + 'config' + 'routes.rb'
+    add_text_to_routes 'match "/wiki" => "wiki#index"', routes
+  end
+
   def setup_rails2_app version
     create_rails2_app version
-    path = app_path(version)
+    path = app_path version
     update_environment path
     create_controller path
     create_template path
     create_test path
   end
 
+  def setup_rails3_app version = nil
+    create_rails3_app version
+    path = app_path version
+    update_routes path
+    create_controller path
+    create_template path
+    create_test path
+  end
+
   def setup_edge_app
-    create_edge_app
-    update_environment EDGE_APP_PATH
-    create_controller EDGE_APP_PATH
-    create_template EDGE_APP_PATH
-    create_test EDGE_APP_PATH
+    setup_rails3_app
   end
 
   def run_integration_test app
@@ -217,7 +249,7 @@ end
 
     before :all do
       setup_rails2_app version
-      @path = app_path(version)
+      @path = app_path version
     end
 
     it 'should process the template using the wikitext module' do
@@ -231,7 +263,7 @@ describe 'Template handler in Edge Rails' do
 
   before :all do
     setup_edge_app
-    @path = RailsSpecs::EDGE_APP_PATH
+    @path = app_path nil
   end
 
   it 'should process the template using the wikitext module' do
