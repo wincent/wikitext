@@ -21,15 +21,30 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-require 'wikitext/parser'
-
 class String
-  def to_wikitext options = {}
-    default_options = { :indent => false }
-    markup = respond_to?(:wikitext_preprocess) ? wikitext_preprocess : self
-    html = Wikitext::Parser.shared_parser.parse markup,
-      default_options.merge(options)
-    html.respond_to?(:html_safe) ? html.html_safe : html
+  # This is an example preprocessing method that will be called by the
+  # String#to_wikitext method prior to feeding the markup into the parser.
+  # In this case we take input like this:
+  #
+  #   For more info see issue #125, which was filed last week.
+  #
+  # And transform it into:
+  #
+  #   For more info see [/issues/125 issue #125], which was filed last week.
+  #
+  # Which in turn is translated into the following HTML by the parser:
+  #
+  #   <p>For more info see <a href="/issues/125">issue #125</a>, which was
+  #   filed last week.</p>
+  #
+  # Obviously this file is an example designed to work with a specific
+  # application and is optional, so will only come into play if explicitly
+  # required. To provide different behavior, simply define a new definition of
+  # String#wikitext_preprocess.
+  #
+  # For now this is done in pure Ruby; if speed became a concern we could
+  # provide a fast Ragel C extension to do it instead.
+  def wikitext_preprocess
+    gsub /\b(bug|issue|request|ticket) #(\d+)/i, '[/issues/\2 \1 #\2]'
   end
-  alias :w :to_wikitext
 end
