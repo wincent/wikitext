@@ -4,6 +4,8 @@ If you have already installed the Wikitext gem, you can see how the contents of 
 
  wikitext doc/SAMPLE.txt
 
+See the `doc/CHEATSHEET.txt` file for another example of wikitext markup.
+
 = Inline markup =
 
 == Emphasis ==
