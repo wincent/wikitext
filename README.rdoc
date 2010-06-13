@@ -211,8 +211,8 @@ Would become:
 
   <a href="/wiki/article">link text</a>
 
-See the Parser attributes documentation for how you can override the
-default link prefix (<em>/wiki/</em> as shown in the example), and how
+See the Wikitext::Parser attributes documentation for how you can override
+the default link prefix (<em>/wiki/</em> as shown in the example), and how
 "red links" can be implemented by applying custom CSS depending on the
 link target (this can be used to make links to non-existent pages appear
 in a different color).
@@ -257,8 +257,9 @@ Would become:
 
   <a href="http://example.com/" class="external">this site</a>
 
-See the Parser attributes documentation for information on overriding
-the default external link class (+external+ in this example).
+See the Wikitext::Parser attributes documentation for information on
+overriding the default external link class (+external+ in this
+example).
 
 Note that in addition to providing a fully-qualified URL including a
 protocol (such as "http://" or "ftp://") you also have the option of
