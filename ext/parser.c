@@ -129,7 +129,8 @@ const char escaped_blockquote[]         = "&gt; ";
 const char ext_link_end[]               = "]";
 const char literal_img_start[]          = "{{";
 const char img_start[]                  = "<img src=\"";
-const char img_end[]                    = "\" />";
+const char img_end_xml[]                = "\" />";
+const char img_end_html[]               = "\">";
 const char img_alt[]                    = "\" alt=\"";
 const char pre_class_start[]            = "<pre class=\"";
 const char pre_class_end[]              = "-syntax\">";
@@ -315,13 +316,16 @@ void wiki_append_hyperlink(parser_t *parser, VALUE link_prefix, str_t *link_targ
 
 void wiki_append_img(parser_t *parser, char *token_ptr, int token_len)
 {
-    str_append(parser->output, img_start, sizeof(img_start) - 1);   // <img src="
-    if (!NIL_P(parser->img_prefix) && *token_ptr != '/')            // len always > 0
+    str_append(parser->output, img_start, sizeof(img_start) - 1);           // <img src="
+    if (!NIL_P(parser->img_prefix) && *token_ptr != '/')                    // len always > 0
         str_append_string(parser->output, parser->img_prefix);
     str_append(parser->output, token_ptr, token_len);
-    str_append(parser->output, img_alt, sizeof(img_alt) - 1);       // " alt="
+    str_append(parser->output, img_alt, sizeof(img_alt) - 1);               // " alt="
     str_append(parser->output, token_ptr, token_len);
-    str_append(parser->output, img_end, sizeof(img_end) - 1);       // " />
+    if (parser->output_style == XML_OUTPUT)
+        str_append(parser->output, img_end_xml, sizeof(img_end_xml) - 1);   // " />
+    else
+        str_append(parser->output, img_end_html, sizeof(img_end_html) - 1); // ">
 }
 
 // will emit indentation only if we are about to emit any of:

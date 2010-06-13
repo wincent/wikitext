@@ -35,7 +35,7 @@ describe Wikitext::Parser do
     original_prefix                    = '/images/'
     parser.img_prefix                  = original_prefix
     parser.img_prefix.should           == original_prefix
-    parser.parse('{{foo.png}}').should == %Q{<p><img src="/images/foo.png" alt="foo.png" /></p>\n}
+    parser.parse('{{foo.png}}').should == %Q{<p><img src="/images/foo.png" alt="foo.png"></p>\n}
 
     # second pass
     parser                             = Wikitext::Parser.shared_parser
@@ -43,6 +43,6 @@ describe Wikitext::Parser do
     new_prefix                         = '/totally-different-prefix/'
     parser.img_prefix                  = new_prefix
     parser.img_prefix.should           == new_prefix
-    parser.parse('{{bar.png}}').should == %Q{<p><img src="/totally-different-prefix/bar.png" alt="bar.png" /></p>\n}
+    parser.parse('{{bar.png}}').should == %Q{<p><img src="/totally-different-prefix/bar.png" alt="bar.png"></p>\n}
   end
 end
