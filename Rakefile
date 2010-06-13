@@ -75,7 +75,7 @@ end
 
 desc 'Build the YARD HTML files'
 task :yard do
-  sh 'yardoc -o html doc/*.rb - doc/RELEASE-NOTES'
+  sh 'yardoc -o html --title Wikitext doc/*.rb - doc/RELEASE-NOTES'
 end
 
 desc 'Upload YARD HTML to RubyForge website'
