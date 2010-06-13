@@ -33,6 +33,9 @@
 #define IN_EITHER_OF(type1, type2) ary_includes2(parser->scope, type1, type2)
 #define IN_ANY_OF(type1, type2, type3) ary_includes3(parser->scope, type1, type2, type3)
 
+// output styles
+enum { HTML_OUTPUT, XML_OUTPUT };
+
 // poor man's object orientation in C:
 // instead of passing around multiple parameters between functions in the parser
 // we pack everything into a struct and pass around only a pointer to that
@@ -50,6 +53,7 @@ typedef struct
     VALUE   external_link_class;    // CSS class applied to external links
     VALUE   mailto_class;           // CSS class applied to email (mailto) links
     VALUE   img_prefix;             // path prepended when emitting img tags
+    int     output_style;           // HTML_OUTPUT (default) or XML_OUTPUT
     int     base_indent;            // controlled by the :indent option to Wikitext::Parser#parse
     int     current_indent;         // fluctuates according to currently nested structures
     int     base_heading_level;
@@ -150,6 +154,7 @@ parser_t *parser_new(void)
     parser->external_link_class     = Qnil; // caller should set up
     parser->mailto_class            = Qnil; // caller should set up
     parser->img_prefix              = Qnil; // caller should set up
+    parser->output_style            = HTML_OUTPUT;
     parser->base_indent             = 0;
     parser->current_indent          = 0;
     parser->base_heading_level      = 0;
@@ -992,6 +997,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     VALUE mailto_class                  = rb_str_new2("mailto");
     VALUE internal_link_prefix          = rb_str_new2("/wiki/");
     VALUE img_prefix                    = rb_str_new2("/images/");
+    VALUE output_style                  = ID2SYM(rb_intern("html"));
     VALUE space_to_underscore           = Qtrue;
     VALUE minimum_fulltext_token_length = INT2NUM(3);
     VALUE base_heading_level            = INT2NUM(0);
@@ -1007,6 +1013,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
         mailto_class                    = OVERRIDE_IF_SET(mailto_class);
         internal_link_prefix            = OVERRIDE_IF_SET(internal_link_prefix);
         img_prefix                      = OVERRIDE_IF_SET(img_prefix);
+        output_style                    = OVERRIDE_IF_SET(output_style);
         space_to_underscore             = OVERRIDE_IF_SET(space_to_underscore);
         minimum_fulltext_token_length   = OVERRIDE_IF_SET(minimum_fulltext_token_length);
         base_heading_level              = OVERRIDE_IF_SET(base_heading_level);
@@ -1019,6 +1026,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     rb_iv_set(self, "@mailto_class",                    mailto_class);
     rb_iv_set(self, "@internal_link_prefix",            internal_link_prefix);
     rb_iv_set(self, "@img_prefix",                      img_prefix);
+    rb_iv_set(self, "@output_style",                    output_style);
     rb_iv_set(self, "@space_to_underscore",             space_to_underscore);
     rb_iv_set(self, "@minimum_fulltext_token_length",   minimum_fulltext_token_length);
     rb_iv_set(self, "@base_heading_level",              base_heading_level);
@@ -1032,6 +1040,17 @@ VALUE Wikitext_parser_profiling_parse(VALUE self, VALUE string)
     return Qnil;
 }
 
+// convert a Ruby object (:xml, :html etc) into an int output style
+int Wikitext_output_style(VALUE output)
+{
+    if (TYPE(output) == T_SYMBOL)
+    {
+        if (SYM2ID(output) == rb_intern("xml"))
+            return XML_OUTPUT;
+    }
+    return HTML_OUTPUT; // fall back to default
+}
+
 VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 {
     // process arguments
@@ -1041,6 +1060,16 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     if (NIL_P(string))
         return Qnil;
     string = StringValue(string);
+
+    // access these once per parse
+    VALUE line_ending   = rb_iv_get(self, "@line_ending");
+    line_ending         = StringValue(line_ending);
+    VALUE link_class    = rb_iv_get(self, "@external_link_class");
+    link_class          = NIL_P(link_class) ? Qnil : StringValue(link_class);
+    VALUE mailto_class  = rb_iv_get(self, "@mailto_class");
+    mailto_class        = NIL_P(mailto_class) ? Qnil : StringValue(mailto_class);
+    VALUE prefix        = rb_iv_get(self, "@internal_link_prefix");
+    int output_style    = Wikitext_output_style(rb_iv_get(self, "@output_style"));
 
     // process options hash
     int base_indent = 0;
@@ -1069,6 +1098,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         if (rb_funcall(options, has_key, 1, id) == Qtrue)
             base_heading_level = NUM2INT(rb_hash_aref(options, id));
 
+        // :output_style => :html/:xml
+        id = ID2SYM(rb_intern("output_style"));
+        if (rb_funcall(options, has_key, 1, id) == Qtrue)
+            output_style = Wikitext_output_style(rb_hash_aref(options, id));
+
         // :link_proc => lambda { |link_target| ... }
         id = ID2SYM(rb_intern("link_proc"));
         if (rb_funcall(options, has_key, 1, id) == Qtrue)
@@ -1086,15 +1120,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     long len = RSTRING_LEN(string);
     char *pe = p + len;
 
-    // access these once per parse
-    VALUE line_ending   = rb_iv_get(self, "@line_ending");
-    line_ending         = StringValue(line_ending);
-    VALUE link_class    = rb_iv_get(self, "@external_link_class");
-    link_class          = NIL_P(link_class) ? Qnil : StringValue(link_class);
-    VALUE mailto_class  = rb_iv_get(self, "@mailto_class");
-    mailto_class        = NIL_P(mailto_class) ? Qnil : StringValue(mailto_class);
-    VALUE prefix        = rb_iv_get(self, "@internal_link_prefix");
-
     // set up parser struct to make passing parameters a little easier
     parser_t *parser                = parser_new();
     GC_WRAP_PARSER(parser, parser_gc);
@@ -1106,6 +1131,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->line_ending             = str_new_from_string(line_ending);
     parser->base_indent             = base_indent;
     parser->base_heading_level      = base_heading_level;
+    parser->output_style            = output_style;
 
     // this simple looping design leads to a single enormous function,
     // but it's faster than doing actual recursive descent and also secure in the face of

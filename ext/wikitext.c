@@ -83,6 +83,7 @@ void Init_wikitext()
     rb_define_attr(cWikitextParser, "space_to_underscore", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "minimum_fulltext_token_length", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "base_heading_level", Qtrue, Qtrue);
+    rb_define_attr(cWikitextParser, "output_style", Qtrue, Qtrue);
 
     // Wikitext::Parser::Error
     eWikitextParserError = rb_define_class_under(cWikitextParser, "Error", rb_eException);
