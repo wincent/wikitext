@@ -1,25 +1,3 @@
-def notes #:nodoc: all
-  # This file is a terrible hack to get around RDoc's problems parsing C
-  # source files.
-  #
-  # The first problem is that it doesn't allow you to place documentation
-  # in header files; it has to be in the implementation file. While this
-  # is fine for Ruby code (which doesn't have headers) it's not really
-  # appropriate for C and the C "ethos".
-  #
-  # The second problem is that it can't handle documentation split across
-  # multiple source files. I tried to get around this by sticking all of
-  # the documentation in one file and hiding it inside a couple of
-  # preprocessor directives, but RDoc's parser is too brittle to cope
-  # with that; getting the documentation to appear next to the
-  # corresponding methods was a delicate balancing act that was too
-  # fiddly and cumbersome to be maintainable in the long run.
-  #
-  # This file is the somewhat ugly solution: we set up a phoney Ruby file
-  # and write all our documentation in that; RDoc can parse Ruby code
-  # adequately, it would seem.
-end
-
 # The Wikitext module provides a namespace for all of the extension.
 # In practice, all your interaction will be with the Wikitext::Parser
 # class.
