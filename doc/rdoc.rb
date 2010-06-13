@@ -284,6 +284,9 @@ module Wikitext
     #                         current "heading level" (documented above).
     # +output_style+::        A symbol, ":xml", to emit XML syntax (by
     #                         default HTML syntax is emitted)
+    # +link_proc+::           A lambda that can be used to apply custom
+    #                         CSS to links to produce "red links"
+    #                         (documented above)
     def parse string, options = {}
       # This is just a placeholder.
       # See parser.c for the C source code to this method.
