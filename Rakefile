@@ -14,7 +14,6 @@
 
 require 'rake'
 require 'rake/clean'
-require 'rake/rdoctask'
 require 'rubygems'
 require File.join(File.dirname(__FILE__), 'lib', 'wikitext', 'version.rb')
 
@@ -74,15 +73,13 @@ task :spec => :make do
   sh 'spec spec'
 end
 
-Rake::RDocTask.new do |t|
-  t.rdoc_files.include 'doc/README', 'doc/RELEASE-NOTES', 'doc/rdoc.rb'
-  t.options           << '--charset' << 'UTF-8' << '--inline-source'
-  t.main              = 'doc/README'
-  t.title             = 'Wikitext documentation'
+desc 'Build the YARD HTML files'
+task :yard do
+  sh 'yardoc -o html doc/*.rb - doc/RELEASE-NOTES'
 end
 
-desc 'Upload RDoc to RubyForge website'
-task :upload_rdoc => :rdoc do
+desc 'Upload YARD HTML to RubyForge website'
+task :upload_yard => :yard do
   sh 'scp -r html/* rubyforge.org:/var/www/gforge-projects/wikitext/'
 end
 
