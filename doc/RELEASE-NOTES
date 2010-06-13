@@ -12,6 +12,8 @@ the source code repository at: http://git.wincent.com.
 * use Rails 3 hooks to auto-initialize when listed in Gemfile
 * +code+ tags are now emitted instead of +tt+ tags for compliance
   with the HTML5 specification
+* new +output_style+ setting to switch between HTML syntax (the new
+  default) and XML syntax
 
 = Changes in 1.12
 

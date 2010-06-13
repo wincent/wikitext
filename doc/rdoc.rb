@@ -129,6 +129,35 @@ module Wikitext
   # contexts where they would otherwise disturb the visual harmony of
   # the page.
   #
+  # == +output_style+ (Symbol)
+  #
+  # Wikitext emits valid HTML5 fragments. By default, the output syntax is
+  # HTML. Optionally, the output syntax can be changed to XML by setting the
+  # +output_style+ to ":xml".
+  #
+  # This can be done during initialization:
+  #
+  #   parser = Wikitext::Parser.new :output_style => :xml
+  #
+  # Or via setting an attribute on the parser:
+  #
+  #   parser = Wikitext::Parser.new
+  #   parser.output_style = :xml
+  #
+  # Or at parse time:
+  #
+  #   parser = Wikitext::Parser.new
+  #   parser.parse input, :output_style => :xml
+  #
+  # In practice the only difference between the two output syntaxes is that
+  # the XML syntax uses self closing +img+ tags:
+  #
+  #   <img src="foo.png" alt="Foo" />
+  #
+  # While the HTML syntax does not:
+  #
+  #   <img src="foo.png" alt="Foo">
+  #
   # == +link_proc+ (lambda or Proc object)
   #
   # "Red links" can be implemented by providing a custom +link_proc+ block
@@ -253,6 +282,8 @@ module Wikitext
     #                         entirely).
     # +base_heading_level+::  An integer between 0 and 6 denoting the
     #                         current "heading level" (documented above).
+    # +output_style+::        A symbol, ":xml", to emit XML syntax (by
+    #                         default HTML syntax is emitted)
     def parse string, options = {}
       # This is just a placeholder.
       # See parser.c for the C source code to this method.
