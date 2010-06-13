@@ -1,6 +1,9 @@
-This is a sample telling you all about [[wikitext markup]], itself written in wikitext markup. As such it is a nice demonstration of what can be done.
+This is a sample telling you all about [[wikitext markup]], itself written in
+wikitext markup. As such it is a nice demonstration of what can be done.
 
-If you have already installed the Wikitext gem, you can see how the contents of this file appear when translated into HTML by feeding the file into the `wikitext` command line tool like this:
+If you have already installed the Wikitext gem, you can see how the contents of
+this file appear when translated into HTML by feeding the file into the
+`wikitext` command line tool like this:
 
  wikitext doc/SAMPLE.txt
 
@@ -10,7 +13,10 @@ See the `doc/CHEATSHEET.txt` file for another example of wikitext markup.
 
 == Emphasis ==
 
-You can mark up this as emphasized using either double apostrophes like <nowiki>''this''</nowiki>, or literal [[HTML]] `em` tags like <nowiki><em>this</em></nowiki>. In both cases the output will look like this when rendered in the browser:
+You can mark up this as emphasized using either double apostrophes like
+<nowiki>''this''</nowiki>, or literal [[HTML]] `em` tags like
+<nowiki><em>this</em></nowiki>. In both cases the output will look like this
+when rendered in the browser:
 
 > ''this''
 
@@ -30,7 +36,8 @@ Yields:
 
 > '''''this'''''
 
-Note that <nowiki>'''''</nowiki> is interpreted to mean "strong ''then'' em", so  you can also do things like:
+Note that <nowiki>'''''</nowiki> is interpreted to mean "strong ''then'' em",
+so you can also do things like:
 
  '''''inner'' outer'''
 
@@ -38,7 +45,8 @@ Which would yield:
 
 > '''''inner'' outer'''
 
-When you really mean "em ''then'' strong" rather than "strong ''then'' em" you can indicate it using literal [[HTML]] tags:
+When you really mean "em ''then'' strong" rather than "strong ''then'' em"
+you can indicate it using literal [[HTML]] tags:
 
  <em>foo <strong>bar</strong> baz</em>
 
@@ -54,7 +62,8 @@ Would produce:
 
 > `this` and <tt>this</tt> are both marked up with a teletype font
 
-To include a literal backtick in the output, enclose it in a &lt;nowiki&gt;/&lt;/nowiki&gt; span like this:
+To include a literal backtick in the output, enclose it in a
+&lt;nowiki&gt;/&lt;/nowiki&gt; span like this:
 
  input with a literal <nowiki>`</nowiki>...
 
@@ -82,7 +91,8 @@ Content
 
 Content</blockquote>
 
-And so on for `=== Level 3 headings ===`, `=== Level 4 headings ===`, `=== Level 5 headings ===` and `=== Level 6 headings ===`.
+And so on for `=== Level 3 headings ===`, `=== Level 4 headings ===`,
+`=== Level 5 headings ===` and `=== Level 6 headings ===`.
 
 = Lists =
 
@@ -134,14 +144,16 @@ Would produce:
 
 = Blockquotes =
 
-There are two syntaxes for enclosing text in a blockquote span. One is to precede each line with a greater-than sign:
+There are two syntaxes for enclosing text in a blockquote span. One is to
+precede each line with a greater-than sign:
 
  > line one of the blockquote.
  > line two of the blockquote.
 
 Will be converted into the following HTML:
 
- <blockquote>line one of the blockquote. line two of the blockquote.</blockquote>
+ <blockquote>line one of the blockquote. line two of
+ the blockquote.</blockquote>
 
 And displayed in the browser like this:
 
@@ -180,7 +192,8 @@ Or if you prefer:
 
 = Preformatted text =
 
-Just like blockquotes, there are two syntaxes you can use to enclose text inside a <nowiki><pre></pre></nowiki> span:
+Just like blockquotes, there are two syntaxes you can use to enclose text
+inside a <nowiki><pre></pre></nowiki> span:
 
  <pre>this is a pre span using literal tags</pre>
 
@@ -188,7 +201,9 @@ And:
 
   this is a pre span using an initial space
 
-As you can see, any line which starts with a space is also interpreted to be part of a <nowiki><pre></pre></nowiki> span. In both cases the output looks like this in the browser:
+As you can see, any line which starts with a space is also interpreted to be
+part of a <nowiki><pre></pre></nowiki> span. In both cases the output looks
+like this in the browser:
 
  this is a pre span
 
