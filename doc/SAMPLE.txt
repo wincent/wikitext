@@ -1,5 +1,9 @@
 This is a sample telling you all about [[wikitext markup]], itself written in wikitext markup. As such it is a nice demonstration of what can be done.
 
+If you have already installed the Wikitext gem, you can see how the contents of this file appear when translated into HTML by feeding the file into the `wikitext` command line tool like this:
+
+ wikitext doc/SAMPLE.txt
+
 = Inline markup =
 
 == Emphasis ==
