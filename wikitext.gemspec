@@ -36,11 +36,14 @@ Gem::Specification.new do |s|
                             'spec/*.rb']
   s.extensions        = ['ext/extconf.rb']
   s.executables       = ['wikitext']
-  %w{rspec thor wopen3 yard}.each do |dep|
-    if s.respond_to? :add_development_dependency
-      s.add_development_dependency dep
-    else
-      s.add_dependency dep
+
+  if !s.respond_to? :add_development_dependency
+    def s.add_development_dependency gem, *requirements
+      s.add_dependency gem, *requirements
     end
   end
+  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'thor'
+  s.add_development_dependency 'yard'
+  s.add_development_dependency 'wopen3'
 end
