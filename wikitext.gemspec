@@ -44,6 +44,6 @@ Gem::Specification.new do |s|
   end
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'thor'
-  s.add_development_dependency 'yard'
+  s.add_development_dependency 'yard', '>= 0.5.7'
   s.add_development_dependency 'wopen3'
 end
