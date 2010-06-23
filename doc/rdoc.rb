@@ -14,8 +14,13 @@ module Wikitext
   # The prefix to be prepended to internal links (defaults to "/wiki/").
   # For example, given an +internal_link_prefix+ of "/wiki/", the internal
   # link:
+  #
+  #     !!!wikitext
   #     [[Apple]]
+  #
   # would be transformed into:
+  #
+  #     !!!html
   #     <a href="/wiki/Apple">Apple</a>
   #
   # == +external_link_class+ (String)
@@ -23,40 +28,69 @@ module Wikitext
   # The CSS class to be applied to external links (defaults to "external").
   # For example, given an +external_link_class+ of "external", the external
   # link:
+  #
+  #     !!!wikitext
   #     [http://www.google.com/ the best search engine]
+  #
   # would be transformed into:
+  #
+  #     !!!html
   #     <a class="external" href="http://www.google.com/">the best search engine</a>
   #
   # == +mailto_class+ (String)
   #
   # The CSS class to be applied to external "mailto" links (defaults to
   # "mailto"). For example:
+  #
+  #     !!!wikitext
   #     [mailto:user@example.com user@example.com]
+  #
   # or if autolinking of email addresses is turned on, just:
+  #
+  #     !!!wikitext
   #     user@example.com
+  #
   # would be transformed into:
+  #
+  #     !!!html
   #     <a class="mailto" href="mailto:user@example.com">user@example.com</a>
   #
   # == +img_prefix+ (String)
   #
   # The prefix to be prepended to image tags (defaults to "/images/").
   # For example, given this image markup:
+  #
+  #     !!!wikitext
   #     {{foo.png}}
+  #
   # The following +img+ tag would be produced:
+  #
+  #     !!!html
   #     <img src="/images/foo.png" alt="foo.png" />
   #
   # == +autolink+ (boolean)
   #
   # Whether to autolink URIs found in the plain scope.
   # When true:
+  #
+  #     !!!wikitext
   #     http://apple.com/
+  #
   # will be transformed to:
+  #
+  #     !!!html
   #     <a href="http://apple.com/">http://apple.com/</a>
+  #
   # and if an external_link_class is set (to "external", for example) then
   # the transformation will be:
+  #
+  #     !!!html
   #     <a class="external" href="http://apple.com/">http://apple.com/</a>
+  #
   # When false, no transformation will be applied and the link will be
   # echoed literally:
+  #
+  #     !!!html
   #     http://apple.com/
   #
   # == +space_to_underscore+ (boolean)
@@ -65,11 +99,19 @@ module Wikitext
   # into underscores.
   #
   # When false, an internal link like:
-  #   [[foo bar]]
+  #
+  #     !!!wikitext
+  #     [[foo bar]]
+  #
   # Would be converted into:
-  #   <a href="/wiki/foo%20bar">foo bar</a>
+  #
+  #     !!!html
+  #     <a href="/wiki/foo%20bar">foo bar</a>
+  #
   # But when true (the default), it would be converted into:
-  #   <a href="/wiki/foo_bar">foo bar</a>
+  #
+  #     !!!html
+  #     <a href="/wiki/foo_bar">foo bar</a>
   #
   # Converting spaces to underscores makes most URLs prettier, but it comes at
   # a cost: when this mode is true the articles "foo bar" and "foo_bar" can no
@@ -115,26 +157,28 @@ module Wikitext
   #
   # This can be done during initialization:
   #
-  #   parser = Wikitext::Parser.new :output_style => :xml
+  #     parser = Wikitext::Parser.new :output_style => :xml
   #
   # Or via setting an attribute on the parser:
   #
-  #   parser = Wikitext::Parser.new
-  #   parser.output_style = :xml
+  #     parser = Wikitext::Parser.new
+  #     parser.output_style = :xml
   #
   # Or at parse time:
   #
-  #   parser = Wikitext::Parser.new
-  #   parser.parse input, :output_style => :xml
+  #     parser = Wikitext::Parser.new
+  #     parser.parse input, :output_style => :xml
   #
   # In practice the only difference between the two output syntaxes is that
   # the XML syntax uses self closing +img+ tags:
   #
-  #   <img src="foo.png" alt="Foo" />
+  #     !!!html
+  #     <img src="foo.png" alt="Foo" />
   #
   # While the HTML syntax does not:
   #
-  #   <img src="foo.png" alt="Foo">
+  #     !!!html
+  #     <img src="foo.png" alt="Foo">
   #
   # == +link_proc+ (lambda or Proc object)
   #
@@ -143,8 +187,8 @@ module Wikitext
   # link targets and apply custom CSS styling accordingly. For example,
   # consider:
   #
-  #    link_proc = lambda { |target| target == 'bar' ? 'redlink' : nil }
-  #    Wikitext::Parser.new.parse '[[foo]] [[bar]]', :link_proc => link_proc
+  #     link_proc = lambda { |target| target == 'bar' ? 'redlink' : nil }
+  #     Wikitext::Parser.new.parse '[[foo]] [[bar]]', :link_proc => link_proc
   #
   # This would add the "redlink" CSS class to the "bar" link but not the
   # "foo" link. Please note that if your +link_proc+ involves database
@@ -160,9 +204,15 @@ module Wikitext
     # stream. Expects +string+ to be UTF-8-encoded.
     #
     # For example, a link target for the article titled:
+    #
+    #     !!!wikitext
     #     foo, "bar" & baz €
+    #
     # would be sanitized as:
+    #
+    #     !!!html
     #     foo, &quot;bar&quot; &amp; baz &#x20ac;
+    #
     # Note that characters which have special meaning within HTML such as
     # quotes and ampersands are turned into named entities, and characters
     # outside of the printable ASCII range are turned into hexadecimal
@@ -178,15 +228,23 @@ module Wikitext
     # anchor. Expects +string+ to be UTF-8-encoded.
     #
     # For example, the link target:
+    #
+    #     !!!wikitext
     #     foo, "bar" & baz €
+    #
     # would be encoded as:
+    #
+    #     !!!html
     #     foo%2c%20%22bar%22%20%26%20baz%e2%82%ac
+    #
     # The encoding is based on RFCs 2396 and 2718. The "unreserved" characters
     # a..z, a..Z, 0..9, "-", "_", "." and "~" are passed through unchanged and
     # all others are converted into percent escapes.
     #
     # When combined with sanitize_link_target this method can be used to emit
     # the following link for the example article:
+    #
+    #     !!!html
     #     <a href="foo%2c%20%22bar%22%20%26%20baz%e2%82%ac">foo, &quot;bar&quot; &amp; baz &#x20ac;</a>
     #
     # Note that when +space_to_underscore+ is +true+ spaces are treated specially,
@@ -209,11 +267,15 @@ module Wikitext
     # symbol form together with the overridden value.
     #
     # In other words, both:
+    #
     #     parser = Wikitext::Parser.new
     #     parser.autolink = false
     #     parser.mailto_class = 'mail'
+    #
     # And:
-    #     parser = Wikitext::Parser.new(:autolink => false, :mailto_class => 'mail')
+    #
+    #     parser = Wikitext::Parser.new :autolink => false, :mailto_class => 'mail'
+    #
     # Are equivalent.
     def initialize options = {}
       # This is just a placeholder.
