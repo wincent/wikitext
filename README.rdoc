@@ -349,6 +349,82 @@ Would become:
     !!!html
     <img src="/foo.png" alt="/foo.png">
 
+== Lists
+
+Lists come in both unordered ("ul"):
+
+    !!!wikitext
+    * item
+    * item
+    * item
+
+And ordered ("ol") forms:
+
+    !!!wikitext
+    # first
+    # second
+    # third
+
+These would produce, respectively:
+
+    !!!html
+    <ul>
+      <li>item</li>
+      <li>item</li>
+      <li>item</li>
+    </ul>
+
+And:
+
+    !!!html
+    <ol>
+      <li>first</li>
+      <li>second</li>
+      <li>third</li>
+    </ol>
+
+Lists may be nested inside one another as needed. For example:
+
+    !!!wikitext
+    # outer a
+    # outer b
+    #* nested 1
+    #* nested 2
+    # outer c
+    ## nested foo
+    ## nested bar
+    ##* x
+    ##* y
+    ##** z
+
+Would produce:
+
+    !!!html
+    <ol>
+      <li>outer a</li>
+      <li>outer b
+        <ul>
+          <li>nested 1</li>
+          <li>nested 2</li>
+        </ul>
+      </li>
+      <li>outer c
+        <ol>
+          <li>nested foo</li>
+          <li>nested bar
+            <ul>
+              <li>x</li>
+              <li>y
+                <ul>
+                  <li>z</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ol>
+      </li>
+    </ol>
+
 = Rails support
 
 The Wikitext extension provides a template handler so that templates named
