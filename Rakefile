@@ -78,9 +78,13 @@ task :yard do
   sh 'yardoc -o html --title Wikitext doc/*.rb - doc/RELEASE-NOTES'
 end
 
-desc 'Upload YARD HTML to RubyForge website'
+desc 'Upload YARD HTML'
 task :upload_yard => :yard do
-  sh 'scp -r html/* rubyforge.org:/var/www/gforge-projects/wikitext/'
+  require 'yaml'
+  config = YAML.load_file('.config.yml')
+  raise ':yardoc_host not configured' unless config.has_key?(:yardoc_host)
+  raise ':yardoc_path not configured' unless config.has_key?(:yardoc_path)
+  sh "scp -r html/* #{config[:yardoc_host]}:#{config[:yardoc_path]}"
 end
 
 desc 'Build gem ("gem build")'

@@ -2,3 +2,4 @@ pkg
 html
 .specification
 .yardoc/
+.config.yml
