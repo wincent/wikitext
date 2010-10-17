@@ -22,7 +22,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 require 'pathname'
-require 'rubygems'
 require 'rspec'
 
 # allow indenting of multiline spec data for better readability
