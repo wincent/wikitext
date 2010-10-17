@@ -1116,6 +1116,14 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         if (rb_funcall(options, has_key, 1, id) == Qtrue)
             base_heading_level = NUM2INT(rb_hash_aref(options, id));
 
+        // :external_link_rel => 'nofollow'
+        id = ID2SYM(rb_intern("external_link_rel"));
+        if (rb_funcall(options, has_key, 1, id) == Qtrue)
+        {
+            link_rel = rb_hash_aref(options, id);
+            link_rel = NIL_P(link_rel) ? Qnil : StringValue(link_rel);
+        }
+
         // :output_style => :html/:xml
         id = ID2SYM(rb_intern("output_style"));
         if (rb_funcall(options, has_key, 1, id) == Qtrue)
