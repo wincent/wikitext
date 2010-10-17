@@ -290,9 +290,10 @@ Would become:
     !!!html
     <a href="http://example.com/" class="external">this site</a>
 
-See the Wikitext::Parser attributes documentation for information on
+See the {Wikitext::Parser} attributes documentation for information on
 overriding the default external link class (+external+ in this
-example).
+example), or including a +rel+ attribute of "nofollow" (which may be
+useful for search-engine optimization).
 
 Note that in addition to providing a fully-qualified URL including a
 protocol (such as "http://" or "ftp://") you also have the option of
@@ -476,7 +477,13 @@ for full compatibility Wikitext version 2.0 or higher should be used.
 * RubyForge project page: http://rubyforge.org/projects/wikitext
 * RDoc: http://wikitext.rubyforge.org
 * Source: http://git.wincent.com/wikitext.git
-* Author/maintainer: Wincent Colaiuta (win@wincent.com, http://wincent.com)
+
+= Author
+
+Wikitext is written and maintained by Wincent Colaiuta (win@wincent.com).
+Other contributors that have submitted patches include:
+
+* Mike Stangel
 
 = License
 

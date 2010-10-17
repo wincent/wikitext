@@ -204,6 +204,47 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse('> ]').should == "<blockquote>\n  <p>]</p>\n</blockquote>\n"                    # in BLOCKQUOTE scope
   end
 
+  describe '#external_link_rel attribute' do
+    it 'defaults to nil (external links do not have a rel attribute)' do
+      @parser.parse('http://google.com/').should == \
+        %Q{<p><a href="http://google.com/" class="external">http://google.com/</a></p>\n}
+    end
+
+    context 'set at parse time' do
+      it 'uses the rel attribute in external links' do
+        @parser.parse('http://google.com/', :external_link_rel => 'nofollow').should == \
+          %Q{<p><a href="http://google.com/" class="external" rel="nofollow">http://google.com/</a></p>\n}
+      end
+    end
+
+    context 'set at initialization time' do
+      let (:parser) { Wikitext::Parser.new :external_link_rel => 'nofollow' }
+
+      it 'uses the rel attribute in external links' do
+        parser.parse('http://google.com/').should == \
+          %Q{<p><a href="http://google.com/" class="external" rel="nofollow">http://google.com/</a></p>\n}
+      end
+
+      it 'is overrideable' do
+        parser.parse('http://google.com/', :external_link_rel => nil).should == \
+          %Q{<p><a href="http://google.com/" class="external">http://google.com/</a></p>\n}
+      end
+    end
+
+    context 'set via an accessor' do
+      let (:parser) do
+        parser = Wikitext::Parser.new
+        parser.external_link_rel = 'nofollow'
+        parser
+      end
+
+      it 'uses the rel attribute in external links' do
+        parser.parse('http://google.com/').should == \
+          %Q{<p><a href="http://google.com/" class="external" rel="nofollow">http://google.com/</a></p>\n}
+      end
+    end
+  end
+
   describe 'questionable links' do
     it 'should handle links which contain an embedded [ character' do
       # note that [ is allowed in the link text, although the result may be unexpected to the user

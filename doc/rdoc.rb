@@ -37,6 +37,32 @@ module Wikitext
   #     !!!html
   #     <a class="external" href="http://www.google.com/">the best search engine</a>
   #
+  # == +external_link_rel+ (String)
+  #
+  # The +rel+ attribute to be applied to external links (defaults to +nil+,
+  # meaning that no +rel+ attribute is applied). Setting a +rel+ attribute of
+  # "nofollow" may be useful for search-engine optimization (see
+  # http://en.wikipedia.org/wiki/Nofollow for more details).
+  #
+  # This attribute can be set during initialization:
+  #
+  #     parser = Wikitext::Parser.new :external_link_rel => 'nofollow'
+  #
+  # Or via setting an attribute on the parser:
+  #
+  #     parser = Wikitext::Parser.new
+  #     parser.external_link_rel = 'nofollow'
+  #
+  # Or at parse time:
+  #
+  #     parser = Wikitext::Parser.new
+  #     parser.parse input, :external_link_rel => 'nofollow'
+  #
+  # Setting +external_link_rel+ to +nil+ suppresses the emission of any
+  # previously configured +rel+ attribute:
+  #
+  #     parser.parse input, :external_link_rel => nil
+  #
   # == +mailto_class+ (String)
   #
   # The CSS class to be applied to external "mailto" links (defaults to
