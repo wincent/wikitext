@@ -22,7 +22,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-require File.join(File.dirname(__FILE__), 'spec_helper.rb')
+require 'spec_helper'
 
 describe Wikitext, 'sanitizing a link target' do
   it 'should complain if passed nil' do

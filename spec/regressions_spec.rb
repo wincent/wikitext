@@ -22,7 +22,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-require File.join(File.dirname(__FILE__), 'spec_helper.rb')
+require 'spec_helper'
 
 # this is a general-purpose file in which I'll add specs for former bugs to make sure that they don't regress
 describe Wikitext::Parser, 'regressions' do
