@@ -23,7 +23,7 @@
 
 require 'pathname'
 require 'rubygems'
-require 'spec'
+require 'rspec'
 
 # allow indenting of multiline spec data for better readability
 # but must dedent it before actually doing the comparison
