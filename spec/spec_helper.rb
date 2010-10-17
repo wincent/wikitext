@@ -50,16 +50,12 @@ def dedent spaces, string = nil
   string.gsub /^ {#{spaces.to_i}}/, ''
 end
 
-module Wikitext
-  if not const_defined? 'BASEDIR'
-    # prepend local directories to search path if not already present
-    BASEDIR     = Pathname.new(__FILE__).dirname + '..'
-    extdir      = (BASEDIR + 'ext').realpath
-    libdir      = (BASEDIR + 'lib').realpath
-    normalized  = $:.collect { |path| Pathname.new(path).realpath rescue path }
-    [libdir, extdir].each { |d| $:.unshift(d) unless normalized.include?(d) }
-  end
-end # module Wikitext
+# prepend local directories to search path if not already present
+basedir     = Pathname.new(__FILE__).dirname + '..'
+extdir      = (basedir + 'ext').realpath
+libdir      = (basedir + 'lib').realpath
+normalized  = $:.map { |path| Pathname.new(path).realpath rescue path }
+[libdir, extdir].each { |d| $:.unshift(d) unless normalized.include?(d) }
 
 module UTF8
   if not const_defined? 'Invalid'
