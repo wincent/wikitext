@@ -78,6 +78,7 @@ void Init_wikitext()
     rb_define_attr(cWikitextParser, "internal_link_prefix", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "img_prefix", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "external_link_class", Qtrue, Qtrue);
+    rb_define_attr(cWikitextParser, "external_link_rel", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "mailto_class", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "autolink", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "space_to_underscore", Qtrue, Qtrue);
