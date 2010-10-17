@@ -51,6 +51,7 @@ Gem::Specification.new do |s|
       s.add_dependency gem, *requirements
     end
   end
+  s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '~> 2.0.0'
   s.add_development_dependency 'thor'
   s.add_development_dependency 'yard', '>= 0.5.8'
