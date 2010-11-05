@@ -877,5 +877,8 @@ describe Wikitext::Parser, 'regressions' do
     # happened with any non-space token appearing after a EXT_LINK_START +
     # PATH sequence (any such token would just be dropped on the floor).
     @parser.parse('with `[/` then').should == "<p>with <code>[/</code> then</p>\n"
+
+    # related example from the original ticket: https://wincent.com/issues/1726
+    @parser.parse('[/bar?baz=bat link]').should == "<p>[/bar?baz=bat link]</p>\n"
   end
 end
