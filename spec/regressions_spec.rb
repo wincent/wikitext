@@ -864,4 +864,18 @@ describe Wikitext::Parser, 'regressions' do
     # and this one returned: <p><a href="/wiki/">foo</a></p>\n
     @parser.parse('[[  |foo]]').should == "<p>[[  |foo]]</p>\n"
   end
+
+  # first manifested itself in this comment: https://wincent.com/comments/6427
+  it 'handles "`[/`"' do
+    # This is, of course, an invalid link, but it could be handled more
+    # gracefully (we were opening a <code> span and instead of just rolling
+    # back the failed link and then proceeding with the parse and closing
+    # the span, we skipped the second backtick, causing the remainder of
+    # the input to appear inside the <code> span).
+    #
+    # Although the bug manifested itself with backticks, it could also have
+    # happened with any non-space token appearing after a EXT_LINK_START +
+    # PATH sequence (any such token would just be dropped on the floor).
+    @parser.parse('with `[/` then').should == "<p>with <code>[/</code> then</p>\n"
+  end
 end
