@@ -2011,6 +2011,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                             wiki_start_para_if_necessary(parser);
                             str_append(parser->output, ext_link_start, sizeof(ext_link_start) - 1);
                             wiki_append_hyperlink(parser, Qnil, token_str, NULL, parser->external_link_class, parser->external_link_rel, true);
+                            continue;
                         }
                     }
                     else

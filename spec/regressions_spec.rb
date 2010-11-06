@@ -881,4 +881,13 @@ describe Wikitext::Parser, 'regressions' do
     # related example from the original ticket: https://wincent.com/issues/1726
     @parser.parse('[/bar?baz=bat link]').should == "<p>[/bar?baz=bat link]</p>\n"
   end
+
+  it 'handles "[http://foo.com]"' do
+    # Same bug as above, but with a EXT_LINK_START + URI rather than
+    # EXT_LINK_START + PATH; again we expect to see a SPACE, but when we
+    # see something else, we roll back and drop the unexpected token on
+    # the floor.
+    expected = %Q{<p>[<a href="http://foo.com" class="external">http://foo.com</a>]</p>\n}
+    @parser.parse('[http://foo.com]').should == expected
+  end
 end
