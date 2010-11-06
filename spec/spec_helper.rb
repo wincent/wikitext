@@ -80,3 +80,5 @@ module UTF8
 end # module UTF8
 
 require 'wikitext'
+
+ENV['RUBYOPT'] = nil
