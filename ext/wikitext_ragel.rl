@@ -429,7 +429,7 @@
 
         # must tokenize these separately from the other PRINTABLE characters otherwise a string like:
         #   See http://example.com/.
-        # will get greedily tokenized as PRINABLE, SPACE, PRINTABLE rather than PRINTABLE, SPACE, URI, SPECIAL_URI_CHARS
+        # will get greedily tokenized as PRINTABLE, SPACE, PRINTABLE rather than PRINTABLE, SPACE, URI, SPECIAL_URI_CHARS
         # this also applies to MAIL tokenization and input strings like:
         #   Email me (user@example.com) for more info.
         special_uri_chars
