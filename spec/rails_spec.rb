@@ -59,7 +59,7 @@ module RailsSpecs
 
   def app_path version
     version = 'edge' if version.nil?
-    version = "v#{version}" if version =~ /\A3\./
+    version = "v#{version}" if version =~ /\A\d\./
     TRASH_PATH + "#{version}-app"
   end
 
