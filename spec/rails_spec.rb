@@ -70,10 +70,9 @@ module RailsSpecs
     FileUtils.rm_r(app) if File.exist?(app)
     FileUtils.cd CLONE_PATH do
       if version
-        run 'git', 'checkout', '-f', "v#{version}"
+        run 'git', 'reset', '--hard', "v#{version}"
       else # "Edge"
-        run 'git', 'checkout', '-f', 'master'
-        run 'git', 'merge', 'origin/master'
+        run 'git', 'reset', '--hard', 'origin/master'
       end
       run 'git', 'clean', '-f'
     end
