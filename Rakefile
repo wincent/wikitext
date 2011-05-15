@@ -1,4 +1,4 @@
-# Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
+# Copyright 2007-2011 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -24,7 +24,9 @@
 require 'rake'
 require 'rake/clean'
 require 'rubygems'
-require File.join(File.dirname(__FILE__), 'lib', 'wikitext', 'version.rb')
+
+$LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
+require 'wikitext/version'
 
 CLEAN.include   Rake::FileList['**/*.so', '**/*.bundle', '**/*.o', '**/mkmf.log', '**/Makefile']
 CLOBBER.include Rake::FileList['ext/wikitext_ragel.c']
