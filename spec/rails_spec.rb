@@ -26,11 +26,13 @@ require 'wikitext/version'
 require 'fileutils'
 require 'pathname'
 require 'wopen3'
-require 'ostruct'
 
 module RailsSpecs
   TRASH_PATH              = Pathname.new(__FILE__).dirname + 'trash'
-  CLONE_PATH              = TRASH_PATH + 'rails.git'
+  AREL_CLONE_PATH         = TRASH_PATH + 'arel.git'
+  AREL_REPO               = 'git://github.com/rails/arel.git'
+  RAILS_CLONE_PATH        = TRASH_PATH + 'rails.git'
+  RAILS_REPO              = 'git://github.com/rails/rails.git'
   WIKITEXT_GEM_PATH       = TRASH_PATH + '..' + '..'
   SUCCESSFUL_TEST_RESULT  = /1 tests, 3 assertions, 0 failures, 0 errors/
 
@@ -46,13 +48,13 @@ module RailsSpecs
     result
   end
 
-  def clone
-    if File.exist? CLONE_PATH
-      FileUtils.cd CLONE_PATH do
+  def clone repo, path
+    if File.exist? path
+      FileUtils.cd path do
         run 'git', 'fetch'
       end
     else
-      run 'git', 'clone', 'git://github.com/rails/rails.git', CLONE_PATH
+      run 'git', 'clone', repo, path
     end
   end
 
@@ -63,13 +65,22 @@ module RailsSpecs
   end
 
   # if version is nil will create an "Edge" app
-  def create_rails3_app version
-    app = app_path version
-    clone
-    FileUtils.rm_r(app) if File.exist?(app)
-    FileUtils.cd CLONE_PATH do
-      if version
-        run 'git', 'reset', '--hard', "v#{version}"
+  def create_rails3_app rails_version, arel_version = nil
+    app = app_path rails_version
+    clone AREL_REPO, AREL_CLONE_PATH
+    FileUtils.cd AREL_CLONE_PATH do
+      if arel_version
+        run 'git', 'reset', '--hard', "v#{arel_version}"
+      else # "Edge"
+        run 'git', 'reset', '--hard', 'origin/master'
+      end
+      run 'git', 'clean', '-f'
+    end
+
+    clone RAILS_REPO, RAILS_CLONE_PATH
+    FileUtils.cd RAILS_CLONE_PATH do
+      if rails_version
+        run 'git', 'reset', '--hard', "v#{rails_version}"
       else # "Edge"
         run 'git', 'reset', '--hard', 'origin/master'
       end
@@ -77,8 +88,11 @@ module RailsSpecs
 
       begin
         clean_bundler_environment
-        run 'bundle', 'install', '--path', '../bundle', '--without', 'db'
-        run 'bundle', 'exec', 'bin/rails', 'new', app, '--skip-activerecord', '--dev'
+        run 'env', "AREL=#{AREL_CLONE_PATH}",
+            'bundle', 'install', '--path', '../bundle', '--without', 'db'
+        FileUtils.rm_r(app) if File.exist?(app)
+        run 'env', "AREL=#{AREL_CLONE_PATH}",
+            'bundle', 'exec', 'bin/rails', 'new', app, '--skip-activerecord', '--dev'
       ensure
         restore_bundler_environment
       end
@@ -110,8 +124,9 @@ module RailsSpecs
     File.open(app + 'Gemfile', 'w') do |f|
       f.write <<-GEMFILE
         source :rubygems
+        gem 'arel', :path => "#{AREL_CLONE_PATH.realpath}"
         gem 'rake'
-        gem 'rails', :path => "#{CLONE_PATH.realpath}"
+        gem 'rails', :path => "#{RAILS_CLONE_PATH.realpath}"
         gem 'sqlite3'
         gem 'wikitext', :path => "#{WIKITEXT_GEM_PATH.realpath}"
       GEMFILE
@@ -166,9 +181,9 @@ TEST
     add_text_to_routes 'match "/wiki" => "wiki#index"', routes
   end
 
-  def setup_rails_app version = nil
-    create_rails3_app version
-    path = app_path version
+  def setup_rails_app rails_version = nil, arel_version = nil
+    create_rails3_app rails_version, arel_version
+    path = app_path rails_version
     update_routes path
     create_controller path
     create_template path
@@ -194,19 +209,20 @@ TEST
   end
 end # module RailsSpecs
 
-%w{3.0.1
-   3.0.2
-   3.0.3
-   3.0.4
-   3.0.5
-   3.0.6
-   3.0.7}.each do |version|
-  describe "Template handler in Rails #{version}" do
+# different versions of Rails require different versions of Arel
+{ '3.0.1' => '1.0.1',
+  '3.0.2' => '2.0.3',
+  '3.0.3' => '2.0.3',
+  '3.0.4' => '2.0.3',
+  '3.0.5' => '2.0.3',
+  '3.0.6' => '2.0.3',
+  '3.0.7' => '2.0.3' }.each do |rails_version, arel_version|
+  describe "Template handler in Rails #{rails_version}" do
     include RailsSpecs
 
     before :all do
-      setup_rails_app version
-      @path = app_path version
+      setup_rails_app rails_version, arel_version
+      @path = app_path rails_version
     end
 
     it 'should process the template using the wikitext module' do
