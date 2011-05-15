@@ -31,7 +31,6 @@ require 'ostruct'
 module RailsSpecs
   TRASH_PATH              = Pathname.new(__FILE__).dirname + 'trash'
   CLONE_PATH              = TRASH_PATH + 'rails.git'
-  RAILS_BIN_PATH          = CLONE_PATH + 'bin' + 'rails'
   WIKITEXT_GEM_PATH       = TRASH_PATH + '..' + '..'
   SUCCESSFUL_TEST_RESULT  = /1 tests, 3 assertions, 0 failures, 0 errors/
 
@@ -75,8 +74,16 @@ module RailsSpecs
         run 'git', 'reset', '--hard', 'origin/master'
       end
       run 'git', 'clean', '-f'
+
+      begin
+        clean_bundler_environment
+        run 'bundle', 'install', '--path', '../bundle', '--without', 'db'
+        run 'bundle', 'exec', 'bin/rails', 'new', app, '--skip-activerecord', '--dev'
+      ensure
+        restore_bundler_environment
+      end
     end
-    run 'ruby', RAILS_BIN_PATH, 'new', app, '--skip-activerecord', '--dev'
+
     create_gemfile app
     bundlerize app
   end
@@ -169,15 +176,12 @@ TEST
   end
 
   def clean_bundler_environment
-    @bundler_env = {}
-    ENV.each do |k, v|
-      @bundler_env[k] = v
-      ENV.delete(k)
-    end
+    @bundler_env = ENV.select { |key, value| key =~ /\A(BUNDLE|GEM)_/ }
+    @bundler_env.each { |pair| ENV.delete(pair.first) }
   end
 
   def restore_bundler_environment
-    @bundler_env.each { |k, v| ENV[k] = v }
+    @bundler_env.each { |pair| ENV[pair[0]] = pair[1] }
   end
 
   def run_integration_test app
