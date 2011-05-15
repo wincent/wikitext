@@ -37,7 +37,6 @@ Gem::Specification.new do |s|
     Wikitext is a fast wikitext-to-HTML translator written in C.
   ENDDESC
   s.require_paths     = ['ext', 'lib']
-  s.has_rdoc          = false
   s.files             = Dir['bin/wikitext',
                             'ext/*.{rb,c,h}',
                             'ext/depend',
