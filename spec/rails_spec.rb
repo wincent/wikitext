@@ -95,12 +95,6 @@ module RailsSpecs
     raise "text '#{after}' not found" unless found
   end
 
-  # Rails 2 only
-  def add_text_to_initializer text, infile
-    insert text, 'Rails::Initializer.run do', infile
-  end
-
-  # Rails 3 only
   def add_text_to_routes text, infile
     insert text, 'Application.routes.draw', infile
   end
