@@ -1,4 +1,4 @@
-# Copyright 2009-2010 Wincent Colaiuta. All rights reserved.
+# Copyright 2009-2011 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -31,8 +31,7 @@ require 'ostruct'
 module RailsSpecs
   TRASH_PATH              = Pathname.new(__FILE__).dirname + 'trash'
   CLONE_PATH              = TRASH_PATH + 'rails.git'
-  RAILS2_BIN_PATH         = CLONE_PATH + 'railties' + 'bin' + 'rails'
-  RAILS3_BIN_PATH         = CLONE_PATH + 'bin' + 'rails'
+  RAILS_BIN_PATH          = CLONE_PATH + 'bin' + 'rails'
   WIKITEXT_GEM_PATH       = TRASH_PATH + '..' + '..'
   SUCCESSFUL_TEST_RESULT  = /1 tests, 3 assertions, 0 failures, 0 errors/
 
@@ -77,26 +76,6 @@ module RailsSpecs
     TRASH_PATH + "#{version}-app"
   end
 
-  def create_rails2_app version
-    app = app_path version
-    clone
-    FileUtils.rm_r(app) if File.exist?(app)
-    FileUtils.cd CLONE_PATH do
-      run 'git', 'checkout', '-f', "v#{version}"
-      run 'git', 'clean', '-f'
-    end
-    run 'ruby', RAILS2_BIN_PATH, app
-    vendor = app + 'vendor'
-    gems = vendor + 'gems'
-    FileUtils.cd vendor do
-      FileUtils.ln_s '../../rails.git', 'rails'
-    end
-    FileUtils.mkdir gems
-    FileUtils.cd gems do
-      FileUtils.ln_s '../../../../..', "wikitext-#{Wikitext::VERSION}"
-    end
-  end
-
   # if version is nil will create an "Edge" app
   def create_rails3_app version
     app = app_path version
@@ -111,7 +90,7 @@ module RailsSpecs
       end
       run 'git', 'clean', '-f'
     end
-    run 'ruby', RAILS3_BIN_PATH, 'new', app, '--skip-activerecord', '--dev'
+    run 'ruby', RAILS_BIN_PATH, 'new', app, '--skip-activerecord', '--dev'
     create_gemfile app
   end
 
@@ -182,31 +161,12 @@ TEST
       end
   end
 
-  # Rails 2 only
-  def update_environment app
-    environment =  app + 'config' + 'environment.rb'
-    add_text_to_initializer "  config.gem 'wikitext', :version => '#{Wikitext::VERSION}'", environment
-    FileUtils.cd app do
-      run 'rake', 'gems:refresh_specs'
-    end
-  end
-
-  # Rails 3 only
   def update_routes app
     routes = app + 'config' + 'routes.rb'
     add_text_to_routes 'match "/wiki" => "wiki#index"', routes
   end
 
-  def setup_rails2_app version
-    create_rails2_app version
-    path = app_path version
-    update_environment path
-    create_controller path
-    create_template path
-    create_test path
-  end
-
-  def setup_rails3_app version = nil
+  def setup_rails_app version = nil
     create_rails3_app version
     path = app_path version
     update_routes path
@@ -215,60 +175,12 @@ TEST
     create_test path
   end
 
-  def setup_edge_app
-    setup_rails3_app
-  end
-
   def run_integration_test app
     FileUtils.cd app do
       return run('rake', 'test:integration').stdout
     end
   end
 end # module RailsSpecs
-
-describe 'Template handler in Rails 2.3.0' do
-  include RailsSpecs
-
-  before :all do
-    setup_rails2_app '2.3.0'
-    @path = app_path '2.3.0'
-  end
-
-  it 'should process the template using the wikitext module' do
-    pending 'Rack::Lint::LintError'
-    # Rack::Lint::LintError: a header value must be a String, but the value of
-    # 'Set-Cookie' is a Array
-    run_integration_test(@path).should =~ RailsSpecs::SUCCESSFUL_TEST_RESULT
-  end
-end
-
-# test other Rails 2 versions
-%w{2.2.2
-   2.2.3
-   2.3.1
-   2.3.2
-   2.3.3
-   2.3.4
-   2.3.5
-   2.3.6
-   2.3.7
-   2.3.8
-   2.3.9
-   2.3.10
-   2.3.11}.each do |version|
-  describe "Template handler in Rails #{version}" do
-    include RailsSpecs
-
-    before :all do
-      setup_rails2_app version
-      @path = app_path version
-    end
-
-    it 'should process the template using the wikitext module' do
-      run_integration_test(@path).should =~ RailsSpecs::SUCCESSFUL_TEST_RESULT
-    end
-  end
-end
 
 %w{3.0.1
    3.0.2
@@ -281,7 +193,7 @@ end
     include RailsSpecs
 
     before :all do
-      setup_rails3_app version
+      setup_rails_app version
       @path = app_path version
     end
 
@@ -295,7 +207,7 @@ describe 'Template handler in Edge Rails' do
   include RailsSpecs
 
   before :all do
-    setup_edge_app
+    setup_rails_app
     @path = app_path nil
   end
 
