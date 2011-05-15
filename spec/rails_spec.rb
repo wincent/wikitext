@@ -78,6 +78,7 @@ module RailsSpecs
     end
     run 'ruby', RAILS_BIN_PATH, 'new', app, '--skip-activerecord', '--dev'
     create_gemfile app
+    bundlerize app
   end
 
   def insert text, after, infile
@@ -107,10 +108,22 @@ module RailsSpecs
   def create_gemfile app
     File.open(app + 'Gemfile', 'w') do |f|
       f.write <<-GEMFILE
+        source :rubygems
+        gem 'rake'
         gem 'rails', :path => "#{CLONE_PATH.realpath}"
+        gem 'sqlite3'
         gem 'wikitext', :path => "#{WIKITEXT_GEM_PATH.realpath}"
       GEMFILE
     end
+  end
+
+  def bundlerize app
+    clean_bundler_environment
+    Dir.chdir app do
+      run 'bundle', 'install', '--path', '../bundle', '--binstubs'
+    end
+  ensure
+    restore_bundler_environment
   end
 
   def create_controller app
@@ -161,10 +174,25 @@ TEST
     create_test path
   end
 
-  def run_integration_test app
-    FileUtils.cd app do
-      return run('rake', 'test:integration').stdout
+  def clean_bundler_environment
+    @bundler_env = {}
+    ENV.each do |k, v|
+      @bundler_env[k] = v
+      ENV.delete(k)
     end
+  end
+
+  def restore_bundler_environment
+    @bundler_env.each { |k, v| ENV[k] = v }
+  end
+
+  def run_integration_test app
+    clean_bundler_environment
+    FileUtils.cd app do
+      return run('bin/rake', 'test:integration').stdout
+    end
+  ensure
+    restore_bundler_environment
   end
 end # module RailsSpecs
 
