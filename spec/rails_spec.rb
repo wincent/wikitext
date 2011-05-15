@@ -36,26 +36,13 @@ module RailsSpecs
   SUCCESSFUL_TEST_RESULT  = /1 tests, 3 assertions, 0 failures, 0 errors/
 
   def run cmd, *args
-    result = OpenStruct.new
-    result.stdout = ''
-    result.stderr = ''
-    Wopen3.popen3(*([cmd] + args)) do |stdin, stdout, stderr|
-      threads = []
-      threads << Thread.new(stdout) do |out|
-        out.each { |line| result.stdout << line }
-      end
-      threads << Thread.new(stderr) do |err|
-        err.each { |line| result.stderr << line }
-      end
-      threads.each { |thread| thread.join }
-    end
-    status = $?.exitstatus
-    if status != 0
+    result = Wopen3.system(*([cmd] + args))
+    if result.status != 0
       command_string = ([cmd] + args).join(' ')
-      puts "\n*** COMMAND #{command_string} EXITED WITH NON-ZERO EXIT STATUS (#{status})"
+      puts "\n*** COMMAND #{command_string} EXITED WITH NON-ZERO EXIT STATUS (#{result.status})"
       puts "*** STDOUT FOR COMMAND #{command_string}:", result.stdout
       puts "*** STDERR FOR COMMAND #{command_string}:", result.stderr
-      raise "non-zero exit status (#{status}) for '#{cmd}'"
+      raise "non-zero exit status (#{result.status}) for '#{cmd}'"
     end
     result
   end
