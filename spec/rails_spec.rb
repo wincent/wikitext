@@ -42,7 +42,7 @@ module RailsSpecs
       puts "\n*** COMMAND #{command_string} EXITED WITH NON-ZERO EXIT STATUS (#{result.status})"
       puts "*** STDOUT FOR COMMAND #{command_string}:", result.stdout
       puts "*** STDERR FOR COMMAND #{command_string}:", result.stderr
-      raise "non-zero exit status (#{result.status}) for '#{cmd}'"
+      raise "non-zero exit status (#{result.status}) for '#{command_string}'"
     end
     result
   end
