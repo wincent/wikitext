@@ -28,7 +28,7 @@ require 'pathname'
 require 'wopen3'
 
 module RailsSpecs
-  TRASH_PATH              = Pathname.new(__FILE__).dirname + 'trash'
+  TRASH_PATH              = Pathname.new(__FILE__).dirname + '.trash'
   AREL_CLONE_PATH         = TRASH_PATH + 'arel.git'
   AREL_REPO               = 'git://github.com/rails/arel.git'
   RAILS_CLONE_PATH        = TRASH_PATH + 'rails.git'
