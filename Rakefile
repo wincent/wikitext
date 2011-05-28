@@ -81,7 +81,7 @@ end
 
 desc 'Run specs'
 task :spec => :make do
-  sh 'rspec spec'
+  sh 'bin/rspec spec'
 end
 
 desc 'Build the YARD HTML files'
