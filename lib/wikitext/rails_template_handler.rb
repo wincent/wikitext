@@ -27,7 +27,7 @@ require 'wikitext/string'
 module ActionView
   class Template
     module Handlers
-      class Wikitext < Handler
+      class Wikitext
         include Compilable
 
         def compile template
