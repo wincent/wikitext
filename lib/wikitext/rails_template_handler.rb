@@ -28,9 +28,7 @@ module ActionView
   class Template
     module Handlers
       class Wikitext
-        include Compilable
-
-        def compile template
+        def self.call template
           "'" + template.source.w.gsub("'", "\\\\'") + "'"
         end
       end # class Wikitext
