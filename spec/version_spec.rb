@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Copyright 2009 Wincent Colaiuta. All rights reserved.
+# Copyright 2009-2011 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -26,7 +26,7 @@ require 'spec_helper'
 require 'wikitext/version'
 
 describe Wikitext, 'versioning' do
-  it 'should provide a version string' do
+  it 'provides a version string' do
     Wikitext::VERSION.should be_instance_of(String)
   end
 end
