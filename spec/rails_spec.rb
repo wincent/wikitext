@@ -210,13 +210,7 @@ TEST
 end # module RailsSpecs
 
 # different versions of Rails require different versions of Arel
-{ '3.0.1' => '1.0.1',
-  '3.0.2' => '2.0.3',
-  '3.0.3' => '2.0.3',
-  '3.0.4' => '2.0.3',
-  '3.0.5' => '2.0.3',
-  '3.0.6' => '2.0.3',
-  '3.0.7' => '2.0.3' }.each do |rails_version, arel_version|
+{ '3.1.0' => '2.1.1' }.each do |rails_version, arel_version|
   describe "Template handler in Rails #{rails_version}" do
     include RailsSpecs
 
