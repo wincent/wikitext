@@ -458,19 +458,29 @@ of every request.
 
 == Rails 2.3
 
+For Rails 2.3.x support, use version 2.1.x of the Wikitext gem.
+
 The plug-in can be activated with an appropriate <tt>config.gem</tt> statement
 in your <tt>config/environment.rb</tt>:
 
-    config.gem 'wikitext'
+    config.gem 'wikitext', '2.1.1'
 
 == Rails 3.0
 
+For Rails 3.0.x support, use version 2.1.x of the Wikitext gem.
+
 Add a line like the following to your Gemfile:
 
-    gem 'wikitext', '>= 2.0'
+    gem 'wikitext', '~> 2.1.1'
 
 Note that while older versions of Wikitext do work with Rails 3 to some degree,
 for full compatibility Wikitext version 2.0 or higher should be used.
+
+== Rails 3.1
+
+Add a line like the following to your Gemfile:
+
+  gem 'wikitext'
 
 = Links
 
@@ -487,7 +497,7 @@ Other contributors that have submitted patches include:
 
 = License
 
-Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
+Copyright 2007-2011 Wincent Colaiuta. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

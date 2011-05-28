@@ -6,6 +6,18 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 3.0b
+
+* silence deprecation warnings triggered under Rails 3.1
+* note that this release supports only Rails 3.1; for older
+  versions of Rails you should continue to use the Wikitext
+  2.1.x series, which continues to be supported
+
+= Changes in 2.1.1
+
+* fix a couple of token-swallowing bugs that manifested when certain
+  invalid markup was fed into the translator
+
 = Changes in 2.1
 
 * the +external_link_rel+ attribute can be used to include a
