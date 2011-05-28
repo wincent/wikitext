@@ -86,7 +86,7 @@ end
 
 desc 'Build the YARD HTML files'
 task :yard do
-  sh 'yardoc -o html --title Wikitext doc/*.rb - doc/RELEASE-NOTES'
+  sh 'bin/yardoc -o html --title Wikitext doc/*.rb - doc/RELEASE-NOTES'
 end
 
 desc 'Upload YARD HTML'
