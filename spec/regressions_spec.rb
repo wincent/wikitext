@@ -1,5 +1,5 @@
 # encoding: utf-8
-# Copyright 2008-2010 Wincent Colaiuta. All rights reserved.
+# Copyright 2008-2011 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -889,5 +889,11 @@ describe Wikitext::Parser, 'regressions' do
     # the floor.
     expected = %Q{<p>[<a href="http://foo.com" class="external">http://foo.com</a>]</p>\n}
     @parser.parse('[http://foo.com]').should == expected
+  end
+
+  # https://wincent.com/issues/1891
+  it 'handles shorthand PRE blocks containing lines starting with slashes' do
+    expected = "<pre>/a\n/b\n/c</pre>\n"
+    @parser.parse(" /a\n /b\n /c").should == expected
   end
 end
