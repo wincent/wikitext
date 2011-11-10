@@ -6,6 +6,11 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 3.0
+
+* fix newline-swallowing bug which affected "PRE" blocks with lines beginning
+  with a "PATH" token
+
 = Changes in 3.0b
 
 * silence deprecation warnings triggered under Rails 3.1
