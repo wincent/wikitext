@@ -1,4 +1,4 @@
-// Copyright 2007-2011 Wincent Colaiuta. All rights reserved.
+// Copyright 2007-2012 Wincent Colaiuta. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -1964,6 +1964,9 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     wiki_emit_pending_crlf_if_necessary(parser);
                     str_append(parser->output, token->start, TOKEN_LEN(token));
                 }
+                else if (IN(EXT_LINK_START))
+                    // must be capturing and this must be part of the link text
+                    str_append(parser->capture, token->start, TOKEN_LEN(token));
                 else
                 {
                     wiki_pop_excess_elements(parser);

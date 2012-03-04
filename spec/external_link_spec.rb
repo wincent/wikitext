@@ -1,5 +1,5 @@
 # encoding: utf-8
-# Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
+# Copyright 2007-2012 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -49,14 +49,33 @@ describe Wikitext::Parser, 'external links' do
     @parser.parse('[svn://google.com/ Google]').should == expected
   end
 
-  it 'should format valid external mailto links' do
-    expected = %Q{<p><a href="mailto:user@example.com" class="mailto">john</a></p>\n}
+  it 'formats valid external mailto links' do
+    expected = %{<p><a href="mailto:user@example.com" class="mailto">john</a></p>\n}
     @parser.parse('[mailto:user@example.com john]').should == expected
   end
 
-  it 'should not treat raw email addresses as valid link targets' do
-    expected = %Q{<p>[<a href="mailto:user@example.com" class="mailto">user@example.com</a> john]</p>\n}
+  it 'does not treat raw email addresses as valid link targets' do
+    expected = %{<p>[<a href="mailto:user@example.com" class="mailto">user@example.com</a> john]</p>\n}
     @parser.parse('[user@example.com john]').should == expected
+  end
+
+  it 'formats external mailto links where the linktext is itself an email' do
+    # reported here: https://wincent.com/issues/1955
+    expected = %{<p><a href="mailto:user@example.com" class="mailto">user@example.com</a></p>\n}
+    @parser.parse('[mailto:user@example.com user@example.com]').should == expected
+
+    # just in case that example seems a little contrived and trivial (you could
+    # work around it by instead just writing "user@example.com" in your markup),
+    # here's a more obviously useful one
+    expected = %{<p><a href="mailto:user@example.com" class="mailto">email me at user@example.com for more info</a></p>\n}
+    @parser.parse('[mailto:user@example.com email me at user@example.com for more info]').should == expected
+  end
+
+  it 'allows email addreses in link text' do
+    # more general case of bug reported here: https://wincent.com/issues/1955
+    expected = %{<p><a href="http://google.com/?q=user@example.com" class="external">Google for user@example.com</a></p>\n}
+    @parser.parse('[http://google.com/?q=user@example.com Google for user@example.com]').should == expected
+
   end
 
   it 'should format absolute path links' do
