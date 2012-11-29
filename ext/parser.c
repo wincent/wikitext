@@ -776,12 +776,12 @@ void wiki_trim_link_text(parser_t *parser)
 // - QUOT and AMP characters converted to named entities
 // - if trim is true, leading and trailing whitespace trimmed
 // - if trim is false, there is no special treatment of spaces
-void wiki_append_sanitized_link_target(parser_t *parser, str_t *output, bool trim)
+void wiki_append_sanitized_link_target(str_t *link_target, str_t *output, bool trim)
 {
-    char    *src        = parser->link_target->ptr;
+    char    *src        = link_target->ptr;
     char    *start      = src;                          // remember this so we can check if we're at the start
     char    *non_space  = output->ptr + output->len;    // remember last non-space character output
-    char    *end        = src + parser->link_target->len;
+    char    *end        = src + link_target->len;
     while (src < end)
     {
         // need at most 8 bytes to display each input character (&#x0000;)
@@ -837,7 +837,7 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
     GC_WRAP_STR(parser.link_target, link_target_gc);
     str_t *output = str_new();
     GC_WRAP_STR(output, output_gc);
-    wiki_append_sanitized_link_target(&parser, output, true);
+    wiki_append_sanitized_link_target(parser.link_target, output, true);
     return string_from_str(output);
 }
 
@@ -950,7 +950,7 @@ void wiki_rollback_failed_internal_link(parser_t *parser)
     str_append(parser->output, link_start, sizeof(link_start) - 1);
     if (parser->link_target->len > 0)
     {
-        wiki_append_sanitized_link_target(parser, parser->output, false);
+        wiki_append_sanitized_link_target(parser->link_target, parser->output, false);
         if (scope_includes_separator)
         {
             str_append(parser->output, separator, sizeof(separator) - 1);
@@ -2213,7 +2213,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     {
                         // use link target as link text
                         str_clear(parser->link_text);
-                        wiki_append_sanitized_link_target(parser, parser->link_text, true);
+                        wiki_append_sanitized_link_target(parser->link_target, parser->link_text, true);
                     }
                     else
                         wiki_trim_link_text(parser);
