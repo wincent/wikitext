@@ -279,6 +279,160 @@ void wiki_downcase_bang(char *ptr, long len)
     }
 }
 
+void wiki_append_entity_from_utf32_char(str_t *output, uint32_t character)
+{
+    char hex_string[8]  = { '&', '#', 'x', 0, 0, 0, 0, ';' };
+    char scratch        = (character & 0xf000) >> 12;
+    hex_string[3]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
+    scratch             = (character & 0x0f00) >> 8;
+    hex_string[4]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
+    scratch             = (character & 0x00f0) >> 4;
+    hex_string[5]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
+    scratch             = character & 0x000f;
+    hex_string[6]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
+    str_append(output, hex_string, sizeof(hex_string));
+}
+
+// Convert a single UTF-8 codepoint to UTF-32
+//
+// Expects an input buffer, src, containing a UTF-8 encoded character (which
+// may be multi-byte). The end of the input buffer, end, is also passed in to
+// allow the detection of invalidly truncated codepoints. The number of bytes
+// in the UTF-8 character (between 1 and 4) is returned by reference in
+// width_out.
+//
+// Raises a RangeError if the supplied character is invalid UTF-8.
+uint32_t wiki_utf8_to_utf32(char *src, char *end, long *width_out)
+{
+    uint32_t dest;
+    if ((unsigned char)src[0] <= 0x7f)
+    {
+        // ASCII
+        dest = src[0];
+        *width_out = 1;
+    }
+    else if ((src[0] & 0xe0) == 0xc0)
+    {
+        // byte starts with 110..... : this should be a two-byte sequence
+        if (src + 1 >= end)
+            // no second byte
+            rb_raise(eWikitextParserError, "invalid encoding: truncated byte sequence");
+        else if (((unsigned char)src[0] == 0xc0) ||
+                ((unsigned char)src[0] == 0xc1))
+            // overlong encoding: lead byte of 110..... but code point <= 127
+            rb_raise(eWikitextParserError, "invalid encoding: overlong encoding");
+        else if ((src[1] & 0xc0) != 0x80 )
+            // should have second byte starting with 10......
+            rb_raise(eWikitextParserError, "invalid encoding: malformed byte sequence");
+
+        dest =
+            ((uint32_t)(src[0] & 0x1f)) << 6 |
+            (src[1] & 0x3f);
+        *width_out = 2;
+    }
+    else if ((src[0] & 0xf0) == 0xe0)
+    {
+        // byte starts with 1110.... : this should be a three-byte sequence
+        if (src + 2 >= end)
+            // missing second or third byte
+            rb_raise(eWikitextParserError, "invalid encoding: truncated byte sequence");
+        else if (((src[1] & 0xc0) != 0x80 ) ||
+                ((src[2] & 0xc0) != 0x80 ))
+            // should have second and third bytes starting with 10......
+            rb_raise(eWikitextParserError, "invalid encoding: malformed byte sequence");
+
+        dest =
+            ((uint32_t)(src[0] & 0x0f)) << 12 |
+            ((uint32_t)(src[1] & 0x3f)) << 6 |
+            (src[2] & 0x3f);
+        *width_out = 3;
+    }
+    else if ((src[0] & 0xf8) == 0xf0)
+    {
+        // bytes starts with 11110... : this should be a four-byte sequence
+        if (src + 3 >= end)
+            // missing second, third, or fourth byte
+            rb_raise(eWikitextParserError, "invalid encoding: truncated byte sequence");
+        else if ((unsigned char)src[0] >= 0xf5 &&
+                (unsigned char)src[0] <= 0xf7)
+            // disallowed by RFC 3629 (codepoints above 0x10ffff)
+            rb_raise(eWikitextParserError, "invalid encoding: overlong encoding");
+        else if (((src[1] & 0xc0) != 0x80 ) ||
+                ((src[2] & 0xc0) != 0x80 ) ||
+                ((src[3] & 0xc0) != 0x80 ))
+            // should have second and third bytes starting with 10......
+            rb_raise(eWikitextParserError, "invalid encoding: malformed byte sequence");
+
+        dest =
+            ((uint32_t)(src[0] & 0x07)) << 18 |
+            ((uint32_t)(src[1] & 0x3f)) << 12 |
+            ((uint32_t)(src[1] & 0x3f)) << 6 |
+            (src[2] & 0x3f);
+        *width_out = 4;
+    }
+    else
+        rb_raise(eWikitextParserError, "invalid encoding: unexpected byte");
+    return dest;
+}
+
+// - non-printable (non-ASCII) characters converted to numeric entities
+// - QUOT and AMP characters converted to named entities
+// - if trim is true, leading and trailing whitespace trimmed
+// - if trim is false, there is no special treatment of spaces
+void wiki_append_sanitized_link_target(str_t *link_target, str_t *output, bool trim)
+{
+    char    *src        = link_target->ptr;
+    char    *start      = src;                          // remember this so we can check if we're at the start
+    char    *non_space  = output->ptr + output->len;    // remember last non-space character output
+    char    *end        = src + link_target->len;
+    while (src < end)
+    {
+        // need at most 8 bytes to display each input character (&#x0000;)
+        if (output->ptr + output->len + 8 > output->ptr + output->capacity) // outgrowing buffer, must grow
+        {
+            char *old_ptr = output->ptr;
+            str_grow(output, output->len + (end - src) * 8);    // allocate enough for worst case
+            if (old_ptr != output->ptr) // may have moved
+                non_space += output->ptr - old_ptr;
+        }
+
+        if (*src == '"')
+        {
+            char quot_entity_literal[] = { '&', 'q', 'u', 'o', 't', ';' };  // no trailing NUL
+            str_append(output, quot_entity_literal, sizeof(quot_entity_literal));
+        }
+        else if (*src == '&')
+        {
+            char amp_entity_literal[] = { '&', 'a', 'm', 'p', ';' };    // no trailing NUL
+            str_append(output, amp_entity_literal, sizeof(amp_entity_literal));
+        }
+        else if (*src == '<' || *src == '>')
+            rb_raise(rb_eRangeError, "invalid link text (\"%c\" may not appear in link text)", *src);
+        else if (*src == ' ' && src == start && trim)
+            start++;                            // we eat leading space
+        else if (*src >= 0x20 && *src <= 0x7e)  // printable ASCII
+        {
+            *(output->ptr + output->len) = *src;
+            output->len++;
+        }
+        else    // all others: must convert to entities
+        {
+            long        width;
+            wiki_append_entity_from_utf32_char(output, wiki_utf8_to_utf32(src, end, &width));
+            src         += width;
+            non_space   = output->ptr + output->len;
+            continue;
+        }
+        if (*src != ' ')
+            non_space = output->ptr + output->len;
+        src++;
+    }
+
+    // trim trailing space if necessary
+    if (trim && output->ptr + output->len != non_space)
+        output->len -= (output->ptr + output->len) - non_space;
+}
+
 // prepare hyperlink and append it to parser->output
 // if check_autolink is true, checks parser->autolink to decide whether to emit a real hyperlink
 // or merely the literal link target
@@ -649,102 +803,6 @@ void wiki_pop_excess_elements(parser_t *parser)
     }
 }
 
-// Convert a single UTF-8 codepoint to UTF-32
-//
-// Expects an input buffer, src, containing a UTF-8 encoded character (which
-// may be multi-byte). The end of the input buffer, end, is also passed in to
-// allow the detection of invalidly truncated codepoints. The number of bytes
-// in the UTF-8 character (between 1 and 4) is returned by reference in
-// width_out.
-//
-// Raises a RangeError if the supplied character is invalid UTF-8.
-uint32_t wiki_utf8_to_utf32(char *src, char *end, long *width_out)
-{
-    uint32_t dest;
-    if ((unsigned char)src[0] <= 0x7f)
-    {
-        // ASCII
-        dest = src[0];
-        *width_out = 1;
-    }
-    else if ((src[0] & 0xe0) == 0xc0)
-    {
-        // byte starts with 110..... : this should be a two-byte sequence
-        if (src + 1 >= end)
-            // no second byte
-            rb_raise(eWikitextParserError, "invalid encoding: truncated byte sequence");
-        else if (((unsigned char)src[0] == 0xc0) ||
-                ((unsigned char)src[0] == 0xc1))
-            // overlong encoding: lead byte of 110..... but code point <= 127
-            rb_raise(eWikitextParserError, "invalid encoding: overlong encoding");
-        else if ((src[1] & 0xc0) != 0x80 )
-            // should have second byte starting with 10......
-            rb_raise(eWikitextParserError, "invalid encoding: malformed byte sequence");
-
-        dest =
-            ((uint32_t)(src[0] & 0x1f)) << 6 |
-            (src[1] & 0x3f);
-        *width_out = 2;
-    }
-    else if ((src[0] & 0xf0) == 0xe0)
-    {
-        // byte starts with 1110.... : this should be a three-byte sequence
-        if (src + 2 >= end)
-            // missing second or third byte
-            rb_raise(eWikitextParserError, "invalid encoding: truncated byte sequence");
-        else if (((src[1] & 0xc0) != 0x80 ) ||
-                ((src[2] & 0xc0) != 0x80 ))
-            // should have second and third bytes starting with 10......
-            rb_raise(eWikitextParserError, "invalid encoding: malformed byte sequence");
-
-        dest =
-            ((uint32_t)(src[0] & 0x0f)) << 12 |
-            ((uint32_t)(src[1] & 0x3f)) << 6 |
-            (src[2] & 0x3f);
-        *width_out = 3;
-    }
-    else if ((src[0] & 0xf8) == 0xf0)
-    {
-        // bytes starts with 11110... : this should be a four-byte sequence
-        if (src + 3 >= end)
-            // missing second, third, or fourth byte
-            rb_raise(eWikitextParserError, "invalid encoding: truncated byte sequence");
-        else if ((unsigned char)src[0] >= 0xf5 &&
-                (unsigned char)src[0] <= 0xf7)
-            // disallowed by RFC 3629 (codepoints above 0x10ffff)
-            rb_raise(eWikitextParserError, "invalid encoding: overlong encoding");
-        else if (((src[1] & 0xc0) != 0x80 ) ||
-                ((src[2] & 0xc0) != 0x80 ) ||
-                ((src[3] & 0xc0) != 0x80 ))
-            // should have second and third bytes starting with 10......
-            rb_raise(eWikitextParserError, "invalid encoding: malformed byte sequence");
-
-        dest =
-            ((uint32_t)(src[0] & 0x07)) << 18 |
-            ((uint32_t)(src[1] & 0x3f)) << 12 |
-            ((uint32_t)(src[1] & 0x3f)) << 6 |
-            (src[2] & 0x3f);
-        *width_out = 4;
-    }
-    else
-        rb_raise(eWikitextParserError, "invalid encoding: unexpected byte");
-    return dest;
-}
-
-void wiki_append_entity_from_utf32_char(str_t *output, uint32_t character)
-{
-    char hex_string[8]  = { '&', '#', 'x', 0, 0, 0, 0, ';' };
-    char scratch        = (character & 0xf000) >> 12;
-    hex_string[3]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
-    scratch             = (character & 0x0f00) >> 8;
-    hex_string[4]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
-    scratch             = (character & 0x00f0) >> 4;
-    hex_string[5]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
-    scratch             = character & 0x000f;
-    hex_string[6]       = (scratch <= 9 ? scratch + 48 : scratch + 87);
-    str_append(output, hex_string, sizeof(hex_string));
-}
-
 // trim parser->link_text in place
 void wiki_trim_link_text(parser_t *parser)
 {
@@ -770,64 +828,6 @@ void wiki_trim_link_text(parser_t *parser)
         parser->link_text->len = (non_space + 1) - left;
         memmove(parser->link_text->ptr, left, parser->link_text->len);
     }
-}
-
-// - non-printable (non-ASCII) characters converted to numeric entities
-// - QUOT and AMP characters converted to named entities
-// - if trim is true, leading and trailing whitespace trimmed
-// - if trim is false, there is no special treatment of spaces
-void wiki_append_sanitized_link_target(str_t *link_target, str_t *output, bool trim)
-{
-    char    *src        = link_target->ptr;
-    char    *start      = src;                          // remember this so we can check if we're at the start
-    char    *non_space  = output->ptr + output->len;    // remember last non-space character output
-    char    *end        = src + link_target->len;
-    while (src < end)
-    {
-        // need at most 8 bytes to display each input character (&#x0000;)
-        if (output->ptr + output->len + 8 > output->ptr + output->capacity) // outgrowing buffer, must grow
-        {
-            char *old_ptr = output->ptr;
-            str_grow(output, output->len + (end - src) * 8);    // allocate enough for worst case
-            if (old_ptr != output->ptr) // may have moved
-                non_space += output->ptr - old_ptr;
-        }
-
-        if (*src == '"')
-        {
-            char quot_entity_literal[] = { '&', 'q', 'u', 'o', 't', ';' };  // no trailing NUL
-            str_append(output, quot_entity_literal, sizeof(quot_entity_literal));
-        }
-        else if (*src == '&')
-        {
-            char amp_entity_literal[] = { '&', 'a', 'm', 'p', ';' };    // no trailing NUL
-            str_append(output, amp_entity_literal, sizeof(amp_entity_literal));
-        }
-        else if (*src == '<' || *src == '>')
-            rb_raise(rb_eRangeError, "invalid link text (\"%c\" may not appear in link text)", *src);
-        else if (*src == ' ' && src == start && trim)
-            start++;                            // we eat leading space
-        else if (*src >= 0x20 && *src <= 0x7e)  // printable ASCII
-        {
-            *(output->ptr + output->len) = *src;
-            output->len++;
-        }
-        else    // all others: must convert to entities
-        {
-            long        width;
-            wiki_append_entity_from_utf32_char(output, wiki_utf8_to_utf32(src, end, &width));
-            src         += width;
-            non_space   = output->ptr + output->len;
-            continue;
-        }
-        if (*src != ' ')
-            non_space = output->ptr + output->len;
-        src++;
-    }
-
-    // trim trailing space if necessary
-    if (trim && output->ptr + output->len != non_space)
-        output->len -= (output->ptr + output->len) - non_space;
 }
 
 VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
