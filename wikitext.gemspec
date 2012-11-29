@@ -1,4 +1,4 @@
-# Copyright 2010-2011 Wincent Colaiuta. All rights reserved.
+# Copyright 2010-2012 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -52,7 +52,7 @@ Gem::Specification.new do |s|
     end
   end
   s.add_development_dependency 'rake'
-  s.add_development_dependency 'rspec', '~> 2.0'
+  s.add_development_dependency 'rspec', '>= 2.0'
   s.add_development_dependency 'thor'
   s.add_development_dependency 'yard', '>= 0.5.8'
   s.add_development_dependency 'wopen3'
