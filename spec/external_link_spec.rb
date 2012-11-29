@@ -75,7 +75,16 @@ describe Wikitext::Parser, 'external links' do
     # more general case of bug reported here: https://wincent.com/issues/1955
     expected = %{<p><a href="http://google.com/?q=user@example.com" class="external">Google for user@example.com</a></p>\n}
     @parser.parse('[http://google.com/?q=user@example.com Google for user@example.com]').should == expected
+  end
 
+  it 'formats ampersands in link targets using entities' do
+    expected =%{<p><a href="http://google.com/?q=1&amp;lang=en" class="external">Google</a></p>\n}
+    @parser.parse('[http://google.com/?q=1&lang=en Google]').should == expected
+  end
+
+  it 'formats ampersands in URIs in link text' do
+    expected =%{<p><a href="http://google.com/?q=1&amp;lang=en" class="external">http://google.com/?q=1&amp;lang=en</a></p>\n}
+    @parser.parse('[http://google.com/?q=1&lang=en http://google.com/?q=1&lang=en]').should == expected
   end
 
   it 'should format absolute path links' do

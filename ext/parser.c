@@ -440,13 +440,13 @@ void wiki_append_sanitized_link_target(str_t *link_target, str_t *output, bool t
 void wiki_append_hyperlink(parser_t *parser, VALUE link_prefix, str_t *link_target, str_t *link_text, VALUE link_class, VALUE link_rel, bool check_autolink)
 {
     if (check_autolink && !parser->autolink)
-        str_append_str(parser->output, link_target);
+        wiki_append_sanitized_link_target(link_target, parser->output, true);
     else
     {
         str_append(parser->output, a_start, sizeof(a_start) - 1);               // <a href="
         if (!NIL_P(link_prefix))
             str_append_string(parser->output, link_prefix);
-        str_append_str(parser->output, link_target);
+        wiki_append_sanitized_link_target(link_target, parser->output, true);
 
         // special handling for mailto URIs
         const char *mailto = "mailto:";
@@ -469,7 +469,7 @@ void wiki_append_hyperlink(parser_t *parser, VALUE link_prefix, str_t *link_targ
         }
         str_append(parser->output, a_start_close, sizeof(a_start_close) - 1);   // ">
         if (!link_text || link_text->len == 0) // re-use link_target
-            str_append_str(parser->output, link_target);
+            wiki_append_sanitized_link_target(link_target, parser->output, true);
         else
             str_append_str(parser->output, link_text);
         str_append(parser->output, a_end, sizeof(a_end) - 1);                   // </a>
@@ -1978,9 +1978,13 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
 
             case URI:
                 if (IN(NO_WIKI_START))
+                {
                     // user can temporarily suppress autolinking by using <nowiki></nowiki>
                     // note that unlike MediaWiki, we do allow autolinking inside PRE blocks
-                    str_append(parser->output, token->start, TOKEN_LEN(token));
+                    token_str->ptr = token->start;
+                    token_str->len = TOKEN_LEN(token);
+                    wiki_append_sanitized_link_target(token_str, parser->output, false);
+                }
                 else if (IN(LINK_START))
                 {
                     // if the URI were allowed it would have been handled already in LINK_START
@@ -2017,7 +2021,11 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         }
                     }
                     else
-                        str_append(parser->link_text, token->start, TOKEN_LEN(token));
+                    {
+                        token_str->ptr = token->start;
+                        token_str->len = TOKEN_LEN(token);
+                        wiki_append_sanitized_link_target(token_str, parser->link_text, false);
+                    }
                 }
                 else
                 {

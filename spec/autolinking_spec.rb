@@ -1,4 +1,4 @@
-# Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
+# Copyright 2007-2012 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -58,7 +58,12 @@ describe Wikitext::Parser, 'autolinking' do
       @parser.parse(uri).should == %Q{<p><a href="svn://example.com/" class="external">svn://example.com/</a></p>\n}
     end
 
-    it 'should apple the external_link_class CSS class if set' do
+    it 'converts ampersands into entities' do
+      expected = %{<p><a href="http://google.com/?q=1&amp;lang=en" class="external">http://google.com/?q=1&amp;lang=en</a></p>\n}
+      @parser.parse('http://google.com/?q=1&lang=en').should == expected
+    end
+
+    it 'should apply the external_link_class CSS class if set' do
       uri = 'http://example.com/'
       @parser.external_link_class = 'bar'
       @parser.parse(uri).should == %Q{<p><a href="http://example.com/" class="bar">http://example.com/</a></p>\n}
