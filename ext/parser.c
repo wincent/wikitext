@@ -832,12 +832,11 @@ void wiki_append_sanitized_link_target(str_t *link_target, str_t *output, bool t
 
 VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string)
 {
-    parser_t parser;
-    parser.link_target = str_new_from_string(string);
-    GC_WRAP_STR(parser.link_target, link_target_gc);
+    str_t *link_target = str_new_from_string(string);
+    GC_WRAP_STR(link_target, link_target_gc);
     str_t *output = str_new();
     GC_WRAP_STR(output, output_gc);
-    wiki_append_sanitized_link_target(parser.link_target, output, true);
+    wiki_append_sanitized_link_target(link_target, output, true);
     return string_from_str(output);
 }
 
