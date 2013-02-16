@@ -1008,6 +1008,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     VALUE external_link_class           = rb_str_new2("external");
     VALUE external_link_rel             = Qnil;
     VALUE mailto_class                  = rb_str_new2("mailto");
+    VALUE link_proc                     = Qnil;
     VALUE internal_link_prefix          = rb_str_new2("/wiki/");
     VALUE img_prefix                    = rb_str_new2("/images/");
     VALUE output_style                  = ID2SYM(rb_intern("html"));
@@ -1025,6 +1026,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
         external_link_class             = OVERRIDE_IF_SET(external_link_class);
         external_link_rel               = OVERRIDE_IF_SET(external_link_rel);
         mailto_class                    = OVERRIDE_IF_SET(mailto_class);
+        link_proc                       = OVERRIDE_IF_SET(link_proc);
         internal_link_prefix            = OVERRIDE_IF_SET(internal_link_prefix);
         img_prefix                      = OVERRIDE_IF_SET(img_prefix);
         output_style                    = OVERRIDE_IF_SET(output_style);
@@ -1039,6 +1041,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     rb_iv_set(self, "@external_link_class",             external_link_class);
     rb_iv_set(self, "@external_link_rel",               external_link_rel);
     rb_iv_set(self, "@mailto_class",                    mailto_class);
+    rb_iv_set(self, "@link_proc",                       link_proc);
     rb_iv_set(self, "@internal_link_prefix",            internal_link_prefix);
     rb_iv_set(self, "@img_prefix",                      img_prefix);
     rb_iv_set(self, "@output_style",                    output_style);
@@ -1083,6 +1086,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     link_class          = NIL_P(link_class) ? Qnil : StringValue(link_class);
     VALUE link_rel      = rb_iv_get(self, "@external_link_rel");
     link_rel            = NIL_P(link_rel) ? Qnil : StringValue(link_rel);
+    VALUE link_proc     = rb_iv_get(self, "@link_proc");
     VALUE mailto_class  = rb_iv_get(self, "@mailto_class");
     mailto_class        = NIL_P(mailto_class) ? Qnil : StringValue(mailto_class);
     VALUE prefix        = rb_iv_get(self, "@internal_link_prefix");
@@ -1091,7 +1095,6 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     // process options hash
     int base_indent = 0;
     int base_heading_level = NUM2INT(rb_iv_get(self, "@base_heading_level"));
-    VALUE link_proc = Qnil;
     if (!NIL_P(options) && TYPE(options) == T_HASH)
     {
         // :indent => 0 (or more)

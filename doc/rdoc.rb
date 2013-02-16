@@ -221,6 +221,15 @@ module Wikitext
   # queries then you should implement an appropriate caching strategy to
   # ensure that markup with many links does not overwhelm your database.
   #
+  # A +link_proc+ may also be set during initialization:
+  #
+  #     parser = Wikitext::Parser.new :link_proc => link_proc
+  #
+  # Or via setting an attribute on the parser:
+  #
+  #     parser = Wikitext::Parser.new
+  #     parser.link_proc = link_proc
+  #
   # Many more examples of link procs can be found in the spec suite:
   #
   # * http://git.wincent.com/wikitext.git/blob/HEAD:/spec/internal_link_spec.rb

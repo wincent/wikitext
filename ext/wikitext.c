@@ -1,4 +1,4 @@
-// Copyright 2008-2009 Wincent Colaiuta. All rights reserved.
+// Copyright 2008-2013 Wincent Colaiuta. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -80,6 +80,7 @@ void Init_wikitext()
     rb_define_attr(cWikitextParser, "external_link_class", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "external_link_rel", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "mailto_class", Qtrue, Qtrue);
+    rb_define_attr(cWikitextParser, "link_proc", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "autolink", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "space_to_underscore", Qtrue, Qtrue);
     rb_define_attr(cWikitextParser, "minimum_fulltext_token_length", Qtrue, Qtrue);

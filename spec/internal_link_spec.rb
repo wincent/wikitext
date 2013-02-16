@@ -1,5 +1,5 @@
 # encoding: utf-8
-# Copyright 2007-2010 Wincent Colaiuta. All rights reserved.
+# Copyright 2007-2013 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -113,24 +113,39 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
   end
 
   describe '"red link" support' do
-    it 'should accept a Proc object via the optional "link_proc" parameter' do
+    it 'accepts a Proc object via the optional "link_proc" parameter' do
       @parser.parse('foo', :link_proc => Proc.new { }).should == %Q{<p>foo</p>\n}
     end
 
-    it 'should accept a lambda via the optional "link_proc" parameter' do
+    it 'accepts a lambda via the optional "link_proc" parameter' do
       @parser.parse('foo', :link_proc => lambda { }).should == %Q{<p>foo</p>\n}
     end
 
-    it 'should apply custom link CSS when supplied (Proc object version)' do
+    it 'applies custom link CSS when supplied (Proc object version)' do
       link_proc = Proc.new { |target| target == 'bar' ? 'redlink' : nil }
       expected = %Q{<p><a href="/wiki/foo">foo</a> <a href="/wiki/bar" class="redlink">bar</a></p>\n}
       @parser.parse('[[foo]] [[bar]]', :link_proc => link_proc).should == expected
     end
 
-    it 'should apply custom link CSS when supplied (lambda version)' do
+    it 'applies custom link CSS when supplied (lambda version)' do
       link_proc = lambda { |target| target == 'bar' ? 'redlink' : nil }
       expected = %Q{<p><a href="/wiki/foo">foo</a> <a href="/wiki/bar" class="redlink">bar</a></p>\n}
       @parser.parse('[[foo]] [[bar]]', :link_proc => link_proc).should == expected
+    end
+
+    it 'uses a lamba passed in when the Parser is initialized' do
+      link_proc = lambda { |target| target == 'bar' ? 'redlink' : nil }
+      parser = Wikitext::Parser.new :link_proc => link_proc
+      expected = %Q{<p><a href="/wiki/foo">foo</a> <a href="/wiki/bar" class="redlink">bar</a></p>\n}
+      parser.parse('[[foo]] [[bar]]').should == expected
+    end
+
+    it 'uses a lamba set as an attribute on the Parser' do
+      link_proc = lambda { |target| target == 'bar' ? 'redlink' : nil }
+      parser = Wikitext::Parser.new
+      parser.link_proc = link_proc
+      expected = %Q{<p><a href="/wiki/foo">foo</a> <a href="/wiki/bar" class="redlink">bar</a></p>\n}
+      parser.parse('[[foo]] [[bar]]').should == expected
     end
 
     it 'should apply no custom link CSS when supplied nil (Proc object version)' do
