@@ -6,6 +6,12 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 3.1
+
+* the +link_proc+ parse option can now be set as an attribute on the parser
+  at initialization or via an accessor
+* fix underescaping of ampersands in URIs
+
 = Changes in 3.0.1
 
 * fix bad output when emitting external links containing email addresses
