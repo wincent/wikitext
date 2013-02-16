@@ -1,4 +1,4 @@
-// Copyright 2007-2012 Wincent Colaiuta. All rights reserved.
+// Copyright 2007-2013 Wincent Colaiuta. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -304,7 +304,7 @@ void wiki_append_entity_from_utf32_char(str_t *output, uint32_t character)
 // Raises a RangeError if the supplied character is invalid UTF-8.
 uint32_t wiki_utf8_to_utf32(char *src, char *end, long *width_out)
 {
-    uint32_t dest;
+    uint32_t dest = 0;
     if ((unsigned char)src[0] <= 0x7f)
     {
         // ASCII
