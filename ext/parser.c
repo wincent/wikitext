@@ -476,7 +476,7 @@ void wiki_append_hyperlink(parser_t *parser, VALUE link_prefix, str_t *link_targ
     }
 }
 
-void wiki_append_img(parser_t *parser, char *token_ptr, int token_len)
+void wiki_append_img(parser_t *parser, char *token_ptr, long token_len)
 {
     str_append(parser->output, img_start, sizeof(img_start) - 1);           // <img src="
     if (!NIL_P(parser->img_prefix) && *token_ptr != '/')                    // len always > 0
@@ -1483,7 +1483,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 j              = parser->scope->count;
                 for (j = j - 1; j >= 0; j--)
                 {
-                    int val = ary_entry(parser->scope, j);
+                    int val = ary_entry(parser->scope, (int)j);
                     if (val == STRONG || val == STRONG_START)
                     {
                         str_append(output, strong_end, sizeof(strong_end) - 1);
@@ -1776,8 +1776,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                         // want to compare line with scope but can only do so if scope has enough items on it
                         if (j >= i)
                         {
-                            if (ary_entry(parser->scope, i + bq_count - 2) == type &&
-                                ary_entry(parser->scope, i + bq_count - 1) == LI)
+                            if (ary_entry(parser->scope, (int)(i + bq_count - 2)) == type &&
+                                ary_entry(parser->scope, (int)(i + bq_count - 1)) == LI)
                             {
                                 // line and scope match at this point: do nothing yet
                             }
@@ -2345,7 +2345,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                 {
                     // peek ahead to see next token
                     char    *token_ptr  = token->start;
-                    int     token_len   = TOKEN_LEN(token);
+                    long    token_len   = TOKEN_LEN(token);
                     NEXT_TOKEN();
                     type = token->type;
                     if ((type == H6_END && IN(H6_START)) ||
