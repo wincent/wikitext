@@ -29,52 +29,52 @@ $LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
 require 'wikitext/version'
 
 CLEAN.include   Rake::FileList['**/*.so', '**/*.bundle', '**/*.o', '**/mkmf.log', '**/Makefile']
-CLOBBER.include Rake::FileList['ext/wikitext_ragel.c']
+CLOBBER.include Rake::FileList['ext/wikitext/wikitext_ragel.c']
 
 task :default => :all
 
 desc 'Build all and run all specs'
 task :all => [:make, :spec]
 
-extension_makefile  = 'ext/Makefile'
-ragel               = 'ext/wikitext_ragel.c'
-built_extension     = "ext/wikitext.#{RbConfig::CONFIG['DLEXT']}" # wikitext.bundle (Darwin), wikitext.so (Linux)
+extension_makefile  = 'ext/wikitext/Makefile'
+ragel               = 'ext/wikitext/wikitext_ragel.c'
+built_extension     = "ext/wikitext/wikitext.#{RbConfig::CONFIG['DLEXT']}" # wikitext.bundle (Darwin), wikitext.so (Linux)
 extension_files     = FileList[
-  'ext/Makefile',
-  'ext/ary.c',
-  'ext/ary.h',
-  'ext/parser.c',
-  'ext/parser.h',
-  'ext/ruby_compat.h',
-  'ext/str.c',
-  'ext/str.h',
-  'ext/token.c',
-  'ext/token.h',
-  'ext/wikitext.c',
-  'ext/wikitext.h',
-  'ext/wikitext_ragel.c',
-  'ext/wikitext_ragel.h',
+  'ext/wikitext/Makefile',
+  'ext/wikitext/ary.c',
+  'ext/wikitext/ary.h',
+  'ext/wikitext/parser.c',
+  'ext/wikitext/parser.h',
+  'ext/wikitext/ruby_compat.h',
+  'ext/wikitext/str.c',
+  'ext/wikitext/str.h',
+  'ext/wikitext/token.c',
+  'ext/wikitext/token.h',
+  'ext/wikitext/wikitext.c',
+  'ext/wikitext/wikitext.h',
+  'ext/wikitext/wikitext_ragel.c',
+  'ext/wikitext/wikitext_ragel.h',
 ]
 
 desc 'Build C extension'
 task :make => [ragel, extension_makefile, built_extension]
 
-file ragel => ['ext/wikitext_ragel.rl'] do
-  Dir.chdir('ext') do
+file ragel => ['ext/wikitext/wikitext_ragel.rl'] do
+  Dir.chdir('ext/wikitext') do
     # pass the -s switch here because otherwise Ragel is totally silent
     # I like to have visual confirmation that it's actually run
     sh 'ragel -G2 -s wikitext_ragel.rl'
   end
 end
 
-file extension_makefile => ['ext/extconf.rb', 'ext/depend', ragel] do
-  Dir.chdir('ext') do
+file extension_makefile => ['ext/wikitext/extconf.rb', 'ext/wikitext/depend', ragel] do
+  Dir.chdir('ext/wikitext') do
     ruby 'extconf.rb'
   end
 end
 
 file built_extension => extension_files do
-  Dir.chdir('ext') do
+  Dir.chdir('ext/wikitext') do
     sh 'make && touch .built'
   end
 end

@@ -36,7 +36,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 2.0.0'
   s.summary               = 'Wikitext-to-HTML translator'
   s.require_paths         = ['ext', 'lib']
-  s.extensions            = ['ext/extconf.rb']
+  s.extensions            = ['ext/wikitext/extconf.rb']
   s.executables           = ['wikitext']
   s.files                 = Dir[
     'bin/wikitext',
