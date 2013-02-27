@@ -6,6 +6,10 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
+= Changes in 4.0.1 (not yet released)
+
+* the +wikitext+ binary no longer has a hard dependency on the HighLine gem
+
 = Changes in 4.0
 
 * requires Ruby 2.0.0; for older versions of Ruby please use a previous

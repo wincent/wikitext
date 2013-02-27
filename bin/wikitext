@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Copyright 2008-2010 Wincent Colaiuta. All rights reserved.
+# Copyright 2008-2013 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -27,6 +27,17 @@ require 'wikitext/version'
 
 module Wikitext
   module Tool
+    # Simple substitute for the HighLine library if it is not available.
+    class FakeHighLine
+      def color(str, _)
+        str
+      end
+
+      def output_cols
+        80
+      end
+    end
+
     INPUT_FILES = []
 
     def self.interactive?
@@ -59,11 +70,14 @@ module Wikitext
       begin
         require 'highline'
       rescue LoadError
-        require 'rubygems'
-        require 'highline'
+        begin
+          require 'rubygems'
+          require 'highline'
+        rescue LoadError
+        end
       end
       puts "wikitext #{Wikitext::VERSION}"
-      highline = HighLine.new
+      highline = (defined?(HighLine) ? HighLine : FakeHighLine).new
     end
 
     parser = Parser.new
