@@ -1,4 +1,3 @@
-# encoding: utf-8
 # Copyright 2007-2013 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

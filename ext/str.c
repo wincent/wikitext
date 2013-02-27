@@ -54,7 +54,9 @@ str_t *str_new_from_string(VALUE string)
 
 VALUE string_from_str(str_t *str)
 {
-    return rb_str_new(str->ptr, str->len);
+    VALUE string = rb_str_new(str->ptr, str->len);
+    rb_funcall(string, rb_intern("force_encoding"), 1, rb_str_new2("UTF-8"));
+    return string;
 }
 
 void str_grow(str_t *str, long len)

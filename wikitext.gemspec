@@ -1,4 +1,4 @@
-# Copyright 2010-2012 Wincent Colaiuta. All rights reserved.
+# Copyright 2010-2013 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -25,17 +25,18 @@ $LOAD_PATH.unshift File.expand_path(File.join(File.dirname(__FILE__), 'lib'))
 require 'wikitext/version'
 
 Gem::Specification.new do |s|
-  s.name              = 'wikitext'
-  s.version           =  Wikitext::VERSION
-  s.author            = 'Wincent Colaiuta'
-  s.email             = 'win@wincent.com'
-  s.homepage          = 'https://wincent.com/products/wikitext'
-  s.rubyforge_project = 'wikitext'
-  s.platform          = Gem::Platform::RUBY
-  s.summary           = 'Wikitext-to-HTML translator'
-  s.description       = <<-ENDDESC
+  s.name                  = 'wikitext'
+  s.version               =  Wikitext::VERSION
+  s.author                = 'Wincent Colaiuta'
+  s.email                 = 'win@wincent.com'
+  s.homepage              = 'https://wincent.com/products/wikitext'
+  s.rubyforge_project     = 'wikitext'
+  s.platform              = Gem::Platform::RUBY
+  s.required_ruby_version = '>= 2.0.0'
+  s.summary               = 'Wikitext-to-HTML translator'
+  s.description           = <<-DESC
     Wikitext is a fast wikitext-to-HTML translator written in C.
-  ENDDESC
+  DESC
   s.require_paths     = ['ext', 'lib']
   s.files             = Dir['bin/wikitext',
                             'ext/*.{rb,c,h}',
@@ -45,12 +46,6 @@ Gem::Specification.new do |s|
                             'spec/*.rb']
   s.extensions        = ['ext/extconf.rb']
   s.executables       = ['wikitext']
-
-  if !s.respond_to? :add_development_dependency
-    def s.add_development_dependency gem, *requirements
-      s.add_dependency gem, *requirements
-    end
-  end
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '>= 2.0'
   s.add_development_dependency 'thor'

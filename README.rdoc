@@ -426,6 +426,12 @@ Would produce:
       </li>
     </ol>
 
+= Ruby support
+
+Version 4.0.0 and above target Ruby 2.0.0 or higher.
+
+For older versions of Ruby, you may use the 3.1 release or older.
+
 = Rails support
 
 The Wikitext extension provides a template handler so that templates named
@@ -497,7 +503,7 @@ Other contributors that have submitted patches include:
 
 = License
 
-Copyright 2007-2012 Wincent Colaiuta. All rights reserved.
+Copyright 2007-2013 Wincent Colaiuta. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

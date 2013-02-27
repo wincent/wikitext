@@ -1,4 +1,3 @@
-# encoding: utf-8
 # Copyright 2007-2013 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -166,16 +165,14 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
       lambda { @parser.parse('[[foo]]', :link_proc => lambda { |target| raise 'bar' }) }.should raise_error(RuntimeError, /bar/)
     end
 
-    it 'should complain if the link proc returns a non-stringy object (Proc object version)' do
-      lambda {
-        @parser.parse '[[foo]]', :link_proc => Proc.new { 1 }
-      }.should raise_error(TypeError, /can't convert/)
+    it 'complains if the link proc returns a non-stringy object (Proc object version)' do
+      expect { @parser.parse '[[foo]]', link_proc: proc { 1 } }.
+        to raise_error(TypeError)
     end
 
-    it 'should complain if the link proc returns a non-stringy object (lambda version)' do
-      lambda {
-        @parser.parse '[[foo]]', :link_proc => lambda { 1 }
-      }.should raise_error(TypeError, /can't convert/)
+    it 'complains if the link proc returns a non-stringy object (lambda version)' do
+      expect { @parser.parse '[[foo]]', link_proc: lambda { |target| 1 } }.
+        to raise_error(TypeError)
     end
 
     # a couple of Ruby's idiosynchrasies: different behaviour of lambdas and Procs
@@ -191,16 +188,16 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
       }.should raise_error(ArgumentError, /wrong number/)
     end
 
-    it 'should complain when "return" is used inside a "Proc.new" block' do
-      lambda {
-        @parser.parse '[[foo]]', :link_proc => Proc.new { return 'bar' }
-      }.should raise_error(LocalJumpError)
+    it 'complains when "return" is used inside a "Proc.new" block' do
+      expect {
+        @parser.parse '[[foo]]', link_proc: proc { return 'bar' }
+      }.to raise_error(LocalJumpError)
     end
 
     it 'should not complain when "return" is used inside a lambda' do
-      lambda {
-        @parser.parse '[[foo]]', :link_proc => lambda { return 'bar' }
-      }.should_not raise_error(LocalJumpError)
+      expect {
+        @parser.parse '[[foo]]', link_proc: lambda { return 'bar' }
+      }.to_not raise_error(LocalJumpError)
     end
 
     it 'should interact correctly with spaces in link targets (Proc object version)' do
@@ -227,10 +224,10 @@ describe Wikitext::Parser, 'internal links (space to underscore off)' do
       @parser.parse('[[foo a|hello]] [[bar b|world]]', :link_proc => link_proc).should == expected
     end
 
-    it 'should handle link targets with encoded parts (Proc object version)' do
-      link_proc = Proc.new { |target| target == 'información' ? 'redlink' : nil }
+    it 'handles link targets with encoded parts (Proc object version)' do
+      link_proc = proc { |target| target == 'información' ? 'redlink' : nil }
       expected = %Q{<p><a href="/wiki/informaci%c3%b3n" class="redlink">informaci&#x00f3;n</a> <a href="/wiki/bar">bar</a></p>\n}
-      @parser.parse('[[información]] [[bar]]', :link_proc => link_proc).should == expected
+      @parser.parse('[[información]] [[bar]]', link_proc: link_proc).should == expected
     end
 
     it 'should handle link targets with encoded parts (lambda version)' do
@@ -706,41 +703,39 @@ describe Wikitext::Parser, 'internal links (space to underscore on)' do
       lambda { @parser.parse('[[foo]]', :link_proc => lambda { |target| raise 'bar' }) }.should raise_error(RuntimeError, /bar/)
     end
 
-    it 'should complain if the link proc returns a non-stringy object (Proc object version)' do
-      lambda {
-        @parser.parse '[[foo]]', :link_proc => Proc.new { 1 }
-      }.should raise_error(TypeError, /can't convert/)
+    it 'complains if the link proc returns a non-stringy object (Proc object version)' do
+      expect { @parser.parse '[[foo]]', link_proc: proc { 1 } }.
+        to raise_error(TypeError)
     end
 
-    it 'should complain if the link proc returns a non-stringy object (lambda version)' do
-      lambda {
-        @parser.parse '[[foo]]', :link_proc => lambda { 1 }
-      }.should raise_error(TypeError, /can't convert/)
+    it 'complains if the link proc returns a non-stringy object (lambda version)' do
+      expect { @parser.parse '[[foo]]', link_proc: lambda { |target| 1 } }.
+        to raise_error(TypeError)
     end
 
     # a couple of Ruby's idiosynchrasies: different behaviour of lambdas and Procs
     it 'should not complain if the Proc object accepts too many arguments' do
       lambda {
-        @parser.parse '[[foo]]', :link_proc => Proc.new { |a,b| }
+        @parser.parse '[[foo]]', :link_proc => Proc.new { |a, b| }
       }.should_not raise_error(ArgumentError, /wrong number/)
     end
 
     it 'should complain if the lambda accepts too many arguments' do
       lambda {
-        @parser.parse '[[foo]]', :link_proc => lambda { |a,b| }
+        @parser.parse '[[foo]]', :link_proc => lambda { |a, b| }
       }.should raise_error(ArgumentError, /wrong number/)
     end
 
     it 'should complain when "return" is used inside a "Proc.new" block' do
-      lambda {
+      expect {
         @parser.parse '[[foo]]', :link_proc => Proc.new { return 'bar' }
-      }.should raise_error(LocalJumpError)
+      }.to raise_error(LocalJumpError)
     end
 
     it 'should not complain when "return" is used inside a lambda' do
-      lambda {
+      expect {
         @parser.parse '[[foo]]', :link_proc => lambda { return 'bar' }
-      }.should_not raise_error(LocalJumpError)
+      }.to_not raise_error(LocalJumpError)
     end
 
     it 'should interact correctly with spaces in link targets (Proc object version)' do
@@ -773,10 +768,10 @@ describe Wikitext::Parser, 'internal links (space to underscore on)' do
       @parser.parse('[[información]] [[bar]]', :link_proc => link_proc).should == expected
     end
 
-    it 'should handle link targets with encoded parts (lambda version)' do
+    it 'handles link targets with encoded parts (lambda version)' do
       link_proc = lambda { |target| target == 'información' ? 'redlink' : nil }
       expected = %Q{<p><a href="/wiki/informaci%c3%b3n" class="redlink">informaci&#x00f3;n</a> <a href="/wiki/bar">bar</a></p>\n}
-      @parser.parse('[[información]] [[bar]]', :link_proc => link_proc).should == expected
+      @parser.parse('[[información]] [[bar]]', link_proc: link_proc).should == expected
     end
   end
 

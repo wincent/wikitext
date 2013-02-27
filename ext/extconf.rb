@@ -1,4 +1,4 @@
-# Copyright 2008-2009 Wincent Colaiuta. All rights reserved.
+# Copyright 2008-2013 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -29,10 +29,8 @@ def missing item
 end
 
 case RUBY_VERSION
-when /\A1\.8/
-  $CFLAGS += ' -DRUBY_1_8_x'
-when /\A1\.9/
-  $CFLAGS += ' -DRUBY_1_9_x'
+when /\A2\.0/
+  $CFLAGS += ' -DRUBY_2_0_x'
 else
   raise "unsupported Ruby version: #{RUBY_VERSION}"
 end

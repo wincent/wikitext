@@ -2585,21 +2585,11 @@ return_output:
     str_append(parser->output, null_str, 1); // null-terminate
     len = parser->output->len - 1; // don't count null termination
 
-#if defined(RUBY_1_9_x)
     VALUE out = rb_str_buf_new(RSTRING_EMBED_LEN_MAX + 1);
     free(RSTRING_PTR(out));
     RSTRING(out)->as.heap.aux.capa = len;
     RSTRING(out)->as.heap.ptr = parser->output->ptr;
     RSTRING(out)->as.heap.len = len;
-#elif defined(RUBY_1_8_x)
-    VALUE out = rb_str_new2("");
-    free(RSTRING_PTR(out));
-    RSTRING(out)->len = len;
-    RSTRING(out)->aux.capa = len;
-    RSTRING(out)->ptr = parser->output->ptr;
-#else
-#error unsupported RUBY_VERSION
-#endif
     parser->output->ptr = NULL; // don't double-free
     return out;
 }
