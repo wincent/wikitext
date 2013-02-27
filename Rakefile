@@ -1,4 +1,4 @@
-# Copyright 2007-2011 Wincent Colaiuta. All rights reserved.
+# Copyright 2007-2013 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -38,7 +38,7 @@ task :all => [:make, :spec]
 
 extension_makefile  = 'ext/Makefile'
 ragel               = 'ext/wikitext_ragel.c'
-built_extension     = "ext/wikitext.#{Config::CONFIG['DLEXT']}" # wikitext.bundle (Darwin), wikitext.so (Linux)
+built_extension     = "ext/wikitext.#{RbConfig::CONFIG['DLEXT']}" # wikitext.bundle (Darwin), wikitext.so (Linux)
 extension_files     = FileList[
   'ext/Makefile',
   'ext/ary.c',
@@ -53,7 +53,7 @@ extension_files     = FileList[
   'ext/wikitext.c',
   'ext/wikitext.h',
   'ext/wikitext_ragel.c',
-  'ext/wikitext_ragel.h'
+  'ext/wikitext_ragel.h',
 ]
 
 desc 'Build C extension'
