@@ -32,6 +32,7 @@ Gem::Specification.new do |s|
   s.homepage              = 'https://wincent.com/products/wikitext'
   s.rubyforge_project     = 'wikitext'
   s.platform              = Gem::Platform::RUBY
+  s.license               = 'BSD'
   s.required_ruby_version = '>= 2.0.0'
   s.summary               = 'Wikitext-to-HTML translator'
   s.require_paths         = ['ext', 'lib']
