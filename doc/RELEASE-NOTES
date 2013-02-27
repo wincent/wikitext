@@ -6,8 +6,9 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
-= Changes in 4.0.1 (not yet released)
+= Changes in 4.0.1
 
+* fix build issues on Linux machines (with GNU install)
 * the +wikitext+ binary no longer has a hard dependency on the HighLine gem
 
 = Changes in 4.0
