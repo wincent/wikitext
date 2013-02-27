@@ -27,8 +27,8 @@ PLATFORMS
 DEPENDENCIES
   ZenTest
   rake
-  rspec (>= 2.0)
+  rspec
   thor
   wikitext!
   wopen3
-  yard (>= 0.5.8)
+  yard

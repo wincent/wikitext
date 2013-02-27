@@ -34,22 +34,24 @@ Gem::Specification.new do |s|
   s.platform              = Gem::Platform::RUBY
   s.required_ruby_version = '>= 2.0.0'
   s.summary               = 'Wikitext-to-HTML translator'
+  s.require_paths         = ['ext', 'lib']
+  s.extensions            = ['ext/extconf.rb']
+  s.executables           = ['wikitext']
+  s.files                 = Dir[
+    'bin/wikitext',
+    'ext/*.{rb,c,h}',
+    'ext/depend',
+    'lib/wikitext/*.rb',
+    'rails/init.rb',
+    'spec/*.rb',
+  ]
   s.description           = <<-DESC
     Wikitext is a fast wikitext-to-HTML translator written in C.
   DESC
-  s.require_paths     = ['ext', 'lib']
-  s.files             = Dir['bin/wikitext',
-                            'ext/*.{rb,c,h}',
-                            'ext/depend',
-                            'lib/wikitext/*.rb',
-                            'rails/init.rb',
-                            'spec/*.rb']
-  s.extensions        = ['ext/extconf.rb']
-  s.executables       = ['wikitext']
   s.add_development_dependency 'rake'
-  s.add_development_dependency 'rspec', '>= 2.0'
+  s.add_development_dependency 'rspec'
   s.add_development_dependency 'thor'
-  s.add_development_dependency 'yard', '>= 0.5.8'
+  s.add_development_dependency 'yard'
   s.add_development_dependency 'wopen3'
   s.add_development_dependency 'ZenTest'
 end
