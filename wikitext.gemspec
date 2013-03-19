@@ -40,8 +40,8 @@ Gem::Specification.new do |s|
   s.executables           = ['wikitext']
   s.files                 = Dir[
     'bin/wikitext',
-    'ext/*.{rb,c,h}',
-    'ext/depend',
+    'ext/wikitext/*.{rb,c,h}',
+    'ext/wikitext/depend',
     'lib/wikitext/*.rb',
     'rails/init.rb',
     'spec/*.rb',
