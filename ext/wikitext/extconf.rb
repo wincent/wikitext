@@ -28,10 +28,7 @@ def missing item
   exit 1
 end
 
-case RUBY_VERSION
-when /\A2\.0/
-  $CFLAGS += ' -DRUBY_2_0_x'
-else
+if RUBY_VERSION !~ /\A2\.[01]\./
   raise "unsupported Ruby version: #{RUBY_VERSION}"
 end
 

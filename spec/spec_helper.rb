@@ -52,7 +52,7 @@ end
 
 # prepend local directories to search path if not already present
 basedir     = Pathname.new(__dir__) + '..'
-extdir      = (basedir + 'ext').realpath
+extdir      = (basedir + 'ext' + 'wikitext').realpath
 libdir      = (basedir + 'lib').realpath
 normalized  = $:.map { |path| Pathname.new(path).realpath rescue path }
 [libdir, extdir].each { |d| $:.unshift(d) unless normalized.include?(d) }

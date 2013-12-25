@@ -1,12 +1,12 @@
 PATH
   remote: .
   specs:
-    wikitext (4.0.2)
+    wikitext (4.0.2.99)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    ZenTest (4.9.0)
+    ZenTest (4.9.5)
     diff-lcs (1.2.1)
     rake (10.0.3)
     rspec (2.13.0)
