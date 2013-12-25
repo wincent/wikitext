@@ -95,7 +95,7 @@ task :upload_yard => :yard do
   config = YAML.load_file('.config.yml')
   raise ':yardoc_host not configured' unless config.has_key?(:yardoc_host)
   raise ':yardoc_path not configured' unless config.has_key?(:yardoc_path)
-  sh "scp -r html/* #{config[:yardoc_host]}:#{config[:yardoc_path]}"
+  sh "scp -r html/* #{config[:yardoc_user]}@#{config[:yardoc_host]}:#{config[:yardoc_path]}"
 end
 
 desc 'Build gem ("gem build")'
