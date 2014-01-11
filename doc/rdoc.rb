@@ -367,18 +367,6 @@ module Wikitext
       # See parser.c for the C source code to this method.
     end
 
-    # Like the parse method transforms the UTF-8 input +string+ from
-    # wikitext markup into HTML, but doesn't return a result. This
-    # method is specifically designed for performance profiling so
-    # you shouldn't need to call it in practice. It parses the supplied
-    # string 100,000 times so as to provide enough sample data to make
-    # profiling useful while minimizing the influence of extraneous
-    # factors such as set-up code.
-    def profiling_parse string
-      # This is just a placeholder.
-      # See parser.c for the C source code to this method.
-    end
-
     # Exception raised when an error occurs during parsing.
     # As the parser is designed to gracefully cope with bad syntax, the
     # only reason you should see this exception is if you pass

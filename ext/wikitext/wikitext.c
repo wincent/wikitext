@@ -1,4 +1,4 @@
-// Copyright 2008-2013 Wincent Colaiuta. All rights reserved.
+// Copyright 2008-2014 Wincent Colaiuta. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -68,7 +68,6 @@ void Init_wikitext()
     cWikitextParser = rb_define_class_under(mWikitext, "Parser", rb_cObject);
     rb_define_method(cWikitextParser, "initialize", Wikitext_parser_initialize, -1);
     rb_define_method(cWikitextParser, "parse", Wikitext_parser_parse, -1);
-    rb_define_method(cWikitextParser, "profiling_parse", Wikitext_parser_profiling_parse, 1);
     rb_define_method(cWikitextParser, "tokenize", Wikitext_parser_tokenize, 1);
     rb_define_method(cWikitextParser, "benchmarking_tokenize", Wikitext_parser_benchmarking_tokenize, 1);
     rb_define_method(cWikitextParser, "fulltext_tokenize", Wikitext_parser_fulltext_tokenize, -1);

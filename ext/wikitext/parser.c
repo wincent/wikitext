@@ -1,4 +1,4 @@
-// Copyright 2007-2013 Wincent Colaiuta. All rights reserved.
+// Copyright 2007-2014 Wincent Colaiuta. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -1049,13 +1049,6 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     rb_iv_set(self, "@minimum_fulltext_token_length",   minimum_fulltext_token_length);
     rb_iv_set(self, "@base_heading_level",              base_heading_level);
     return self;
-}
-
-VALUE Wikitext_parser_profiling_parse(VALUE self, VALUE string)
-{
-    for (int i = 0; i < 100000; i++)
-        Wikitext_parser_parse(1, &string, self);
-    return Qnil;
 }
 
 // convert a Ruby object (:xml, :html etc) into an int output style

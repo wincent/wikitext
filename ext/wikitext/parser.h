@@ -1,4 +1,4 @@
-// Copyright 2008-2009 Wincent Colaiuta. All rights reserved.
+// Copyright 2008-2014 Wincent Colaiuta. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -36,5 +36,3 @@ VALUE Wikitext_parser_sanitize_link_target(VALUE self, VALUE string);
 VALUE Wikitext_parser_encode_link_target(VALUE self, VALUE in);
 
 VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self);
-
-VALUE Wikitext_parser_profiling_parse(VALUE self, VALUE string);
