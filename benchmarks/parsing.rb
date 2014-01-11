@@ -31,7 +31,7 @@ short_slab_of_ASCII_text  = '* Lorem [[ipsum|hello]] dolor sit amet, `consectetu
 # compare against the expected output to ensure correctness
 short_slab_of_ASCII_text_output = <<SLAB
 <ul>
-  <li>Lorem <a href="/wiki/ipsum">hello</a> dolor sit amet, <tt>consectetuer</tt> <a href="http://example.com/" class="external">http://example.com/</a> adipiscing elit.</li>
+  <li>Lorem <a href="/wiki/ipsum">hello</a> dolor sit amet, <code>consectetuer</code> <a href="http://example.com/" class="external">http://example.com/</a> adipiscing elit.</li>
 </ul>
 SLAB
 
@@ -40,7 +40,7 @@ short_slab_of_UTF8_text   = '* Lór€m [[ïpsûm|h€llö]] dólór sït àm€
 
 short_slab_of_UTF8_text_output = <<SLAB
 <ul>
-  <li>L&#x00f3;r&#x20ac;m <a href="/wiki/%c3%afps%c3%bbm">h&#x20ac;ll&#x00f6;</a> d&#x00f3;l&#x00f3;r s&#x00ef;t &#x00e0;m&#x20ac;t, <tt>c&#x00f3;&#x00f1;s&#x20ac;ct&#x20ac;t&#x00fb;&#x20ac;r</tt> <a href="http://example.com/" class="external">http://example.com/</a> &#x00e0;d&#x00ef;p&#x00ef;sc&#x00ef;&#x00f1;g &#x20ac;l&#x00ef;t.</li>
+  <li>L&#x00f3;r&#x20ac;m <a href="/wiki/%c3%afps%c3%bbm">h&#x20ac;ll&#x00f6;</a> d&#x00f3;l&#x00f3;r s&#x00ef;t &#x00e0;m&#x20ac;t, <code>c&#x00f3;&#x00f1;s&#x20ac;ct&#x20ac;t&#x00fb;&#x20ac;r</code> <a href="http://example.com/" class="external">http://example.com/</a> &#x00e0;d&#x00ef;p&#x00ef;sc&#x00ef;&#x00f1;g &#x20ac;l&#x00ef;t.</li>
 </ul>
 SLAB
 
@@ -74,7 +74,7 @@ again, a '''different ''order'''''
 
  // this is a code block
  notice how it can contain ''markup''
- which would '''otherwise''' have <tt>special</tt> meaning
+ which would '''otherwise''' have <code>special</code> meaning
  although explicit entities &copy; are passed through unchanged
 
 a normal paragraph again
@@ -119,7 +119,7 @@ longer_slab_of_ASCII_text_output = <<SLAB
   <p>new paragraph within blockquote</p>
 </blockquote>
 <h2>another heading</h2>
-<p>paragraph within <em>multiple <strong>styles</strong></em> and <tt>tt span</tt></p>
+<p>paragraph within <em>multiple <strong>styles</strong></em> and <code>tt span</code></p>
 <p>similar, but with <strong>styles in <em>different</em> order</strong></p>
 <p>again, a <strong>different <em>order</em></strong></p>
 <ul>
@@ -134,7 +134,7 @@ longer_slab_of_ASCII_text_output = <<SLAB
 </ul>
 <pre>// this is a code block
 notice how it can contain ''markup''
-which would '''otherwise''' have &lt;tt&gt;special&lt;/tt&gt; meaning
+which would '''otherwise''' have &lt;code&gt;special&lt;/code&gt; meaning
 although explicit entities &copy; are passed through unchanged</pre>
 <p>a normal paragraph again</p>
 <p>This is where we show a link to an article on <a href="/wiki/GCC">GCC</a>. Related to that, <a href="/wiki/GCC">a link</a> to the same article but with custom link text.</p>
@@ -196,7 +196,7 @@ pärägräph
 
 == äñöth€r h€ädîñg ==
 
-pärägräph wîthîñ ''multîpl€ '''∫tyl€∫''''' äñd <tt>tt ∫päñ</tt>
+pärägräph wîthîñ ''multîpl€ '''∫tyl€∫''''' äñd <tt>code ∫päñ</tt>
 
 ∫îmîlär, but wîth '''∫tyl€∫ îñ ''dîff€r€ñt'' örd€r'''
 
@@ -210,7 +210,7 @@ pärägräph wîthîñ ''multîpl€ '''∫tyl€∫''''' äñd <tt>tt ∫päñ<
 
  // thî∫ î∫ ä cöd€ blöck
  ñötîc€ höw ît cäñ cöñtäîñ ''märkup''
- whîch wöuld '''öth€rwî∫€''' häv€ <tt>∫p€cîäl</tt> m€äñîñg
+ whîch wöuld '''öth€rwî∫€''' häv€ <code>∫p€cîäl</code> m€äñîñg
  älthöugh €xplîcît €ñtîtî€∫ &cöpy; är€ pä∫∫€d thröugh uñchäñg€d
 
 ä ñörmäl pärägräph ägäîñ
@@ -255,7 +255,7 @@ longer_slab_of_UTF8_text_output = <<SLAB
   <p>&#x00f1;&#x20ac;w p&#x00e4;r&#x00e4;gr&#x00e4;ph w&#x00ee;th&#x00ee;&#x00f1; bl&#x00f6;ckqu&#x00f6;t&#x20ac;</p>
 </blockquote>
 <h2>&#x00e4;&#x00f1;&#x00f6;th&#x20ac;r h&#x20ac;&#x00e4;d&#x00ee;&#x00f1;g</h2>
-<p>p&#x00e4;r&#x00e4;gr&#x00e4;ph w&#x00ee;th&#x00ee;&#x00f1; <em>mult&#x00ee;pl&#x20ac; <strong>&#x222b;tyl&#x20ac;&#x222b;</strong></em> &#x00e4;&#x00f1;d <tt>tt &#x222b;p&#x00e4;&#x00f1;</tt></p>
+<p>p&#x00e4;r&#x00e4;gr&#x00e4;ph w&#x00ee;th&#x00ee;&#x00f1; <em>mult&#x00ee;pl&#x20ac; <strong>&#x222b;tyl&#x20ac;&#x222b;</strong></em> &#x00e4;&#x00f1;d <code>code &#x222b;p&#x00e4;&#x00f1;</code></p>
 <p>&#x222b;&#x00ee;m&#x00ee;l&#x00e4;r, but w&#x00ee;th <strong>&#x222b;tyl&#x20ac;&#x222b; &#x00ee;&#x00f1; <em>d&#x00ee;ff&#x20ac;r&#x20ac;&#x00f1;t</em> &#x00f6;rd&#x20ac;r</strong></p>
 <p>&#x00e4;g&#x00e4;&#x00ee;&#x00f1;, &#x00e4; <strong>d&#x00ee;ff&#x20ac;r&#x20ac;&#x00f1;t <em>&#x00f6;rd&#x20ac;r</em></strong></p>
 <ul>
@@ -270,7 +270,7 @@ longer_slab_of_UTF8_text_output = <<SLAB
 </ul>
 <pre>// th&#x00ee;&#x222b; &#x00ee;&#x222b; &#x00e4; c&#x00f6;d&#x20ac; bl&#x00f6;ck
 &#x00f1;&#x00f6;t&#x00ee;c&#x20ac; h&#x00f6;w &#x00ee;t c&#x00e4;&#x00f1; c&#x00f6;&#x00f1;t&#x00e4;&#x00ee;&#x00f1; ''m&#x00e4;rkup''
-wh&#x00ee;ch w&#x00f6;uld '''&#x00f6;th&#x20ac;rw&#x00ee;&#x222b;&#x20ac;''' h&#x00e4;v&#x20ac; &lt;tt&gt;&#x222b;p&#x20ac;c&#x00ee;&#x00e4;l&lt;/tt&gt; m&#x20ac;&#x00e4;&#x00f1;&#x00ee;&#x00f1;g
+wh&#x00ee;ch w&#x00f6;uld '''&#x00f6;th&#x20ac;rw&#x00ee;&#x222b;&#x20ac;''' h&#x00e4;v&#x20ac; &lt;code&gt;&#x222b;p&#x20ac;c&#x00ee;&#x00e4;l&lt;/code&gt; m&#x20ac;&#x00e4;&#x00f1;&#x00ee;&#x00f1;g
 &#x00e4;lth&#x00f6;ugh &#x20ac;xpl&#x00ee;c&#x00ee;t &#x20ac;&#x00f1;t&#x00ee;t&#x00ee;&#x20ac;&#x222b; &amp;c&#x00f6;py; &#x00e4;r&#x20ac; p&#x00e4;&#x222b;&#x222b;&#x20ac;d thr&#x00f6;ugh u&#x00f1;ch&#x00e4;&#x00f1;g&#x20ac;d</pre>
 <p>&#x00e4; &#x00f1;&#x00f6;rm&#x00e4;l p&#x00e4;r&#x00e4;gr&#x00e4;ph &#x00e4;g&#x00e4;&#x00ee;&#x00f1;</p>
 <p>Th&#x00ee;&#x222b; &#x00ee;&#x222b; wh&#x20ac;r&#x20ac; w&#x20ac; &#x222b;h&#x00f6;w &#x00e4; l&#x00ee;&#x00f1;k t&#x00f6; &#x00e4;&#x00f1; &#x00e4;rt&#x00ee;cl&#x20ac; &#x00f6;&#x00f1; <a href="/wiki/GCC">GCC</a>. R&#x20ac;l&#x00e4;t&#x20ac;d t&#x00f6; th&#x00e4;t, <a href="/wiki/GCC">&#x00e4; l&#x00ee;&#x00f1;k</a> t&#x00f6; th&#x20ac; &#x222b;&#x00e4;m&#x20ac; &#x00e4;rt&#x00ee;cl&#x20ac; but w&#x00ee;th cu&#x222b;t&#x00f6;m l&#x00ee;&#x00f1;k t&#x20ac;xt.</p>
