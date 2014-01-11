@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Copyright 2008-2013 Wincent Colaiuta. All rights reserved.
+# Copyright 2008-2014 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-require File.join(File.dirname(__FILE__), '..', 'ext', 'wikitext')
+require_relative '../ext/wikitext/wikitext'
 require 'benchmark'
 
 # 91 characters, 91 bytes
