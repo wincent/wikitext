@@ -321,7 +321,10 @@ def parse job, description, parser, input, expected
     100_000.times {
       output = parser.parse input
       if output != expected
-        puts output
+        spacer = '-' * 20
+        puts "\n#{spacer}  output  #{spacer}", output,
+             "#{spacer} expected #{spacer}", expected,
+             "#{spacer}----------#{spacer}"
         raise 'mismatch'
       end
     }
