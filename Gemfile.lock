@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wikitext (4.0.3)
+    wikitext (4.1)
 
 GEM
   remote: https://rubygems.org/
