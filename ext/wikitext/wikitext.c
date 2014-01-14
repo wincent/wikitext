@@ -110,15 +110,9 @@ void Init_wikitext()
         rb_require("wikitext/nil_class");
         rb_require("wikitext/string");
 
-        // now check for Rails version
         VALUE active_support = rb_const_get(rb_cObject,
             rb_intern("ActiveSupport"));
-        if (rb_respond_to(active_support, rb_intern("on_load")))
-            // running under Rails 3
-            rb_iterate(wikitext_block_forwarder, active_support,
-                wikitext_on_load_block, Qnil);
-        else
-            // running under Rails 2
-            rb_require("wikitext/rails_template_handler");
+        rb_iterate(wikitext_block_forwarder, active_support,
+            wikitext_on_load_block, Qnil);
     }
 }
