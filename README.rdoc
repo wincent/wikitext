@@ -438,6 +438,13 @@ The Wikitext extension provides a template handler so that templates named
 following the <tt>template_name.html.wikitext</tt> format will automatically be
 translated from wikitext markup into HTML when rendered.
 
+Additionally, an optional Haml filter is available if you <tt>require
+"wikitext/haml_filter"</tt>, which enables you to write wikitext markup inline
+(in Haml):
+
+    :wikitext
+      = Here is some [[wikitext]] =
+
 Likewise, a +to_wikitext+ method (aliased as +w+) is added to the +String+
 class (and also +NilClass+, for convenience) so that content can be easily
 translated from inside view templates following patterns like:
