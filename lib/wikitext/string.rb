@@ -1,4 +1,4 @@
-# Copyright 2008-2010 Wincent Colaiuta. All rights reserved.
+# Copyright 2008-2014 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -8,7 +8,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -25,11 +25,11 @@ require 'wikitext/parser'
 
 class String
   def to_wikitext options = {}
-    default_options = { :indent => false }
+    default_options = { indent: false }
     markup = respond_to?(:wikitext_preprocess) ? wikitext_preprocess : self
     html = Wikitext::Parser.shared_parser.parse markup,
       default_options.merge(options)
     html.respond_to?(:html_safe) ? html.html_safe : html
   end
   alias :w :to_wikitext
-end
+end # class String
