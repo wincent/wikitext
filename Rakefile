@@ -1,4 +1,4 @@
-# Copyright 2007-2013 Wincent Colaiuta. All rights reserved.
+# Copyright 2007-present Greg Hurrell. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:

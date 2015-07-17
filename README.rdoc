@@ -503,14 +503,14 @@ Add a line like the following to your Gemfile:
 
 = Author
 
-Wikitext is written and maintained by Wincent Colaiuta (win@wincent.com).
+Wikitext is written and maintained by Greg Hurrell (greg@hurrell.net).
 Other contributors that have submitted patches include:
 
 * Mike Stangel
 
 = License
 
-Copyright 2007-2015 Wincent Colaiuta. All rights reserved.
+Copyright 2007-present Greg Hurrell. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -538,8 +538,3 @@ POSSIBILITY OF SUCH DAMAGE.
 Please let me know if you're using the Wikitext extension in your project.
 If you have any bug reports or feature requests please open a ticket in
 the issue tracker at https://wincent.com/issues.
-
-= Donations
-
-If you find this extension useful, please consider making a donation via
-PayPal to win@wincent.com.

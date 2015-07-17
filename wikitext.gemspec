@@ -1,4 +1,4 @@
-# Copyright 2010-2013 Wincent Colaiuta. All rights reserved.
+# Copyright 2010-present Greg Hurrell. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -27,8 +27,8 @@ require 'wikitext/version'
 Gem::Specification.new do |s|
   s.name                  = 'wikitext'
   s.version               =  Wikitext::VERSION
-  s.author                = 'Wincent Colaiuta'
-  s.email                 = 'win@wincent.com'
+  s.author                = 'Greg Hurrell'
+  s.email                 = 'greg@hurrell.net'
   s.homepage              = 'https://wincent.com/products/wikitext'
   s.rubyforge_project     = 'wikitext'
   s.platform              = Gem::Platform::RUBY
