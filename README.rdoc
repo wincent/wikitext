@@ -497,9 +497,9 @@ Add a line like the following to your Gemfile:
 
 = Links
 
-* RubyForge project page: http://rubyforge.org/projects/wikitext
-* RDoc: http://wikitext.rubyforge.org
-* Source: http://git.wincent.com/wikitext.git
+* Website: https://wincent.com/products/wikitext
+* RDoc: https://wincent.com/products/wikitext/doc/
+* Source: https://github.com/wincent/wikitext
 
 = Author
 
