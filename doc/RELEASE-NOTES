@@ -6,7 +6,11 @@ require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
 the source code repository at: http://git.wincent.com.
 
-= Changes in 4.1 =
+= Changes in 4.1.1
+
+* add official support for Ruby 2.2.x
+
+= Changes in 4.1
 
 * add a Haml filter; to use, require "wikitext/haml_filter"
 
