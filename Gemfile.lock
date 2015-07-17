@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wikitext (4.1)
+    wikitext (4.1.1)
 
 GEM
   remote: https://rubygems.org/
@@ -32,3 +32,6 @@ DEPENDENCIES
   wikitext!
   wopen3
   yard
+
+BUNDLED WITH
+   1.10.5
