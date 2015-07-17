@@ -1,4 +1,4 @@
-# Copyright 2008-2013 Wincent Colaiuta. All rights reserved.
+# Copyright 2008-2015 Wincent Colaiuta. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@ def missing item
   exit 1
 end
 
-if RUBY_VERSION !~ /\A2\.[01]\./
+if RUBY_VERSION !~ /\A2\.[012]\./
   raise "unsupported Ruby version: #{RUBY_VERSION}"
 end
 
