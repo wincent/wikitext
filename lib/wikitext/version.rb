@@ -22,5 +22,5 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 module Wikitext
-  VERSION = '4.1.2'
+  VERSION = '4.1.2.99'
 end # module Wikitext
