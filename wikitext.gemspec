@@ -49,10 +49,10 @@ Gem::Specification.new do |s|
   s.description           = <<-DESC
     Wikitext is a fast wikitext-to-HTML translator written in C.
   DESC
-  s.add_development_dependency 'rake'
-  s.add_development_dependency 'rspec'
-  s.add_development_dependency 'thor'
-  s.add_development_dependency 'yard'
-  s.add_development_dependency 'wopen3'
-  s.add_development_dependency 'ZenTest'
+  s.add_development_dependency 'rake', '~> 10.0'
+  s.add_development_dependency 'rspec', '~> 2.13'
+  s.add_development_dependency 'thor', '~> 0.17.0'
+  s.add_development_dependency 'yard', '~> 0.8.5.2'
+  s.add_development_dependency 'wopen3', '~> 0.3'
+  s.add_development_dependency 'ZenTest', '~> 4.9'
 end
