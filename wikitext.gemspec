@@ -43,7 +43,6 @@ Gem::Specification.new do |s|
     'ext/wikitext/*.{rb,c,h}',
     'ext/wikitext/depend',
     'lib/wikitext/*.rb',
-    'rails/init.rb',
     'spec/*.rb',
   ]
   s.description           = <<-DESC
