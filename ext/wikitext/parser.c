@@ -61,6 +61,7 @@ typedef struct
     bool    pending_crlf;
     bool    autolink;
     bool    space_to_underscore;
+    bool    pre_code;
 } parser_t;
 
 const char null_str[]                   = { 0 };
@@ -165,6 +166,7 @@ parser_t *parser_new(void)
     parser->pending_crlf            = false;
     parser->autolink                = true;
     parser->space_to_underscore     = true;
+    parser->pre_code                = false;
     return parser;
 }
 
@@ -525,6 +527,8 @@ void wiki_append_pre_start(parser_t *parser, token_t *token)
     }
     else
         str_append(parser->output, pre_start, sizeof(pre_start) - 1);
+    if (parser->pre_code)
+        str_append(parser->output, code_start, sizeof(code_start) - 1);
     ary_push(parser->scope, PRE_START);
     ary_push(parser->line, PRE_START);
 }
@@ -565,6 +569,8 @@ void wiki_pop_from_stack(parser_t *parser, str_t *target)
     {
         case PRE:
         case PRE_START:
+            if (parser->pre_code)
+                str_append(target, code_end, sizeof(code_end) - 1);
             str_append(target, pre_end, sizeof(pre_end) - 1);
             str_append_str(target, parser->line_ending);
             wiki_dedent(parser, false);
@@ -1013,6 +1019,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     VALUE img_prefix                    = rb_str_new2("/images/");
     VALUE output_style                  = ID2SYM(rb_intern("html"));
     VALUE space_to_underscore           = Qtrue;
+    VALUE pre_code                      = Qfalse;
     VALUE minimum_fulltext_token_length = INT2NUM(3);
     VALUE base_heading_level            = INT2NUM(0);
 
@@ -1031,6 +1038,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
         img_prefix                      = OVERRIDE_IF_SET(img_prefix);
         output_style                    = OVERRIDE_IF_SET(output_style);
         space_to_underscore             = OVERRIDE_IF_SET(space_to_underscore);
+        pre_code                        = OVERRIDE_IF_SET(pre_code);
         minimum_fulltext_token_length   = OVERRIDE_IF_SET(minimum_fulltext_token_length);
         base_heading_level              = OVERRIDE_IF_SET(base_heading_level);
     }
@@ -1046,6 +1054,7 @@ VALUE Wikitext_parser_initialize(int argc, VALUE *argv, VALUE self)
     rb_iv_set(self, "@img_prefix",                      img_prefix);
     rb_iv_set(self, "@output_style",                    output_style);
     rb_iv_set(self, "@space_to_underscore",             space_to_underscore);
+    rb_iv_set(self, "@pre_code",                        pre_code);
     rb_iv_set(self, "@minimum_fulltext_token_length",   minimum_fulltext_token_length);
     rb_iv_set(self, "@base_heading_level",              base_heading_level);
     return self;
@@ -1150,6 +1159,7 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
     parser->img_prefix              = rb_iv_get(self, "@img_prefix");
     parser->autolink                = rb_iv_get(self, "@autolink") == Qtrue ? true : false;
     parser->space_to_underscore     = rb_iv_get(self, "@space_to_underscore") == Qtrue ? true : false;
+    parser->pre_code                = rb_iv_get(self, "@pre_code") == Qtrue ? true : false;
     parser->line_ending             = str_new_from_string(line_ending);
     parser->base_indent             = base_indent;
     parser->base_heading_level      = base_heading_level;
@@ -1248,6 +1258,8 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
                     wiki_pop_from_stack_up_to(parser, NULL, BLOCKQUOTE, false);
                     wiki_indent(parser);
                     str_append(parser->output, pre_start, sizeof(pre_start) - 1);
+                    if (parser->pre_code)
+                        str_append(parser->output, code_start, sizeof(code_start) - 1);
                     ary_push(parser->scope, PRE);
                 }
                 break;

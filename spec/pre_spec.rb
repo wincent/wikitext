@@ -54,6 +54,13 @@ describe Wikitext::Parser, 'parsing PRE blocks' do
     @parser.parse(' ').should == "<pre></pre>\n"
   end
 
+  it 'assumes PRE blocks are code when :pre_code is set' do
+    Wikitext::Parser.
+      new(:pre_code => true).
+      parse(' foo').
+      should == "<pre><code>foo</code></pre>\n"
+  end
+
   it 'should sanely handle a leading empty line' do
     @parser.parse(" \n foo").should == "<pre>\nfoo</pre>\n"
   end
@@ -146,6 +153,13 @@ describe Wikitext::Parser, 'parsing PRE_START/PRE_END blocks' do
 
   it 'should accept PRE_START/PRE_END as an alternative to the standard syntax' do
     @parser.parse('<pre>foo</pre>').should == "<pre>foo</pre>\n"
+  end
+
+  it 'assumes PRE_START/PRE_END blocks are code when :pre_code is set' do
+    Wikitext::Parser.
+      new(:pre_code => true).
+      parse('<pre>foo</pre>').
+      should == "<pre><code>foo</code></pre>\n"
   end
 
   it 'should pass through PRE unchanged in PRE_START/PRE_END blocks' do

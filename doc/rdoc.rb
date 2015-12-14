@@ -119,6 +119,23 @@ module Wikitext
   #     !!!html
   #     http://apple.com/
   #
+  # == +pre_code+ (boolean)
+  #
+  # When true, "pre" blocks are formatted using "code" elements. For example:
+  #
+  #     !!!wikitext
+  #     <pre>foo</pre>
+  #
+  # Produces:
+  #
+  #     !!!html
+  #     <pre><code>foo</code></pre>
+  #
+  # When +false+ (the default), it produces:
+  #
+  #     !!!html
+  #     <pre>foo</pre>
+  #
   # == +space_to_underscore+ (boolean)
   #
   # Whether spaces in link targets should be encoded normally or transformed
