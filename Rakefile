@@ -81,12 +81,12 @@ end
 
 desc 'Run specs'
 task :spec => :make do
-  sh 'bin/rspec spec'
+  sh 'bundle exec rspec spec'
 end
 
 desc 'Build the YARD HTML files'
 task :yard do
-  sh 'bin/yardoc --one-file -o html --title Wikitext doc/*.rb - doc/RELEASE-NOTES'
+  sh 'bundle exec yardoc --one-file -o html --title Wikitext doc/*.rb - doc/RELEASE-NOTES'
 end
 
 desc 'Build gem ("gem build")'
