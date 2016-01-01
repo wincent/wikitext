@@ -28,7 +28,7 @@ def missing item
   exit 1
 end
 
-if RUBY_VERSION !~ /\A2\.[012]\./
+if RUBY_VERSION !~ /\A2\.[0123](\.|$)/
   raise "unsupported Ruby version: #{RUBY_VERSION}"
 end
 
