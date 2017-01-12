@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wikitext (4.3)
+    wikitext (4.4)
 
 GEM
   remote: https://rubygems.org/
@@ -34,4 +34,4 @@ DEPENDENCIES
   yard (~> 0.8.5.2)
 
 BUNDLED WITH
-   1.10.6
+   1.13.7
