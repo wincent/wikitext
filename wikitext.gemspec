@@ -51,7 +51,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake', '~> 10.0'
   s.add_development_dependency 'rspec', '~> 2.13'
   s.add_development_dependency 'thor', '~> 0.17.0'
-  s.add_development_dependency 'yard', '~> 0.8.5.2'
+  s.add_development_dependency 'yard', '~> 0.9.12'
   s.add_development_dependency 'wopen3', '~> 0.3'
   s.add_development_dependency 'ZenTest', '~> 4.9'
 end
