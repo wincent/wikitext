@@ -1,4 +1,4 @@
-pkg
-html
-.specification
-.yardoc/
+/.specification
+/.yardoc/
+/gh-pages
+/pkg
