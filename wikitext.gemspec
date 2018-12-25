@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
   s.version               =  Wikitext::VERSION
   s.author                = 'Greg Hurrell'
   s.email                 = 'greg@hurrell.net'
-  s.homepage              = 'https://wincent.com/products/wikitext'
+  s.homepage              = 'https://github.com/wincent/wikitext'
   s.rubyforge_project     = 'wikitext'
   s.platform              = Gem::Platform::RUBY
   s.license               = 'BSD-2-Clause'

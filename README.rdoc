@@ -497,8 +497,8 @@ Add a line like the following to your Gemfile:
 
 = Links
 
-* Website: https://wincent.com/products/wikitext
-* RDoc: https://wincent.com/products/wikitext/doc/
+* Website: http://wincent.github.io/wikitext/
+* RDoc: http://wincent.github.io/wikitext/
 * Source: https://github.com/wincent/wikitext
 
 = Author
