@@ -86,7 +86,7 @@ end
 
 desc 'Build the YARD HTML files'
 task :yard do
-  sh 'bundle exec yardoc -o html --title Wikitext doc/*.rb - doc/RELEASE-NOTES'
+  sh 'bundle exec yardoc -o gh-pages --title Wikitext doc/*.rb - doc/RELEASE-NOTES'
 end
 
 desc 'Build gem ("gem build")'
