@@ -30,7 +30,6 @@ Gem::Specification.new do |s|
   s.author                = 'Greg Hurrell'
   s.email                 = 'greg@hurrell.net'
   s.homepage              = 'https://github.com/wincent/wikitext'
-  s.rubyforge_project     = 'wikitext'
   s.platform              = Gem::Platform::RUBY
   s.license               = 'BSD-2-Clause'
   s.required_ruby_version = '>= 2.0.0'
