@@ -28,10 +28,5 @@ def missing item
   exit 1
 end
 
-if RUBY_VERSION !~ /\A2\.[0-7](\.|$)/ and
-   RUBY_VERSION !~ /\A3\.[0](\.|$)/
-  raise "unsupported Ruby version: #{RUBY_VERSION}"
-end
-
 have_header('ruby.h') or missing 'ruby.h'
 create_makefile('wikitext')

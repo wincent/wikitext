@@ -85,10 +85,14 @@ describe Wikitext, 'encoding a link target' do
     Wikitext::Parser.encode_link_target('foo, "bar" & baz €').should == 'foo%2c%20%22bar%22%20%26%20baz%20%e2%82%ac'
   end
 
-  it 'should get the same answer as URI.escape' do
-    reserved = Regexp.new("[^#{URI::PATTERN::UNRESERVED}]")
-    ['foo bar', 'http://www.google.com/search?q=hello&foo=bar', '€'].each do |string|
-      Wikitext::Parser.encode_link_target(string).should == URI.escape(string, reserved).downcase
-    end
+  it 'gets the same answer as URI.escape' do
+    # Or at least, the same answer as it used to get before being deprecated and
+    # eventually removed...
+    # See: https://docs.knapsackpro.com/2020/uri-escape-is-obsolete-percent-encoding-your-query-string
+    Wikitext::Parser.encode_link_target('foo bar').should == 'foo%20bar'
+    Wikitext::Parser.encode_link_target('€').should == '%e2%82%ac'
+    Wikitext::Parser.encode_link_target(
+      'http://www.google.com/search?q=hello&foo=bar'
+    ).should == 'http%3a%2f%2fwww.google.com%2fsearch%3fq%3dhello%26foo%3dbar'
   end
 end
