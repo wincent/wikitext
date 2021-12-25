@@ -10,11 +10,11 @@
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" charset="utf-8" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
 
-<script type="text/javascript" charset="utf-8">
+<script type="text/javascript">
   pathId = "Wikitext::Parser::Token";
   relpath = '../../';
 </script>
@@ -104,7 +104,7 @@
     
 <p>Token object representing a symbol found in the input stream during scanning. When you invoke the tokenize method you receive an array of Token instances.</p>
 
-<p>This class exists purely for testing and diagnostic purposes; it is actually just a wrapper for the real token structure that is used internally.  (In actual use the Wikitext extension doesn&#39;t even use this class; it instead uses lightweight C structs under the hood for maximum speed and memory efficiency.)</p>
+<p>This class exists purely for testing and diagnostic purposes; it is actually just a wrapper for the real token structure that is used internally.  (In actual use the Wikitext extension doesn’t even use this class; it instead uses lightweight C structs under the hood for maximum speed and memory efficiency.)</p>
 
 <h1 id="label-Attributes">Attributes</h1>
 <dl class="rdoc-list note-list"><dt><code>start</code>
@@ -174,7 +174,9 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'>
+<p>Returns a hashof all token types by (numeric) value and (human-readable) name.</p>
+</div></span>
   
 </li>
 
@@ -197,7 +199,18 @@
   
 
   
-</h3><table class="source_code">
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns a hashof all token types by (numeric) value and (human-readable) name.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
   <tr>
     <td>
       <pre class="lines">
@@ -211,10 +224,10 @@
     <td>
       <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 424</span>
 
-<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_types'>types</span>  <span class='comment'># This is just a placeholder.
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_types'>types</span>
+  <span class='comment'># This is just a placeholder.
 </span>  <span class='comment'># See token.c for the C source code to this method.
-</span>
-<span class='kw'>end</span></pre>
+</span><span class='kw'>end</span></pre>
     </td>
   </tr>
 </table>
@@ -225,9 +238,9 @@
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 22 11:09:48 2020 by
+  Generated on Sat Dec 25 23:10:25 2021 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.16 (ruby-2.7.2).
+  0.9.27 (ruby-3.1.0).
 </div>
 
     </div>

@@ -10,11 +10,11 @@
   
 </title>
 
-  <link rel="stylesheet" href="css/style.css" type="text/css" charset="utf-8" />
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
 
-  <link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
 
-<script type="text/javascript" charset="utf-8">
+<script type="text/javascript">
   pathId = "README";
   relpath = '';
 </script>
@@ -165,7 +165,7 @@ And this is another.
 <pre class="code html"><code class="html">&lt;strong&gt;strong text&lt;/strong&gt;
 </code></pre>
 
-<p>You can nest spans inside one another, provided you don&#39;t try to produce invalid HTML (for example, nesting strong inside strong). Here is a valid example:</p>
+<p>You can nest spans inside one another, provided you don’t try to produce invalid HTML (for example, nesting strong inside strong). Here is a valid example:</p>
 
 <pre class="code wikitext"><code class="wikitext">&#39;&#39;&#39;&#39;&#39;foo&#39;&#39; bar&#39;&#39;&#39; baz
 </code></pre>
@@ -175,7 +175,7 @@ And this is another.
 <pre class="code html"><code class="html">&lt;strong&gt;&lt;em&gt;foo&lt;/em&gt; bar&lt;/strong&gt; baz
 </code></pre>
 
-<p>Note that the translator emits HTML on the fly, so when it sees the first run of five apostrophes it has no way of knowing what will come afterwards and so doesn&#39;t know whether you mean to say “strong em” or “em strong”; it therefore always assumes “strong em”. If you wish to force the alternative interpretation you can do one of the following:</p>
+<p>Note that the translator emits HTML on the fly, so when it sees the first run of five apostrophes it has no way of knowing what will come afterwards and so doesn’t know whether you mean to say “strong em” or “em strong”; it therefore always assumes “strong em”. If you wish to force the alternative interpretation you can do one of the following:</p>
 
 <pre class="code wikitext"><code class="wikitext">&#39;&#39; &#39;&#39;&#39;foo&#39;&#39;&#39; bar&#39;&#39; baz (ie. use whitespace)
 &#39;&#39;&lt;nowiki&gt;&lt;/nowiki&gt;&#39;&#39;&#39;foo&#39;&#39;&#39; bar&#39;&#39; baz (ie. insert an empty nowiki span)
@@ -190,7 +190,7 @@ And this is another.
 
 <h2 id="label-Teletype">Teletype</h2>
 
-<p>The translator recognizes both standard HTML <code>tt</code> tags and the backtick (`) as a shorthand. These two are equivalent:</p>
+<p>The translator recognizes both standard HTML <code>tt</code> tags and the backtick (‘) as a shorthand. These two are equivalent:</p>
 
 <pre class="code wikitext"><code class="wikitext">&lt;tt&gt;fixed&lt;/tt&gt;
 `fixed`
@@ -527,13 +527,13 @@ preformatted text&lt;/pre&gt;
 
 <h1 id="label-Feedback">Feedback</h1>
 
-<p>Please let me know if you&#39;re using the Wikitext extension in your project. If you have any bug reports or feature requests please open a ticket in the issue tracker at <a href="https://wincent.com/issues">wincent.com/issues</a>.</p>
+<p>Please let me know if you’re using the Wikitext extension in your project. If you have any bug reports or feature requests please open a ticket in the issue tracker at <a href="https://wincent.com/issues">wincent.com/issues</a>.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Tue Dec 22 11:09:48 2020 by
+  Generated on Sat Dec 25 23:10:25 2021 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.16 (ruby-2.7.2).
+  0.9.27 (ruby-3.1.0).
 </div>
 
     </div>

@@ -10,11 +10,11 @@
   
 </title>
 
-  <link rel="stylesheet" href="css/style.css" type="text/css" charset="utf-8" />
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
 
-  <link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
 
-<script type="text/javascript" charset="utf-8">
+<script type="text/javascript">
   pathId = "RELEASE-NOTES";
   relpath = '';
 </script>
@@ -58,11 +58,16 @@
       </div>
 
       <div id="content"><div id='filecontents'>
-<p>This file describes changes with some user or developer impact (significant changes to the externally visible behaviour of the extension, or things which may require action on the part of users or developers). Minor bugfixes and tweaks which don&#39;t require any user or developer action are generally not included in these release notes. For a full listing of all changes see the source code repository at: <a href="http://git.wincent.com">git.wincent.com</a>.</p>
+<p>This file describes changes with some user or developer impact (significant changes to the externally visible behaviour of the extension, or things which may require action on the part of users or developers). Minor bugfixes and tweaks which don’t require any user or developer action are generally not included in these release notes. For a full listing of all changes see the source code repository at: <a href="http://git.wincent.com">git.wincent.com</a>.</p>
+
+<h1 id="label-Changes+in+4.8">Changes in 4.8</h1>
+<ul><li>
+<p>add official support for Ruby 3.1.x</p>
+</li></ul>
 
 <h1 id="label-Changes+in+4.7">Changes in 4.7</h1>
 <ul><li>
-<p>add official support for Ruby 2.7.x and 3.0.x</p>
+<p>add official support for Ruby 3.0.x</p>
 </li></ul>
 
 <h1 id="label-Changes+in+4.6">Changes in 4.6</h1>
@@ -179,7 +184,7 @@
 
 <h1 id="label-Changes+in+1.11">Changes in 1.11</h1>
 <ul><li>
-<p>extract Gem specification into separate file for compatibility with Bundler&#39;s “install from Git repository” functionality</p>
+<p>extract Gem specification into separate file for compatibility with Bundler’s “install from Git repository” functionality</p>
 </li><li>
 <p>updates for compatibility with Rails 3</p>
 </li></ul>
@@ -218,7 +223,7 @@
 </li><li>
 <p>handle blank link text such as <code>[[foo| ]]</code>, making behaviour consistent with existing handling of zero-width link text (<code>[[foo|]]</code>)</p>
 </li><li>
-<p>don&#39;t apply <code>external</code> CSS class when rolling back failed internal links</p>
+<p>don’t apply <code>external</code> CSS class when rolling back failed internal links</p>
 </li></ul>
 
 <h1 id="label-Changes+in+1.6">Changes in 1.6</h1>
@@ -229,7 +234,7 @@
 </li><li>
 <p>the <code>indent</code> option to the Wikitext::Parser#parse method now accepts <code>false</code> as a parameter to completely suppress all indentation</p>
 </li><li>
-<p>internal <code>require</code> statments now use absolute paths to ensure that files from other versions don&#39;t get pulled in inappropriately</p>
+<p>internal <code>require</code> statments now use absolute paths to ensure that files from other versions don’t get pulled in inappropriately</p>
 </li></ul>
 
 <h1 id="label-Changes+in+1.5.3">Changes in 1.5.3</h1>
@@ -280,9 +285,9 @@
 </div></div>
 
       <div id="footer">
-  Generated on Tue Dec 22 11:09:48 2020 by
+  Generated on Sat Dec 25 23:10:25 2021 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.16 (ruby-2.7.2).
+  0.9.27 (ruby-3.1.0).
 </div>
 
     </div>
