@@ -50,7 +50,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # discovered at: http://rails.wincent.com/wiki/nginx_log_rotation
+  # discovered at: https://wincent.dev/wiki/nginx_log_rotation
   # fixed by 0a328f1
   it 'should allow empty lines in PRE blocks marked up with a leading space' do
     input = dedent <<-END
@@ -70,7 +70,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # discovered at: http://rails.wincent.com/wiki/Installing_Ragel_5.2.0_on_Mac_OS_X_Tiger
+  # discovered at: https://wincent.dev/wiki/Installing_Ragel_5.2.0_on_Mac_OS_X_Tiger
   # fixed by a616841
   it 'should handle PRE_START blocks which follow unordered lists' do
     input = dedent <<-END
@@ -91,7 +91,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # discovered at: http://rails.wincent.com/wiki/Movable_Type_security_notes
+  # discovered at: https://wincent.dev/wiki/Movable_Type_security_notes
   # fixed by a616841
   it 'should handle PRE_START blocks which follow ordered lists' do
     input = dedent <<-END
@@ -108,7 +108,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # discovered at: http://rails.wincent.com/wiki/Movable_Type_security_notes
+  # discovered at: https://wincent.dev/wiki/Movable_Type_security_notes
   # fixed by 191b75d
   it 'should respect additional indentation found inside PRE blocks' do
     # note the two extra spaces on each line
@@ -752,7 +752,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # discovered at: http://rails.wincent.com/wiki/Testing_cookies_in_Rails
+  # discovered at: https://wincent.dev/wiki/Testing_cookies_in_Rails
   it 'should handle BLOCKQUOTE_START blocks which follow lists' do
     # example text taken from wiki article and edited for brevity
     input = dedent <<-END
@@ -770,7 +770,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # https://wincent.com/issues/818
+  # https://wincent.dev/issues/818
   it 'should handle BLOCKQUOTE_START blocks which follow BLOCKQUOTE shorthand' do
     input = dedent <<-END
       > foo
@@ -787,7 +787,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # https://wincent.com/issues/818
+  # https://wincent.dev/issues/818
   it 'should handle PRE_START blocks which follow BLOCKQUOTE shorthand' do
     input = dedent <<-END
       > foo
@@ -802,7 +802,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # https://wincent.com/issues/818
+  # https://wincent.dev/issues/818
   it 'should handle BLOCKQUOTE_START blocks which follow nested BLOCKQUOTE shorthand' do
     input = dedent <<-END
       >>> foo
@@ -823,7 +823,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # https://wincent.com/issues/818
+  # https://wincent.dev/issues/818
   it 'should handle PRE_START blocks which follow nested BLOCKQUOTE shorthand' do
     input = dedent <<-END
       >>> foo
@@ -842,7 +842,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse(input).should == expected
   end
 
-  # https://wincent.com/issues/1289
+  # https://wincent.dev/issues/1289
   it 'should handle empty (zero-width) link targets' do
     # these were badly broken (caused exceptions to be raised)
     @parser.parse('[[]]').should == "<p>[[]]</p>\n"
@@ -864,7 +864,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse('[[  |foo]]').should == "<p>[[  |foo]]</p>\n"
   end
 
-  # first manifested itself in this comment: https://wincent.com/comments/6427
+  # first manifested itself in this comment: https://wincent.dev/comments/6427
   it 'handles "`[/`"' do
     # This is, of course, an invalid link, but it could be handled more
     # gracefully (we were opening a <code> span and instead of just rolling
@@ -877,7 +877,7 @@ describe Wikitext::Parser, 'regressions' do
     # PATH sequence (any such token would just be dropped on the floor).
     @parser.parse('with `[/` then').should == "<p>with <code>[/</code> then</p>\n"
 
-    # related example from the original ticket: https://wincent.com/issues/1726
+    # related example from the original ticket: https://wincent.dev/issues/1726
     @parser.parse('[/bar?baz=bat link]').should == "<p>[/bar?baz=bat link]</p>\n"
   end
 
@@ -890,7 +890,7 @@ describe Wikitext::Parser, 'regressions' do
     @parser.parse('[http://foo.com]').should == expected
   end
 
-  # https://wincent.com/issues/1891
+  # https://wincent.dev/issues/1891
   it 'handles shorthand PRE blocks containing lines starting with slashes' do
     expected = "<pre>/a\n/b\n/c</pre>\n"
     @parser.parse(" /a\n /b\n /c").should == expected

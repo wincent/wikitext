@@ -4,7 +4,7 @@ extension, or things which may require action on the part of
 users or developers). Minor bugfixes and tweaks which don't
 require any user or developer action are generally not included
 in these release notes. For a full listing of all changes see
-the source code repository at: http://git.wincent.com.
+the source code repository.
 
 = Changes in 4.8
 
@@ -212,4 +212,4 @@ the source code repository at: http://git.wincent.com.
 
 = Changes prior to 1.4.0
 
-Please see the source code repository browser at http://git.wincent.com.
+Please see the source code repository browser.

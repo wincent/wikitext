@@ -59,7 +59,7 @@ describe Wikitext::Parser, 'external links' do
   end
 
   it 'formats external mailto links where the linktext is itself an email' do
-    # reported here: https://wincent.com/issues/1955
+    # reported here: https://wincent.dev/issues/1955
     expected = %{<p><a href="mailto:user@example.com" class="mailto">user@example.com</a></p>\n}
     @parser.parse('[mailto:user@example.com user@example.com]').should == expected
 
@@ -71,7 +71,7 @@ describe Wikitext::Parser, 'external links' do
   end
 
   it 'allows email addreses in link text' do
-    # more general case of bug reported here: https://wincent.com/issues/1955
+    # more general case of bug reported here: https://wincent.dev/issues/1955
     expected = %{<p><a href="http://google.com/?q=user@example.com" class="external">Google for user@example.com</a></p>\n}
     @parser.parse('[http://google.com/?q=user@example.com Google for user@example.com]').should == expected
   end

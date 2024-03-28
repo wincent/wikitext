@@ -247,9 +247,7 @@ module Wikitext
   #     parser = Wikitext::Parser.new
   #     parser.link_proc = link_proc
   #
-  # Many more examples of link procs can be found in the spec suite:
-  #
-  # * http://git.wincent.com/wikitext.git/blob/HEAD:/spec/internal_link_spec.rb
+  # Many more examples of link procs can be found in the spec suite.
   class Parser
 
     # Sanitizes an internal link target for inclusion within the HTML
