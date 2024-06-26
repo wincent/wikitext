@@ -2590,11 +2590,10 @@ return_output:
     str_append(parser->output, null_str, 1); // null-terminate
     len = parser->output->len - 1; // don't count null termination
 
-    VALUE out = rb_str_buf_new(RSTRING_EMBED_LEN_MAX + 1);
+    VALUE out = rb_str_buf_new(len);
     free(RSTRING_PTR(out));
     RSTRING(out)->as.heap.aux.capa = len;
     RSTRING(out)->as.heap.ptr = parser->output->ptr;
-    RSTRING(out)->as.heap.len = len;
     parser->output->ptr = NULL; // don't double-free
     return out;
 }
