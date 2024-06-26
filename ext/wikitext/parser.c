@@ -2594,7 +2594,6 @@ return_output:
     free(RSTRING_PTR(out));
     RSTRING(out)->as.heap.aux.capa = len;
     RSTRING(out)->as.heap.ptr = parser->output->ptr;
-    RSTRING(out)->as.heap.len = len;
     parser->output->ptr = NULL; // don't double-free
     return out;
 }
