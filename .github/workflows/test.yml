@@ -20,4 +20,5 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
       - run: gem install bundler && bundle && bundle exec rake build
+      - run: bundle exec rake spec
 
