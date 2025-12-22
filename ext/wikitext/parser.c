@@ -2585,16 +2585,29 @@ VALUE Wikitext_parser_parse(int argc, VALUE *argv, VALUE self)
         // reset current token; forcing lexer to return another token at the top of the loop
         token = NULL;
     } while (1);
+
 return_output:
-    // nasty hack to avoid re-allocating our return value
-    str_append(parser->output, null_str, 1); // null-terminate
-    len = parser->output->len - 1; // don't count null termination
+    str_append(parser->output, null_str, 1); // Null-terminate.
+#if defined(RUBY_API_VERSION_CODE) && RUBY_API_VERSION_CODE >= 30200
+    // Ruby string internals changed around 3.2, ending the 14-year non-breaking
+    // streak mentioned in 10808fef5921b7acff203da4fdaa0fdbaec2f603.
+    //
+    // Instead of hackily trying to avoid a reallocation, just eat the cost and
+    // create a new string (Ruby will copy the data). Ruby has gotten faster
+    // over the years anyway, and we can hope that the cost of parsing outweighs
+    // the allocation and copying.
+    return rb_str_new(parser->output->ptr, parser->output->len - 1);
+#else
+    // Nasty hack to avoid re-allocating our return value by reaching into Ruby
+    // string internals.
+    len = parser->output->len - 1; // Don't count null termination.
 
     VALUE out = rb_str_buf_new(RSTRING_EMBED_LEN_MAX + 1);
     free(RSTRING_PTR(out));
     RSTRING(out)->as.heap.aux.capa = len;
     RSTRING(out)->as.heap.ptr = parser->output->ptr;
     RSTRING(out)->as.heap.len = len;
-    parser->output->ptr = NULL; // don't double-free
+    parser->output->ptr = NULL; // Don't double-free.
     return out;
+#endif
 }
