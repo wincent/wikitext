@@ -1,4 +1,6 @@
+/Gemfile.lock
 /.specification
 /.yardoc/
 /gh-pages
 /pkg
+*.dSYM

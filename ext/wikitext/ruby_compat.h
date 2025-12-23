@@ -23,6 +23,10 @@
 
 #include <ruby.h>
 
+#ifdef HAVE_RUBY_VERSION_H
+#include <ruby/version.h>
+#endif
+
 // for compatibility with Ruby 1.8.5, which doesn't declare RSTRING_PTR
 #ifndef RSTRING_PTR
 #define RSTRING_PTR(s) (RSTRING(s)->ptr)
