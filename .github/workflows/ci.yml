@@ -13,10 +13,10 @@ jobs:
     strategy:
       matrix:
         ruby-version:
-          - '1.9.3'
-          - '2.0.0'
+          - '1.9.3-p551'
+          - '2.0.0-p648'
           - '2.1.9'
-          - '2.2'
+          - '2.2.10'
           - '2.3.8'
           - '2.4.10'
           - '2.5.9'
@@ -26,6 +26,7 @@ jobs:
           - '3.1.7'
           - '3.2.9'
           - '3.3.10'
+          - '3.4.8'
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Setup Ruby ${{ matrix.ruby-version }}
