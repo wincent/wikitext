@@ -53,3 +53,23 @@ for VERSION in 3.4.8 3.3.10 3.2.9 3.1.7 2.7.8; do
     echo "Finished test with $VERSION"
 done
 ```
+
+# Releasing
+
+Update `lib/wikitext/version.rb` and `doc/RELEASE-NOTES`, then:
+
+```
+git commit -p -m 'chore: prepare for 4.9 release'
+git tag -s 4.9 -m '4.9 release'
+git push --follow-tags
+
+bundle exec rake build
+bundle exec rake push
+
+git worktree add gh-pages origin/gh-pages # First time only.
+
+bundle exec rake yard
+cd gh-pages
+git commit -p -m 'docs: run `bundle exec rake yard` for 4.9 release'
+git push
+```
