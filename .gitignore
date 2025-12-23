@@ -1,6 +1,7 @@
-/Gemfile.lock
+*.dSYM
+*.gem
 /.specification
 /.yardoc/
+/Gemfile.lock
 /gh-pages
 /pkg
-*.dSYM
