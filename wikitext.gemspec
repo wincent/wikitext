@@ -47,6 +47,13 @@ Gem::Specification.new do |s|
   s.description           = <<-DESC
     Wikitext is a fast wikitext-to-HTML translator written in C.
   DESC
+  s.metadata              = {
+    'documentation_uri'   => 'http://wincent.github.io/wikitext/',
+    'bug_tracker_uri'     => 'https://github.com/wincent/wikitext/issues',
+    'changelog_uri'       => 'https://github.com/wincent/wikitext/releases',
+    'homepage_uri'        => 'https://github.com/wincent/wikitext',
+    'source_code_uri'     => 'https://github.com/wincent/wikitext',
+  }
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '~> 3.0'
   s.add_development_dependency 'yard', '~> 0.9'
