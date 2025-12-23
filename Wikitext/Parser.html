@@ -311,10 +311,7 @@
 <span class='id identifier rubyid_parser'>parser</span><span class='period'>.</span><span class='id identifier rubyid_link_proc'>link_proc</span> <span class='op'>=</span> <span class='id identifier rubyid_link_proc'>link_proc</span>
 </code></pre>
 
-<p>Many more examples of link procs can be found in the spec suite:</p>
-<ul><li>
-<p><a href="http://git.wincent.com/wikitext.git/blob/HEAD:/spec/internal_link_spec.rb">git.wincent.com/wikitext.git/blob/HEAD:/spec/internal_link_spec.rb</a></p>
-</li></ul>
+<p>Many more examples of link procs can be found in the spec suite.</p>
 
 
   </div>
@@ -550,13 +547,13 @@
       <pre class="lines">
 
 
+330
+331
 332
-333
-334
-335</pre>
+333</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 332</span>
+      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 330</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
   <span class='comment'># This is just a placeholder.
@@ -619,13 +616,13 @@
       <pre class="lines">
 
 
+306
+307
 308
-309
-310
-311</pre>
+309</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 308</span>
+      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 306</span>
 
 <span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_encode_link_target'>encode_link_target</span> <span class='id identifier rubyid_string'>string</span>
   <span class='comment'># This is just a placeholder.
@@ -676,13 +673,13 @@
       <pre class="lines">
 
 
+272
+273
 274
-275
-276
-277</pre>
+275</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 274</span>
+      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 272</span>
 
 <span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_sanitize_link_target'>sanitize_link_target</span> <span class='id identifier rubyid_string'>string</span>
   <span class='comment'># This is just a placeholder.
@@ -727,13 +724,13 @@
       <pre class="lines">
 
 
+355
+356
 357
-358
-359
-360</pre>
+358</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 357</span>
+      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 355</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_benchmarking_tokenize'>benchmarking_tokenize</span> <span class='id identifier rubyid_string'>string</span>
   <span class='comment'># This is just a placeholder.
@@ -759,16 +756,16 @@
 <p>Parses and transforms the UTF-8 wikitext markup input string into HTML. Raises a Wikitext::Parser::Error if passed invalid UTF-8. You can customize some aspects of the transformation by setting attributes on the parser instance before calling this method (see the attributes documentation for the Parser class), or by passing in an (optional) options hash.</p>
 
 <p>Options that can be overridden at parse-time include:</p>
-<dl class="rdoc-list note-list"><dt><code>indent</code>
+<dl class="rdoc-list note-list"><dt><code>indent</code></dt>
 <dd>
 <p>A non-negative number (to add an arbitrary amount of indentation to all lines in the output) or false (to disable indentation entirely).</p>
-</dd><dt><code>base_heading_level</code>
+</dd><dt><code>base_heading_level</code></dt>
 <dd>
 <p>An integer between 0 and 6 denoting the current “heading level” (documented above).</p>
-</dd><dt><code>output_style</code>
+</dd><dt><code>output_style</code></dt>
 <dd>
 <p>A symbol, “:xml”, to emit XML syntax (by default HTML syntax is emitted)</p>
-</dd><dt><code>link_proc</code>
+</dd><dt><code>link_proc</code></dt>
 <dd>
 <p>A lambda that can be used to apply custom CSS to links to produce “red links” (documented above)</p>
 </dd></dl>
@@ -785,13 +782,13 @@
       <pre class="lines">
 
 
+380
+381
 382
-383
-384
-385</pre>
+383</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 382</span>
+      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 380</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_parse'>parse</span> <span class='id identifier rubyid_string'>string</span><span class='comma'>,</span> <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
   <span class='comment'># This is just a placeholder.
@@ -830,13 +827,13 @@
       <pre class="lines">
 
 
+343
+344
 345
-346
-347
-348</pre>
+346</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 345</span>
+      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 343</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_tokenize'>tokenize</span> <span class='id identifier rubyid_string'>string</span>
   <span class='comment'># This is just a placeholder.
@@ -852,9 +849,9 @@
 </div>
 
       <div id="footer">
-  Generated on Sat Dec 25 23:10:25 2021 by
-  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.27 (ruby-3.1.0).
+  Generated on Tue Dec 23 19:34:39 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-3.4.8).
 </div>
 
     </div>

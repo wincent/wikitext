@@ -107,31 +107,31 @@
 <p>This class exists purely for testing and diagnostic purposes; it is actually just a wrapper for the real token structure that is used internally.  (In actual use the Wikitext extension doesn’t even use this class; it instead uses lightweight C structs under the hood for maximum speed and memory efficiency.)</p>
 
 <h1 id="label-Attributes">Attributes</h1>
-<dl class="rdoc-list note-list"><dt><code>start</code>
+<dl class="rdoc-list note-list"><dt><code>start</code></dt>
 <dd>
 <p>the location in memory (a character pointer into the input stream) where the token begins</p>
-</dd><dt><code>stop</code>
+</dd><dt><code>stop</code></dt>
 <dd>
 <p>the location in memory (a character pointer) where the token ends</p>
-</dd><dt><code>line_start</code>
+</dd><dt><code>line_start</code></dt>
 <dd>
 <p>the line number where the token starts; numbering begins at line 1 (there is no line 0)</p>
-</dd><dt><code>line_stop</code>
+</dd><dt><code>line_stop</code></dt>
 <dd>
 <p>the line number where the token ends</p>
-</dd><dt><code>column_start</code>
+</dd><dt><code>column_start</code></dt>
 <dd>
 <p>the column number where the token start; numbering beings at column 1 (there is no column 0)</p>
-</dd><dt><code>column_stop</code>
+</dd><dt><code>column_stop</code></dt>
 <dd>
 <p>the column number where the token ends</p>
-</dd><dt><code>code_point</code>
+</dd><dt><code>code_point</code></dt>
 <dd>
 <p>for tokens outside the range of printable ASCII the UTF-32 code point corresponding to the token</p>
-</dd><dt><code>token_type</code>
+</dd><dt><code>token_type</code></dt>
 <dd>
 <p>the type of the token, from the possible set of token types returned by the types method</p>
-</dd><dt><code>string_value</code>
+</dd><dt><code>string_value</code></dt>
 <dd>
 <p>the textal content of the token as a Ruby String</p>
 </dd></dl>
@@ -216,13 +216,13 @@
       <pre class="lines">
 
 
+422
+423
 424
-425
-426
-427</pre>
+425</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 424</span>
+      <pre class="code"><span class="info file"># File 'doc/rdoc.rb', line 422</span>
 
 <span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_types'>types</span>
   <span class='comment'># This is just a placeholder.
@@ -238,9 +238,9 @@
 </div>
 
       <div id="footer">
-  Generated on Sat Dec 25 23:10:25 2021 by
-  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.27 (ruby-3.1.0).
+  Generated on Tue Dec 23 19:34:39 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-3.4.8).
 </div>
 
     </div>
